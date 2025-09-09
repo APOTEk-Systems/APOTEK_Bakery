@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { useLocation, Link } from "react-router-dom";
 import { 
   Home, 
   Package, 
@@ -9,13 +10,15 @@ import {
 } from "lucide-react";
 
 const Navigation = () => {
+  const location = useLocation();
+  
   const navItems = [
-    { icon: Home, label: "Dashboard", active: true },
-    { icon: Cookie, label: "Products", active: false },
-    { icon: Package, label: "Inventory", active: false },
-    { icon: ShoppingCart, label: "Orders", active: false },
-    { icon: Users, label: "Customers", active: false },
-    { icon: Settings, label: "Settings", active: false }
+    { icon: Home, label: "Dashboard", path: "/" },
+    { icon: Cookie, label: "Products", path: "/products" },
+    { icon: Package, label: "Inventory", path: "/inventory" },
+    { icon: ShoppingCart, label: "Orders", path: "/orders" },
+    { icon: Users, label: "Customers", path: "/customers" },
+    { icon: Settings, label: "Settings", path: "/settings" }
   ];
 
   return (
@@ -34,14 +37,19 @@ const Navigation = () => {
         <div className="space-y-2">
           {navItems.map((item, index) => {
             const Icon = item.icon;
+            const isActive = location.pathname === item.path || 
+              (item.path !== "/" && location.pathname.startsWith(item.path));
             return (
               <Button
                 key={index}
-                variant={item.active ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 ${item.active ? 'bg-primary text-primary-foreground shadow-warm' : 'hover:bg-muted'}`}
+                variant={isActive ? "default" : "ghost"}
+                className={`w-full justify-start gap-3 ${isActive ? 'bg-primary text-primary-foreground shadow-warm' : 'hover:bg-muted'}`}
+                asChild
               >
-                <Icon className="h-5 w-5" />
-                {item.label}
+                <Link to={item.path}>
+                  <Icon className="h-5 w-5" />
+                  {item.label}
+                </Link>
               </Button>
             );
           })}
