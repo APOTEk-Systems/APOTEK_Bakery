@@ -106,10 +106,12 @@ const Sales = () => {
               <h1 className="text-3xl font-bold text-foreground">Sales</h1>
               <p className="text-muted-foreground">Track daily sales and transactions</p>
             </div>
-            <Button className="shadow-warm">
-              <Plus className="h-4 w-4 mr-2" />
-              New Sale
-            </Button>
+            <Link to="/sales/new">
+              <Button className="shadow-warm">
+                <Plus className="h-4 w-4 mr-2" />
+                New Sale
+              </Button>
+            </Link>
           </div>
         </div>
 
