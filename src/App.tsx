@@ -15,6 +15,8 @@ import OrderForm from "./pages/OrderForm";
 import Customers from "./pages/Customers";
 import CustomerDetail from "./pages/CustomerDetail";
 import CustomerForm from "./pages/CustomerForm";
+import Sales from "./pages/Sales";
+import Accounting from "./pages/Accounting";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
@@ -43,6 +45,8 @@ const App = () => (
           <Route path="/customers/new" element={<CustomerForm />} />
           <Route path="/customers/:id" element={<CustomerDetail />} />
           <Route path="/customers/:id/edit" element={<CustomerForm />} />
+          <Route path="/sales" element={<Sales />} />
+          <Route path="/accounting" element={<Accounting />} />
           <Route path="/settings" element={<Settings />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

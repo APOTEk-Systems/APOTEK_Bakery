@@ -6,7 +6,9 @@ import {
   ShoppingCart, 
   Users, 
   Settings,
-  Cookie
+  Cookie,
+  CreditCard,
+  Calculator
 } from "lucide-react";
 
 const Navigation = () => {
@@ -18,6 +20,8 @@ const Navigation = () => {
     { icon: Package, label: "Inventory", path: "/inventory" },
     { icon: ShoppingCart, label: "Orders", path: "/orders" },
     { icon: Users, label: "Customers", path: "/customers" },
+    { icon: CreditCard, label: "Sales", path: "/sales" },
+    { icon: Calculator, label: "Accounting", path: "/accounting" },
     { icon: Settings, label: "Settings", path: "/settings" }
   ];
 
