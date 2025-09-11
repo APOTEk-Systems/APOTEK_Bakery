@@ -176,81 +176,83 @@ const Customers = () => {
           </div>
         </div>
 
-        {/* Customers Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          {filteredCustomers.map((customer) => (
-            <Card key={customer.id} className="shadow-warm hover:shadow-glow transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <User className="h-6 w-6 text-primary" />
+        {/* Customers List */}
+        <Card className="shadow-warm">
+          <CardContent className="p-0">
+            <div className="divide-y divide-border">
+              {filteredCustomers.map((customer) => (
+                <div key={customer.id} className="p-4 hover:bg-muted/20 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 flex-1">
+                      <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <User className="h-6 w-6 text-primary" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground">{customer.name}</h3>
+                          <Badge variant={getStatusColor(customer.status)}>
+                            {customer.status}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            <span>{customer.email}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{customer.phone}</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-6 text-center">
+                        <div>
+                          <p className="text-lg font-bold text-foreground">{customer.totalOrders}</p>
+                          <p className="text-xs text-muted-foreground">Orders</p>
+                        </div>
+                        <div>
+                          <p className="text-lg font-bold text-foreground">${customer.totalSpent.toFixed(0)}</p>
+                          <p className="text-xs text-muted-foreground">Total Spent</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Last: {formatDate(customer.lastOrder)}</p>
+                          <div className="flex gap-1 mt-1">
+                            {customer.favoriteItems.slice(0, 2).map((item, index) => (
+                              <Badge key={index} variant="outline" className="text-xs">
+                                {item.split(' ')[0]}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground">{customer.name}</h3>
-                      <Badge variant={getStatusColor(customer.status)}>
-                        {customer.status}
-                      </Badge>
+                    
+                    <div className="flex gap-1">
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to={`/customers/${customer.id}`}>
+                          <Eye className="h-4 w-4" />
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to={`/customers/${customer.id}/edit`}>
+                          <Edit className="h-4 w-4" />
+                        </Link>
+                      </Button>
                     </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/customers/${customer.id}`}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/customers/${customer.id}/edit`}>
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{customer.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm text-foreground">{customer.phone}</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 py-3 border-y border-border">
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-foreground">{customer.totalOrders}</p>
-                    <p className="text-xs text-muted-foreground">Orders</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-foreground">${customer.totalSpent.toFixed(0)}</p>
-                    <p className="text-xs text-muted-foreground">Total Spent</p>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Favorite Items</p>
-                  <div className="flex flex-wrap gap-1">
-                    {customer.favoriteItems.slice(0, 2).map((item, index) => (
-                      <Badge key={index} variant="outline" className="text-xs">
-                        {item}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="text-sm text-muted-foreground">Last Order: {formatDate(customer.lastOrder)}</p>
+                  
                   {customer.notes && (
-                    <p className="text-xs text-muted-foreground mt-1 italic">"{customer.notes}"</p>
+                    <div className="mt-2 ml-16">
+                      <p className="text-xs text-muted-foreground italic">"{customer.notes}"</p>
+                    </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {filteredCustomers.length === 0 && (
           <div className="text-center py-12">

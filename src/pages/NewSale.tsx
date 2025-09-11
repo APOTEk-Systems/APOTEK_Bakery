@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
   ArrowLeft,
   Plus,
@@ -19,7 +20,8 @@ import {
   Receipt,
   Trash2,
   User,
-  ShoppingCart
+  ShoppingCart,
+  UserPlus
 } from "lucide-react";
 
 interface Product {
@@ -27,6 +29,7 @@ interface Product {
   name: string;
   price: number;
   category: string;
+  stock: number;
   image?: string;
 }
 
@@ -41,21 +44,27 @@ const NewSale = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [amountReceived, setAmountReceived] = useState("");
+  const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false);
+  const [newCustomerForm, setNewCustomerForm] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
 
   // Mock bakery products
   const products: Product[] = [
-    { id: "1", name: "Chocolate Croissant", price: 4.25, category: "pastries" },
-    { id: "2", name: "Sourdough Bread", price: 8.50, category: "breads" },
-    { id: "3", name: "Blueberry Muffin", price: 3.00, category: "muffins" },
-    { id: "4", name: "Cappuccino", price: 3.50, category: "beverages" },
-    { id: "5", name: "Red Velvet Cupcake", price: 3.75, category: "cupcakes" },
-    { id: "6", name: "Baguette", price: 5.50, category: "breads" },
-    { id: "7", name: "Espresso", price: 2.50, category: "beverages" },
-    { id: "8", name: "Danish Pastry", price: 3.25, category: "pastries" },
-    { id: "9", name: "Chocolate Chip Muffin", price: 3.00, category: "muffins" },
-    { id: "10", name: "Vanilla Cupcake", price: 3.50, category: "cupcakes" },
-    { id: "11", name: "Croissant", price: 2.75, category: "pastries" },
-    { id: "12", name: "Latte", price: 4.00, category: "beverages" }
+    { id: "1", name: "Chocolate Croissant", price: 4.25, category: "pastries", stock: 24 },
+    { id: "2", name: "Sourdough Bread", price: 8.50, category: "breads", stock: 12 },
+    { id: "3", name: "Blueberry Muffin", price: 3.00, category: "muffins", stock: 18 },
+    { id: "4", name: "Cappuccino", price: 3.50, category: "beverages", stock: 999 },
+    { id: "5", name: "Red Velvet Cupcake", price: 3.75, category: "cupcakes", stock: 8 },
+    { id: "6", name: "Baguette", price: 5.50, category: "breads", stock: 6 },
+    { id: "7", name: "Espresso", price: 2.50, category: "beverages", stock: 999 },
+    { id: "8", name: "Danish Pastry", price: 3.25, category: "pastries", stock: 15 },
+    { id: "9", name: "Chocolate Chip Muffin", price: 3.00, category: "muffins", stock: 22 },
+    { id: "10", name: "Vanilla Cupcake", price: 3.50, category: "cupcakes", stock: 14 },
+    { id: "11", name: "Croissant", price: 2.75, category: "pastries", stock: 30 },
+    { id: "12", name: "Latte", price: 4.00, category: "beverages", stock: 999 }
   ];
 
   const categories = ["all", "breads", "pastries", "muffins", "cupcakes", "beverages"];
@@ -109,6 +118,13 @@ const NewSale = () => {
     setPaymentMethod("");
     setCustomerName("");
     setAmountReceived("");
+  };
+
+  const handleAddNewCustomer = () => {
+    // Mock customer creation
+    setCustomerName(newCustomerForm.name);
+    setNewCustomerForm({ name: "", email: "", phone: "" });
+    setIsNewCustomerOpen(false);
   };
 
   return (
@@ -170,27 +186,49 @@ const NewSale = () => {
               </CardContent>
             </Card>
 
-            {/* Products Grid */}
+            {/* Products List */}
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle>Products</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div className="divide-y divide-border">
                   {filteredProducts.map((product) => (
                     <div
                       key={product.id}
-                      className="border border-border rounded-lg p-3 hover:shadow-lg transition-shadow cursor-pointer"
+                      className="flex items-center justify-between py-3 hover:bg-muted/20 transition-colors cursor-pointer rounded px-2"
                       onClick={() => addToCart(product)}
                     >
-                      <div className="w-full h-20 bg-muted/30 rounded-lg mb-2 flex items-center justify-center">
-                        <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+                      <div className="flex items-center gap-3 flex-1">
+                        <div className="w-10 h-10 bg-muted/30 rounded-lg flex items-center justify-center">
+                          <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-medium text-foreground">{product.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {product.category}
+                            </Badge>
+                            <span className={`text-xs ${product.stock < 10 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                              {product.stock < 999 ? `Stock: ${product.stock}` : 'In Stock'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <h3 className="font-medium text-sm text-foreground mb-1">{product.name}</h3>
-                      <p className="text-lg font-bold text-primary">${product.price.toFixed(2)}</p>
-                      <Badge variant="outline" className="text-xs mt-1">
-                        {product.category}
-                      </Badge>
+                      <div className="text-right">
+                        <p className="text-lg font-bold text-primary">${product.price.toFixed(2)}</p>
+                        <Button
+                          size="sm"
+                          className="mt-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(product);
+                          }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -261,12 +299,71 @@ const NewSale = () => {
                   Customer (Optional)
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-3">
                 <Input
                   placeholder="Customer name..."
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                 />
+                <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add New Customer
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Customer</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="new-name">Name *</Label>
+                        <Input
+                          id="new-name"
+                          value={newCustomerForm.name}
+                          onChange={(e) => setNewCustomerForm(prev => ({ ...prev, name: e.target.value }))}
+                          placeholder="Customer name"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new-email">Email</Label>
+                        <Input
+                          id="new-email"
+                          type="email"
+                          value={newCustomerForm.email}
+                          onChange={(e) => setNewCustomerForm(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="customer@email.com"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="new-phone">Phone</Label>
+                        <Input
+                          id="new-phone"
+                          value={newCustomerForm.phone}
+                          onChange={(e) => setNewCustomerForm(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button 
+                          onClick={handleAddNewCustomer}
+                          disabled={!newCustomerForm.name.trim()}
+                          className="flex-1"
+                        >
+                          Add Customer
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => setIsNewCustomerOpen(false)}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
 
