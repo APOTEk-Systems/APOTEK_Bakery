@@ -8,7 +8,8 @@ import {
   Settings,
   Cookie,
   CreditCard,
-  Calculator
+  Calculator,
+  CheckCircle
 } from "lucide-react";
 
 const Navigation = () => {
@@ -17,6 +18,9 @@ const Navigation = () => {
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
     { icon: Cookie, label: "Products", path: "/products" },
+    { icon: Package, label: "Stock Requests", path: "/stock-requests" },
+    { icon: CheckCircle, label: "Approvals", path: "/request-approvals" },
+    { icon: ShoppingCart, label: "Purchase Orders", path: "/purchase-orders" },
     { icon: Package, label: "Inventory", path: "/inventory" },
     { icon: ShoppingCart, label: "Orders", path: "/orders" },
     { icon: Users, label: "Customers", path: "/customers" },

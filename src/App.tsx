@@ -17,6 +17,9 @@ import CustomerDetail from "./pages/CustomerDetail";
 import CustomerForm from "./pages/CustomerForm";
 import Sales from "./pages/Sales";
 import NewSale from "./pages/NewSale";
+import StockRequests from "./pages/StockRequests";
+import RequestApprovals from "./pages/RequestApprovals";
+import PurchaseOrders from "./pages/PurchaseOrders";
 import Accounting from "./pages/Accounting";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -35,6 +38,9 @@ const App = () => (
           <Route path="/products/new" element={<ProductForm />} />
           <Route path="/products/:id" element={<ProductDetail />} />
           <Route path="/products/:id/edit" element={<ProductForm />} />
+          <Route path="/stock-requests" element={<StockRequests />} />
+          <Route path="/request-approvals" element={<RequestApprovals />} />
+          <Route path="/purchase-orders" element={<PurchaseOrders />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/inventory/new" element={<InventoryForm />} />
           <Route path="/inventory/:id/edit" element={<InventoryForm />} />
