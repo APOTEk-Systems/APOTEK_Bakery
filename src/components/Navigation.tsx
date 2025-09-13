@@ -9,7 +9,8 @@ import {
   Cookie,
   CreditCard,
   Calculator,
-  CheckCircle
+  CheckCircle,
+  LogIn
 } from "lucide-react";
 
 const Navigation = () => {
@@ -61,6 +62,19 @@ const Navigation = () => {
               </Button>
             );
           })}
+        </div>
+        
+        <div className="absolute bottom-6 left-6 right-6">
+          <Button
+            variant="outline"
+            className="w-full justify-start gap-3"
+            asChild
+          >
+            <Link to="/login">
+              <LogIn className="h-5 w-5" />
+              Login
+            </Link>
+          </Button>
         </div>
       </div>
     </nav>
