@@ -1,203 +1,403 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { 
-  ShoppingCart, 
-  Package, 
-  AlertTriangle, 
-  TrendingUp, 
-  Users,
+import React from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from "recharts";
+import { useQuery } from '@tanstack/react-query';
+import {useAuth} from "@/contexts/AuthContext";
+import {salesService, Sale} from "@/services/sales";
+import {purchasesService} from "@/services/purchases";
+import {inventoryService} from "@/services/inventory";
+import {accountingService} from "@/services/accounting";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Button} from "@/components/ui/button";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {
+  Package,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
   DollarSign,
   Cookie,
-  Timer
+  Timer,
+  Loader2,
 } from "lucide-react";
-import bakeryHeroImage from "@/assets/bakery-hero.jpg";
+import { formatCurrency } from "@/lib/funcs";
 
-const Dashboard = () => {
-  const todayStats = {
-    revenue: 1247.50,
-    orders: 28,
-    customers: 42,
-    popularItem: "Sourdough Bread"
+const SalesSummaryTab = () => {
+  const { data: dashboardData, isPending: loading } = useQuery({
+    queryKey: ['salesDashboard'],
+    queryFn: () => salesService.getSalesSummary(),
+  });
+
+  const salesData = dashboardData?.weeklySalesList || [];
+
+  const growthPercentage = dashboardData?.salesGrowth && dashboardData.salesGrowth.previous !== 0 ?
+    (((dashboardData.salesGrowth.current - dashboardData.salesGrowth.previous) / dashboardData.salesGrowth.previous) * 100).toFixed(2) : '0.00';
+
+  const growthNum = parseFloat(growthPercentage) || 0;
+
+  if(loading){
+    return(
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Sales Loading</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Sales This Month</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(dashboardData?.totalSalesThisMonth) ?? "0.00"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Growth: {growthPercentage}%
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Average Daily Sales</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(dashboardData?.averageDailySales) ?? "0.00"}
+            </div>
+            <p className="text-xs text-muted-foreground">Average per day</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Sales Growth</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {growthPercentage}%
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Current: {formatCurrency(dashboardData?.salesGrowth?.current) ?? "0.00"} | Previous: {formatCurrency(dashboardData?.salesGrowth?.previous) ?? "0.00"}
+            </p>
+            <div className="flex items-center mt-2">
+              {growthNum > 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
+              )}
+              <span className={`text-sm ${growthNum > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {growthNum > 0 ? 'Up' : 'Down'} {Math.abs(growthNum)}%
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Weekly Sales Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={salesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="weekStart" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`${formatCurrency(Number(value))}`, 'Total']} />
+              <Bar dataKey="total" fill="#93631f" name="Sales" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+const PurchasesSummaryTab = () => {
+  const { data: dashboardData, isPending: loading } = useQuery({
+    queryKey: ['purchasesDashboard'],
+    queryFn: () => purchasesService.getPurchaseSummary(),
+  });
+
+  const purchasesData = dashboardData?.weeklyPurchasesList || [];
+
+  if(loading){
+    return(
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Purchases Loading</p>
+      </div>
+    )
   };
 
-  const inventoryAlerts = [
-    { item: "All-purpose flour", level: "Low", status: "warning" },
-    { item: "Vanilla extract", level: "Critical", status: "critical" },
-    { item: "Butter", level: "Low", status: "warning" }
-  ];
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Purchases This Month</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(dashboardData?.totalPurchasesThisMonth) ?? "0.00"}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Growth: {dashboardData?.purchaseGrowth ?? "0.00"}%
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Pending Purchase Orders</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {dashboardData?.pendingPurchaseOrders ?? 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Orders awaiting approval</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Purchase Growth</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {dashboardData?.purchaseGrowth ?? "0.00"}%
+            </div>
+            <p className="text-xs text-muted-foreground">Monthly growth rate</p>
+            <div className="flex items-center mt-2">
+              {parseFloat(dashboardData?.purchaseGrowth || '0') > 0 ? (
+                <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
+              )}
+              <span className={`text-sm ${parseFloat(dashboardData?.purchaseGrowth || '0') > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {parseFloat(dashboardData?.purchaseGrowth || '0') > 0 ? 'Up' : 'Down'} {Math.abs(parseFloat(dashboardData?.purchaseGrowth || '0'))}%
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Weekly Purchases Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={purchasesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="weekStart" />
+              <YAxis />
+              <Tooltip formatter={(value) => [`${formatCurrency(Number(value || 0))}`, 'Total']} />
+              <Bar dataKey="total" fill="#ef4444" name="Purchases" />
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
-  const recentOrders = [
-    { id: "ORD-001", customer: "Sarah Johnson", items: "2x Croissants, 1x Coffee Cake", total: 24.50, status: "preparing" },
-    { id: "ORD-002", customer: "Mike Chen", items: "1x Sourdough, 3x Muffins", total: 18.75, status: "ready" },
-    { id: "ORD-003", customer: "Emma Davis", items: "Wedding Cake (Custom)", total: 185.00, status: "pending" }
-  ];
+const InventorySummaryTab = () => {
+  const { data: summary, isPending: loading } = useQuery({
+    queryKey: ['inventorySummary'],
+    queryFn: () => inventoryService.getInventorySummary(),
+  });
+
+  if(loading){
+    return(
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Loading ...</p>
+      </div>
+    )
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-orange-500" />
+          Inventory Alerts
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex gap-4">
+          {/* Low Stock Raw Materials */}
+          <div className="flex-1 space-y-2">
+            <h4 className="font-semibold">Raw Materials</h4>
+            {summary?.lowStockRawMaterials.length > 0 ? (
+              summary.lowStockRawMaterials.map((item: any) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Minimum level: {item.minLevel}
+                    </p>
+                  </div>
+                  <Badge variant="destructive">Alert</Badge>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground">No low raw materials</p>
+            )}
+          </div>
+
+          {/* Low Stock Supplies */}
+          <div className="flex-1 space-y-2">
+            <h4 className="font-semibold">Supplies</h4>
+            {summary?.lowStockSupplies.length > 0 ? (
+              summary.lowStockSupplies.map((item: any) => (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                >
+                  <div>
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Minimum level: {item.minLevel}
+                    </p>
+                  </div>
+                  <Badge variant="destructive">Alert</Badge>
+                </div>
+              ))
+            ) : (
+              <p className="text-muted-foreground">No low supplies</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const AccountingSummaryTab = () => {
+  const { data: summary, isPending: loading } = useQuery({
+    queryKey: ['accountingSummary'],
+    queryFn: () => accountingService.getAccountingSummary(),
+  });
+
+  if(loading){
+    return(
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Loading ...</p>
+      </div>
+    )
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Accounting Summary
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-lg font-bold">
+              ${summary?.monthlyRevenue?.toFixed(2) ?? "0.00"}
+            </p>
+            <p className="text-sm text-muted-foreground">Monthly Income</p>
+          </div>
+          <div>
+            <p className="text-lg font-bold text-red-500">
+              ${summary?.monthlyExpenses?.toFixed(2) ?? "0.00"}
+            </p>
+            <p className="text-sm text-muted-foreground">Monthly Expenses</p>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Net Profit for the month: ${summary?.netProfit?.toFixed(2) ?? "0.00"}
+        </p>
+      </CardContent>
+    </Card>
+  );
+};
+
+const Dashboard = () => {
+  const {user, isAuthenticated, isLoading: authLoading} = useAuth();
+
+  if (authLoading) {
+    return (
+      <div className="w-full h-screen flex justify-center items-center">
+        {" "}
+        <Loader2 className="mr-2 h-10 w-10 animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Handled by ProtectedRoute
+  }
+
+  const isAdmin = user?.role === "admin";
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <div className="relative h-64 bg-gradient-to-r from-primary to-accent overflow-hidden">
-        <img 
-          src={bakeryHeroImage} 
-          alt="Bakery interior with fresh bread and pastries"
-          className="w-full h-full object-cover mix-blend-overlay"
-        />
-        <div className="absolute inset-0 bg-primary/60" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-primary-foreground mb-2">
-              Golden Crust Bakery
-            </h1>
-            <p className="text-xl text-primary-foreground/90">
-              Management Dashboard
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="container mx-auto px-6 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="shadow-warm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Today's Revenue
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                ${todayStats.revenue.toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground flex items-center mt-1">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-600" />
-                +12% from yesterday
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-warm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Orders Today
-              </CardTitle>
-              <ShoppingCart className="h-4 w-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {todayStats.orders}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                3 pending • 8 in progress
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-warm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Customers Served
-              </CardTitle>
-              <Users className="h-4 w-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-foreground">
-                {todayStats.customers}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                +5 new customers
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-warm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Popular Item
-              </CardTitle>
-              <Cookie className="h-4 w-4 text-accent" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-foreground">
-                {todayStats.popularItem}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                12 sold today
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Inventory Alerts */}
-          <Card className="shadow-warm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <AlertTriangle className="h-5 w-5 text-orange-500" />
-                Inventory Alerts
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {inventoryAlerts.map((alert, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div>
-                    <p className="font-medium text-foreground">{alert.item}</p>
-                    <p className="text-sm text-muted-foreground">Stock level: {alert.level}</p>
-                  </div>
-                  <Badge 
-                    variant={alert.status === "critical" ? "destructive" : "secondary"}
-                  >
-                    {alert.level}
-                  </Badge>
-                </div>
-              ))}
-              <Button className="w-full mt-4" variant="outline">
-                <Package className="h-4 w-4 mr-2" />
-                Manage Inventory
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Recent Orders */}
-          <Card className="lg:col-span-2 shadow-warm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Timer className="h-5 w-5 text-primary" />
-                Recent Orders
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentOrders.map((order) => (
-                  <div key={order.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="font-medium text-foreground">{order.id}</span>
-                        <Badge 
-                          variant={
-                            order.status === "ready" ? "default" : 
-                            order.status === "preparing" ? "secondary" : 
-                            "outline"
-                          }
-                        >
-                          {order.status}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">{order.customer}</p>
-                      <p className="text-sm text-foreground">{order.items}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg text-foreground">${order.total}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <Button className="w-full mt-4" variant="outline">
-                View All Orders
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+        <Tabs defaultValue="sales" className="w-full">
+          <TabsList className="w-full">
+            <TabsTrigger value="sales" className="w-full">
+              Sales
+            </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="purchases" className="w-full">
+                Purchases
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="inventory" className="w-full">
+                Inventory
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="accounting" className="w-full">
+                Accounting
+              </TabsTrigger>
+            )}
+          </TabsList>
+          <TabsContent value="sales">
+            <SalesSummaryTab />
+          </TabsContent>
+          {isAdmin && (
+            <>
+              <TabsContent value="purchases">
+                <PurchasesSummaryTab />
+              </TabsContent>
+              <TabsContent value="inventory">
+                <InventorySummaryTab />
+              </TabsContent>
+              <TabsContent value="accounting">
+                <AccountingSummaryTab />
+              </TabsContent>
+            </>
+          )}
+        </Tabs>
       </div>
     </div>
   );

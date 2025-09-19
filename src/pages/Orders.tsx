@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -13,76 +13,43 @@ import {
   Clock,
   DollarSign,
   User,
-  Calendar
+  Calendar,
+  Loader2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Order, salesService } from "@/services/sales";
 
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const orders = [
-    {
-      id: "ORD-001",
-      customerName: "Sarah Johnson",
-      customerEmail: "sarah@email.com",
-      items: [
-        { name: "Chocolate Croissant", quantity: 2, price: 4.25 },
-        { name: "Coffee", quantity: 1, price: 3.50 }
-      ],
-      total: 12.00,
-      status: "pending",
-      orderDate: "2024-01-22T09:30:00Z",
-      dueDate: "2024-01-22T16:00:00Z",
-      notes: "Extra chocolate please"
-    },
-    {
-      id: "ORD-002", 
-      customerName: "Mike Chen",
-      customerEmail: "mike@email.com",
-      items: [
-        { name: "Sourdough Bread", quantity: 1, price: 8.50 },
-        { name: "Blueberry Muffin", quantity: 3, price: 3.00 }
-      ],
-      total: 17.50,
-      status: "preparing",
-      orderDate: "2024-01-22T10:15:00Z",
-      dueDate: "2024-01-22T18:00:00Z",
-      notes: ""
-    },
-    {
-      id: "ORD-003",
-      customerName: "Emma Davis",
-      customerEmail: "emma@email.com", 
-      items: [
-        { name: "Wedding Cake (Custom)", quantity: 1, price: 185.00 }
-      ],
-      total: 185.00,
-      status: "ready",
-      orderDate: "2024-01-20T14:00:00Z",
-      dueDate: "2024-01-25T12:00:00Z",
-      notes: "3-tier vanilla cake with roses"
-    },
-    {
-      id: "ORD-004",
-      customerName: "John Smith",
-      customerEmail: "john@email.com",
-      items: [
-        { name: "Red Velvet Cupcake", quantity: 12, price: 3.75 }
-      ],
-      total: 45.00,
-      status: "completed",
-      orderDate: "2024-01-21T11:00:00Z",
-      dueDate: "2024-01-21T15:00:00Z",
-      notes: "For office party"
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        setLoading(true);
+        const ordersData = await salesService.getAllOrders();
+        setOrders(ordersData);
+      } catch (err) {
+        setError("Failed to fetch orders");
+        toast({ title: "Error", description: "Failed to load orders", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    fetchOrders();
+  }, []);
 
-  const statuses = ["all", "pending", "preparing", "ready", "completed"];
+  const statuses = ["all", "pending", "preparing", "ready", "completed", "cancelled"];
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const customerName = order.customer?.name || order.customerName || '';
+    const matchesSearch = order.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         order.items.some(item => item.product?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '');
     const matchesStatus = filterStatus === "all" || order.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
@@ -92,7 +59,8 @@ const Orders = () => {
       case "pending": return "secondary";
       case "preparing": return "default";
       case "ready": return "outline";
-      case "completed": return "outline";
+      case "completed": return "default";
+      case "cancelled": return "destructive";
       default: return "outline";
     }
   };
@@ -104,6 +72,36 @@ const Orders = () => {
   const formatTime = (dateString: string) => {
     return new Date(dateString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation />
+        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <p>Loading orders...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation />
+        <main className="flex-1 ml-64 p-6">
+          <Card className="max-w-md mx-auto">
+            <CardContent className="pt-6">
+              <p className="text-destructive">{error}</p>
+              <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

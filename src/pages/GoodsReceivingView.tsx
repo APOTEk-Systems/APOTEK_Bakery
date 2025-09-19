@@ -1,0 +1,201 @@
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import Navigation from "@/components/Navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Truck, Loader2 } from "lucide-react";
+
+import { purchasesService, type PurchaseOrder, type GoodsReceipt } from "@/services/purchases";
+import { suppliersService } from "@/services/suppliers";
+import { getInventory } from "@/services/inventory";
+import type { InventoryItem } from "@/services/inventory";
+
+const GoodsReceivingView = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [po, setPo] = useState<PurchaseOrder | null>(null);
+  const [supplierMap, setSupplierMap] = useState<Record<number, string>>({});
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [deliveryNotes, setDeliveryNotes] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitLoading, setSubmitLoading] = useState(false)
+
+  useEffect(() => {
+    async function fetchPO() {
+      if (!id) return;
+      try {
+        setLoading(true);
+        const poId = parseInt(id);
+        const [poData, sups, inv] = await Promise.all([
+          purchasesService.getPOById(poId),
+          suppliersService.getAll(),
+          getInventory()
+        ]);
+        setPo(poData);
+        const supMap = sups.reduce((acc, s) => {
+          acc[s.id] = s.name;
+          return acc;
+        }, {} as Record<number, string>);
+        setSupplierMap(supMap);
+        setInventory(inv);
+  setInventory(inv);
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to load purchase order", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchPO();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex">
+        <Navigation />
+        <main className="flex-1 ml-64 p-8 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <p>Loading purchase order...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!po) {
+    return (
+      <div className="min-h-screen bg-background flex">
+        <Navigation />
+        <main className="flex-1 ml-64 p-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Purchase Order Not Found</h1>
+            <Link to="/purchases">
+              <Button variant="outline" className="mt-4">Back to Purchases</Button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const totalQty = po.items.reduce((sum, i) => sum + i.quantity, 0);
+  const unit = inventory.find(i => i.id === (po.items[0]?.inventoryItemId))?.unit || '';
+
+  const handleSubmitReceive = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitLoading(true)
+    if (!po) return;
+    try {
+      const items = po.items.map(item => ({
+        inventoryItemId: item.inventoryItemId,
+        receivedQuantity: item.quantity // Assume full receipt
+      }));
+      const newReceipt = await purchasesService.createReceipt({
+        purchaseOrderId: po.id,
+        items
+      });
+      toast({ title: "Goods Received", description: `Receipt ${newReceipt.id} created for PO ${po.id}` });
+      setDeliveryNotes("");
+      navigate(`/purchases/${po.id}`);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to receive goods", variant: "destructive" });
+    } finally{
+      setSubmitLoading(false)
+    }
+  };
+
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case "completed": return "default";
+      case "pending": return "outline";
+      default: return "default";
+    }
+  };
+
+  const capitalizeStatus = (status: string) => status.charAt(0).toUpperCase() + status.slice(1);
+
+  return (
+    <div className="min-h-screen bg-background flex">
+      <Navigation />
+      <main className="flex-1 ml-64 p-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">Receive Goods for {po.id}</h1>
+              <p className="text-muted-foreground mt-1">Mark delivery as completed</p>
+            </div>
+            <Button asChild variant="outline">
+              <Link to={`/purchases/${po.id}`}>Back to PO</Link>
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                PO Summary
+                <Badge variant={getStatusVariant(po.status)}>{capitalizeStatus(po.status)}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Supplier</p>
+                  <p className="text-xl font-semibold">{supplierMap[po.supplierId] || 'Unknown'}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Order Date</p>
+                  <p className="text-xl">{new Date(po.createdAt).toISOString().split('T')[0]}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Quantity</p>
+                  <p className="text-xl font-semibold">{totalQty} {unit}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Cost</p>
+                  <p className="text-2xl font-bold">${po.totalCost.toFixed(2)}</p>
+                </div>
+              </div>
+              {po.notes && (
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">Notes</p>
+                  <p className="text-lg">{po.notes}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Delivery Notes (Optional)</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <form onSubmit={handleSubmitReceive} className="space-y-4">
+                <Textarea
+                  placeholder="Enter any delivery notes or comments..."
+                  value={deliveryNotes}
+                  onChange={(e) => setDeliveryNotes(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => navigate(`/purchases/${po.id}`)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={submitLoading}>
+                    <Truck className="mr-2 h-4 w-4" />
+                    {submitLoading ? "Receving ..." : "Mark as Delivered"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default GoodsReceivingView;

@@ -1,8 +1,10 @@
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft,
   Edit, 
@@ -10,47 +12,72 @@ import {
   Clock,
   Package,
   TrendingUp,
-  Calendar
+  Calendar,
+  Loader2
 } from "lucide-react";
+import { getProduct, Product } from "../services/products";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  
-  // Mock data - in real app, fetch by ID
-  const product = {
-    id: parseInt(id || "1"),
-    name: "Sourdough Bread",
-    category: "Bread",
-    price: 8.50,
-    cost: 3.20,
-    margin: 5.30,
-    prepTime: 240,
-    status: "active",
-    ingredients: [
-      { name: "Bread Flour", amount: "500g", cost: 0.80 },
-      { name: "Water", amount: "350ml", cost: 0.01 },
-      { name: "Salt", amount: "10g", cost: 0.05 },
-      { name: "Sourdough Starter", amount: "100g", cost: 0.50 }
-    ],
-    description: "Traditional sourdough with 24-hour fermentation process. Our signature bread made with natural wild yeast starter.",
-    instructions: [
-      "Feed starter 8-12 hours before baking",
-      "Mix flour, water, and starter - autolyse 30 mins",
-      "Add salt and mix until well combined",
-      "Bulk fermentation with 4 sets of folds over 4 hours",
-      "Pre-shape and rest 20 minutes",
-      "Final shape and cold retard overnight",
-      "Bake at 450°F with steam for 20 mins, then 425°F for 25 mins"
-    ],
-    stats: {
-      soldThisWeek: 45,
-      soldThisMonth: 180,
-      averageRating: 4.8,
-      totalReviews: 67
-    },
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-20"
-  };
+  const { toast } = useToast();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (id) {
+      const fetchProduct = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const data = await getProduct(parseInt(id));
+          setProduct(data);
+        } catch (err) {
+          setError("Failed to load product");
+          toast({
+            title: "Error",
+            description: "Failed to load product",
+            variant: "destructive",
+          });
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchProduct();
+    }
+  }, [id, toast]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation />
+        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation />
+        <main className="flex-1 ml-64 p-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <p className="text-destructive">{error || "Product not found"}</p>
+              <Button asChild className="mt-4">
+                <Link to="/products">Back to Products</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  const cost = product.productRecipes ? product.productRecipes.reduce((sum, recipe) => sum + (recipe.amountRequired * recipe.inventoryItem.cost), 0) : 0;
+  const margin = product.price - cost;
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -70,7 +97,7 @@ const ProductDetail = () => {
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">{product.name}</h1>
               <div className="flex items-center gap-2">
-                <Badge variant="secondary">{product.category}</Badge>
+                <Badge variant="secondary">Product</Badge>
                 <Badge variant={product.status === "active" ? "default" : "outline"}>
                   {product.status}
                 </Badge>
@@ -94,7 +121,7 @@ const ProductDetail = () => {
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground">{product.description}</p>
+                <p className="text-foreground">{product.description || "No description available."}</p>
               </CardContent>
             </Card>
 
@@ -105,19 +132,23 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {product.ingredients.map((ingredient, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="font-medium text-foreground">{ingredient.name}</p>
-                        <p className="text-sm text-muted-foreground">{ingredient.amount}</p>
+                  {product.productRecipes && product.productRecipes.length > 0 ? (
+                    product.productRecipes.map((recipe, index) => (
+                      <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                        <div>
+                          <p className="font-medium text-foreground">{recipe.inventoryItem.name}</p>
+                          <p className="text-sm text-muted-foreground">{recipe.amountRequired} {recipe.inventoryItem.unit}</p>
+                        </div>
+                        <p className="font-medium text-foreground">${(recipe.amountRequired * recipe.inventoryItem.cost).toFixed(2)}</p>
                       </div>
-                      <p className="font-medium text-foreground">${ingredient.cost.toFixed(2)}</p>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">No ingredients configured</p>
+                  )}
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between items-center">
                       <p className="font-semibold text-foreground">Total Cost</p>
-                      <p className="font-semibold text-foreground">${product.cost.toFixed(2)}</p>
+                      <p className="font-semibold text-foreground">${cost.toFixed(2)}</p>
                     </div>
                   </div>
                 </div>
@@ -158,42 +189,16 @@ const ProductDetail = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Cost</span>
-                  <span className="text-foreground">${product.cost.toFixed(2)}</span>
+                  <span className="text-foreground">${cost.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-muted-foreground">Margin</span>
-                  <span className="font-semibold text-green-600">${product.margin.toFixed(2)}</span>
+                  <span className="font-semibold text-green-600">${margin.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Margin %</span>
                   <span className="font-semibold text-green-600">
-                    {((product.margin / product.price) * 100).toFixed(1)}%
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Stats */}
-            <Card className="shadow-warm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-accent" />
-                  Sales Stats
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">This Week</span>
-                  <span className="font-semibold text-foreground">{product.stats.soldThisWeek} sold</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">This Month</span>
-                  <span className="font-semibold text-foreground">{product.stats.soldThisMonth} sold</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Avg Rating</span>
-                  <span className="font-semibold text-foreground">
-                    {product.stats.averageRating}/5 ({product.stats.totalReviews} reviews)
+                    {((margin / product.price) * 100).toFixed(1)}%
                   </span>
                 </div>
               </CardContent>
@@ -210,11 +215,15 @@ const ProductDetail = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Prep Time</span>
-                  <span className="text-foreground">{product.prepTime} mins</span>
+                  <span className="text-foreground">{product.prepTime ? `${product.prepTime} mins` : 'N/A'}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Ingredients</span>
-                  <span className="text-foreground">{product.ingredients.length} items</span>
+                  <span className="text-foreground">{product.productRecipes ? product.productRecipes.length : 0} items</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Stock</span>
+                  <span className="text-foreground">{product.quantity} units</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Created</span>

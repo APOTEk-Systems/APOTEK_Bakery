@@ -3,26 +3,35 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import ProductForm from "./pages/ProductForm";
-import Inventory from "./pages/Inventory";
-import InventoryForm from "./pages/InventoryForm";
-import Orders from "./pages/Orders";
-import OrderDetail from "./pages/OrderDetail";
-import OrderForm from "./pages/OrderForm";
-import Customers from "./pages/Customers";
-import CustomerDetail from "./pages/CustomerDetail";
-import CustomerForm from "./pages/CustomerForm";
-import Sales from "./pages/Sales";
-import NewSale from "./pages/NewSale";
-import StockRequests from "./pages/StockRequests";
-import RequestApprovals from "./pages/RequestApprovals";
-import PurchaseOrders from "./pages/PurchaseOrders";
-import Accounting from "./pages/Accounting";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { lazy } from "react";
+const ProtectedRoute = lazy(() => import("@/components/ProtectedRoute"));
+const Index = lazy(() => import("./pages/Index"));
+const SaleDetail = lazy(() => import("./pages/SaleDetail"));
+const Products = lazy(() => import("./pages/Products"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const ProductForm = lazy(() => import("./pages/ProductForm"));
+const ProductionRuns = lazy(() => import("./pages/ProductionRuns"));
+const Inventory = lazy(() => import("./pages/Inventory"));
+const Supplies = lazy(() => import("./pages/Supplies"));
+const SuppliesForm = lazy(() => import("./pages/SuppliesForm"));
+const InventoryForm = lazy(() => import("./pages/InventoryForm"));
+const InventoryAdjustments = lazy(() => import("./pages/InventoryAdjustments"));
+const SuppliesAdjustments = lazy(() => import("./pages/SuppliesAdjustments"));
+const Customers = lazy(() => import("./pages/Customers"));
+const CustomerDetail = lazy(() => import("./pages/CustomerDetail"));
+const CustomerForm = lazy(() => import("./pages/CustomerForm"));
+const Sales = lazy(() => import("./pages/Sales"));
+const SalesStats = lazy(() => import("./pages/SalesStats"));
+const NewSale = lazy(() => import("./pages/NewSale"));
+const Login = lazy(() => import("./pages/Login"));
+const Register = lazy(() => import("./pages/Register"));
+const Purchases = lazy(() => import("./pages/Purchases"));
+const PurchaseOrderView = lazy(() => import("./pages/PurchaseOrderView"));
+const GoodsReceivingView = lazy(() => import("./pages/GoodsReceivingView"));
+const Accounting = lazy(() => import("./pages/Accounting"));
+const Settings = lazy(() => import("./pages/Settings"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -30,35 +39,155 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
-      <Sonner />
+      <Sonner position={`top-right`} />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/products/new" element={<ProductForm />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="/products/:id/edit" element={<ProductForm />} />
-          <Route path="/stock-requests" element={<StockRequests />} />
-          <Route path="/request-approvals" element={<RequestApprovals />} />
-          <Route path="/purchase-orders" element={<PurchaseOrders />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/inventory/new" element={<InventoryForm />} />
-          <Route path="/inventory/:id/edit" element={<InventoryForm />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/orders/new" element={<OrderForm />} />
-          <Route path="/orders/:id" element={<OrderDetail />} />
-          <Route path="/orders/:id/edit" element={<OrderForm />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/customers/new" element={<CustomerForm />} />
-          <Route path="/customers/:id" element={<CustomerDetail />} />
-          <Route path="/customers/:id/edit" element={<CustomerForm />} />
-          <Route path="/sales" element={<Sales />} />
-          <Route path="/sales/new" element={<NewSale />} />
-          <Route path="/accounting" element={<Accounting />} />
-          <Route path="/settings" element={<Settings />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Index />
+              </ProtectedRoute>
+            } />
+            <Route path="/products" element={
+              <ProtectedRoute>
+                <Products />
+              </ProtectedRoute>
+            } />
+            <Route path="/products/new" element={
+              <ProtectedRoute>
+                <ProductForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/products/:id" element={
+              <ProtectedRoute>
+                <ProductDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/products/:id/edit" element={
+              <ProtectedRoute>
+                <ProductForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory" element={
+              <ProtectedRoute>
+                <Inventory />
+              </ProtectedRoute>
+            } />
+            <Route path="/supplies" element={
+              <ProtectedRoute>
+                <Supplies />
+              </ProtectedRoute>
+            } />
+            <Route path="/purchases" element={
+              <ProtectedRoute>
+                <Purchases />
+              </ProtectedRoute>
+            } />
+            <Route path="/purchases/:id" element={
+              <ProtectedRoute>
+                <PurchaseOrderView />
+              </ProtectedRoute>
+            } />
+            <Route path="/purchases/:id/receive" element={
+              <ProtectedRoute>
+                <GoodsReceivingView />
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory/new" element={
+              <ProtectedRoute>
+                <InventoryForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory/:id/edit" element={
+              <ProtectedRoute>
+                <InventoryForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/inventory/adjustments" element={
+              <ProtectedRoute>
+                <InventoryAdjustments />
+              </ProtectedRoute>
+            } />
+            <Route path="/supplies/new" element={
+              <ProtectedRoute>
+                <SuppliesForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/supplies/:id/edit" element={
+              <ProtectedRoute>
+                <SuppliesForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/supplies/adjustments" element={
+              <ProtectedRoute>
+                <SuppliesAdjustments />
+              </ProtectedRoute>
+            } />
+            <Route path="/customers" element={
+              <ProtectedRoute>
+                <Customers />
+              </ProtectedRoute>
+            } />
+            <Route path="/customers/new" element={
+              <ProtectedRoute>
+                <CustomerForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/customers/:id" element={
+              <ProtectedRoute>
+                <CustomerDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/customers/:id/edit" element={
+              <ProtectedRoute>
+                <CustomerForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/sales" element={
+              <ProtectedRoute>
+                <Sales />
+              </ProtectedRoute>
+            } />
+            <Route path="/sales/new" element={
+              <ProtectedRoute>
+                <NewSale />
+              </ProtectedRoute>
+            } />
+            <Route path="/sales/:id" element={
+              <ProtectedRoute>
+                <SaleDetail />
+              </ProtectedRoute>
+            } />
+            <Route path="/sales/stats" element={
+              <ProtectedRoute>
+                <SalesStats />
+              </ProtectedRoute>
+            } />
+            <Route path="/production-runs" element={
+              <ProtectedRoute>
+                <ProductionRuns />
+              </ProtectedRoute>
+            } />
+            <Route path="/accounting" element={
+              <ProtectedRoute>
+                <Accounting />
+              </ProtectedRoute>
+            } />
+            <Route path="/settings" element={
+              <ProtectedRoute>
+                <Settings />
+              </ProtectedRoute>
+            } />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={
+              <ProtectedRoute>
+                <NotFound />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

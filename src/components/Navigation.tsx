@@ -1,30 +1,40 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLocation, Link } from "react-router-dom";
-import { 
-  Home, 
-  Package, 
-  ShoppingCart, 
-  Users, 
+import {
+  Home,
+  Package,
+  ShoppingCart,
+  Users,
   Settings,
   Cookie,
   CreditCard,
+  Factory,
   Calculator,
-  CheckCircle
+  CheckCircle,
+  LogOut,
+  ChevronDown,
+  BarChart2
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "@/components/ui/collapsible";
 
 const Navigation = () => {
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
+  const [inventoryOpen, setInventoryOpen] = useState(location.pathname.startsWith('/inventory') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products'));
+  const [salesOpen, setSalesOpen] = useState(location.pathname.startsWith('/sales'));
   
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
-    { icon: Cookie, label: "Products", path: "/products" },
-    { icon: Package, label: "Stock Requests", path: "/stock-requests" },
-    { icon: CheckCircle, label: "Approvals", path: "/request-approvals" },
-    { icon: ShoppingCart, label: "Purchase Orders", path: "/purchase-orders" },
-    { icon: Package, label: "Inventory", path: "/inventory" },
-    { icon: ShoppingCart, label: "Orders", path: "/orders" },
-    { icon: Users, label: "Customers", path: "/customers" },
     { icon: CreditCard, label: "Sales", path: "/sales" },
+    { icon: ShoppingCart, label: "Purchases", path: "/purchases" },
+    { icon: Package, label: "Inventory", path: "/inventory" },
+    { icon: Factory, label: "Production", path: "/production-runs" },
     { icon: Calculator, label: "Accounting", path: "/accounting" },
     { icon: Settings, label: "Settings", path: "/settings" }
   ];
@@ -43,24 +53,162 @@ const Navigation = () => {
         </div>
         
         <div className="space-y-2">
-          {navItems.map((item, index) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-              (item.path !== "/" && location.pathname.startsWith(item.path));
-            return (
+          {isAuthenticated ? (
+            <>
+              {navItems.map((item, index) => {
+                const Icon = item.icon;
+                if (item.label === "Inventory") {
+                  const isActive = location.pathname.startsWith('/inventory') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products');
+                  return (
+                    <Collapsible key={index} open={inventoryOpen} onOpenChange={setInventoryOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant={isActive ? "default" : "ghost"}
+                          className={`w-full justify-between ${isActive ? 'bg-primary text-primary-foreground shadow-warm mb-2' : 'hover:bg-muted'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-5 w-5" />
+                            {item.label}
+                          </div>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${inventoryOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-1 ml-3">
+                        <Button
+                          variant={location.pathname.startsWith('/inventory') ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/inventory" className="flex items-center gap-2">
+                            <Package className="h-4 w-4" />
+                            Raw Materials
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname.startsWith('/supplies') ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/supplies" className="flex items-center gap-2">
+                            <Package className="h-4 w-4" />
+                            Supplies
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname.startsWith('/products') ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/products" className="flex items-center gap-2">
+                            <Cookie className="h-4 w-4" />
+                            Finished Goods
+                          </Link>
+                        </Button>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                }
+                if (item.label === "Sales") {
+                  const isActive = location.pathname.startsWith('/sales');
+                  return (
+                    <Collapsible key={index} open={salesOpen} onOpenChange={setSalesOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant={isActive ? "default" : "ghost"}
+                          className={`w-full justify-between ${isActive ? 'bg-primary text-primary-foreground shadow-warm mb-2' : 'hover:bg-muted'}`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <Icon className="h-5 w-5" />
+                            {item.label}
+                          </div>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${salesOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="space-y-1 ml-3">
+                       
+                        <Button
+                          variant={location.pathname === '/sales/new' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/sales/new" className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            POS
+                          </Link>
+                        </Button>
+                             <Button
+                          variant={location.pathname === '/sales' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/sales" className="flex items-center gap-2">
+                            <BarChart2 className="h-4 w-4" />
+                            Sales History
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname === '/customers' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/customers" className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            Customers
+                          </Link>
+                        </Button>
+                      </CollapsibleContent>
+                    </Collapsible>
+                  );
+                }
+                const isActive = location.pathname === item.path ||
+                  (item.path !== "/" && location.pathname.startsWith(item.path));
+                return (
+                  <Button
+                    key={index}
+                    variant={isActive ? "default" : "ghost"}
+                    className={`w-full justify-start gap-3 ${isActive ? 'bg-primary text-primary-foreground shadow-warm' : 'hover:bg-muted'}`}
+                    asChild
+                  >
+                    <Link to={item.path}>
+                      <Icon className="h-5 w-5" />
+                      {item.label}
+                    </Link>
+                  </Button>
+                );
+              })}
               <Button
-                key={index}
-                variant={isActive ? "default" : "ghost"}
-                className={`w-full justify-start gap-3 ${isActive ? 'bg-primary text-primary-foreground shadow-warm' : 'hover:bg-muted'}`}
+                variant="ghost"
+                className="w-full justify-start gap-3 hover:bg-muted"
+                onClick={logout}
+              >
+                <LogOut className="h-5 w-5" />
+                Logout
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 hover:bg-muted"
                 asChild
               >
-                <Link to={item.path}>
-                  <Icon className="h-5 w-5" />
-                  {item.label}
+                <Link to="/login">
+                  <CheckCircle className="h-5 w-5" />
+                  Login
                 </Link>
               </Button>
-            );
-          })}
+              <Button
+                variant="ghost"
+                className="w-full justify-start gap-3 hover:bg-muted"
+                asChild
+              >
+                <Link to="/register">
+                  <CheckCircle className="h-5 w-5" />
+                  Register
+                </Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </nav>

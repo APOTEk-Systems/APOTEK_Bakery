@@ -25,7 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-const Inventory = () => {
+const Supplies = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [adjustDialogOpen, setAdjustDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -37,15 +37,15 @@ const Inventory = () => {
 
   const queryClient = useQueryClient();
 
-  const inventoryQuery = useQuery({
-    queryKey: ['inventory'],
-    queryFn: () => getInventory({ type: 'raw_material' }),
+  const suppliesQuery = useQuery({
+    queryKey: ['supplies'],
+    queryFn: () => getInventory({ type: 'supplies' }),
   });
 
   const adjustMutation = useMutation({
     mutationFn: (data: { inventoryItemId: number; amount: number; reason?: string }) => createAdjustment(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['supplies'] });
       toast({
         title: "Success",
         description: "Quantity adjusted successfully",
@@ -66,7 +66,7 @@ const Inventory = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteInventoryItem(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+      queryClient.invalidateQueries({ queryKey: ['supplies'] });
       toast({
         title: "Success",
         description: "Item deleted successfully",
@@ -82,11 +82,11 @@ const Inventory = () => {
     },
   });
 
-  const inventoryData = inventoryQuery.data || [];
-  const loading = inventoryQuery.isLoading;
-  const error = inventoryQuery.error;
+  const inventory = suppliesQuery.data || [];
+  const loading = suppliesQuery.isLoading;
+  const error = suppliesQuery.error;
 
-  const filteredInventory = inventoryData.filter(item =>
+  const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -152,18 +152,18 @@ const Inventory = () => {
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Raw Materials</h1>
-              <p className="text-muted-foreground">Track your bakery's raw materials</p>
+              <h1 className="text-3xl font-bold text-foreground">Supplies</h1>
+              <p className="text-muted-foreground">Track your bakery's supplies</p>
             </div>
             <div className="flex gap-2">
               <Button asChild className="shadow-warm">
-                <Link to="/inventory/new">
+                <Link to="/supplies/new">
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Raw Material
+                  Add Supply
                 </Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link to="/inventory/adjustments">
+                <Link to="/supplies/adjustments">
                   Adjustments
                 </Link>
               </Button>
@@ -175,7 +175,7 @@ const Inventory = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search raw materials..."
+                placeholder="Search supplies..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -246,7 +246,7 @@ const Inventory = () => {
         {error ? (
           <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to load inventory'}</p>
+              <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to load supplies'}</p>
               <Button onClick={() => window.location.reload()} className="mt-4">
                 Retry
               </Button>
@@ -255,7 +255,7 @@ const Inventory = () => {
         ) : (
           <Card className="shadow-warm">
             <CardHeader>
-              <CardTitle>Raw Materials Items</CardTitle>
+              <CardTitle>Supplies Items</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
@@ -288,7 +288,7 @@ const Inventory = () => {
                         <TableCell>
                           <div className="flex gap-2">
                             <Button variant="outline" size="sm" asChild>
-                              <Link to={`/inventory/${item.id}/edit`}>
+                              <Link to={`/supplies/${item.id}/edit`}>
                                 <Edit className="h-3 w-3" />
                               </Link>
                             </Button>
@@ -321,10 +321,10 @@ const Inventory = () => {
                   <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-foreground mb-2">No items found</h3>
                   <p className="text-muted-foreground mb-4">
-                    {searchTerm ? "Try adjusting your search" : "Get started by adding your first raw material item"}
+                    {searchTerm ? "Try adjusting your search" : "Get started by adding your first supply item"}
                   </p>
                   <Button asChild>
-                    <Link to="/inventory/new">Add Raw Material</Link>
+                    <Link to="/supplies/new">Add Supply</Link>
                   </Button>
                 </div>
               )}
@@ -409,4 +409,4 @@ const Inventory = () => {
   );
 };
 
-export default Inventory;
+export default Supplies;

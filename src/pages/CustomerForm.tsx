@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, User } from "lucide-react";
+import { ArrowLeft, Save, User, Loader2 } from "lucide-react";
+import { PastryProSpinner } from "@/components/ui/PastryProSpinner";
+import { customersService, type Customer } from "../services/customers";
 
 const CustomerForm = () => {
   const { id } = useParams();
@@ -16,47 +18,110 @@ const CustomerForm = () => {
   const { toast } = useToast();
   const isEdit = Boolean(id);
 
-  const [formData, setFormData] = useState({
-    name: isEdit ? "Sarah Johnson" : "",
-    email: isEdit ? "sarah@email.com" : "",
-    phone: isEdit ? "(555) 123-4567" : "",
-    address: isEdit ? "123 Main St, Anytown, ST 12345" : "",
-    status: isEdit ? "active" : "active",
-    loyaltyPoints: isEdit ? "142" : "0",
-    notes: isEdit ? "Prefers extra chocolate on pastries" : "",
-    birthday: isEdit ? "1990-05-15" : "",
-    preferredContact: isEdit ? "email" : "email"
+  const [formData, setFormData] = useState<Omit<Customer, 'id' | 'totalOrders' | 'totalSpent' | 'lastOrder' | 'favoriteItems' | 'recentOrders' >>({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    status: "active",
+    loyaltyPoints: 0,
+    notes: "",
+    isCredit: false,
+    birthday: "",
+    preferredContact: "email"
   });
+  const [loading, setLoading] = useState(false);
+  const [fetchLoading, setFetchLoading] = useState(false);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    if (isEdit && id) {
+      const fetchCustomer = async () => {
+        try {
+          setFetchLoading(true);
+          const customer = await customersService.getById(parseInt(id));
+          setFormData({
+            name: customer.name,
+            email: customer.email || "",
+            phone: customer.phone || "",
+            address: customer.address || "",
+            status: customer.status,
+            isCredit: customer.isCredit,
+            loyaltyPoints: customer.loyaltyPoints,
+            notes: customer.notes || "",
+            birthday: customer.birthday || "",
+            preferredContact: customer.preferredContact
+          });
+        } catch (err) {
+          toast({
+            title: "Error",
+            description: "Failed to load customer data",
+            variant: "destructive"
+          });
+        } finally {
+          setFetchLoading(false);
+        }
+      };
+
+      fetchCustomer();
+    }
+  }, [id, isEdit, toast]);
+
+  const handleInputChange = (field: string, value: any) => {
+    if (field === 'loyaltyPoints') {
+      setFormData(prev => ({ ...prev, [field]: parseInt(value) || 0 }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     
     if (!formData.name.trim()) {
       toast({ title: "Error", description: "Customer name is required", variant: "destructive" });
+      setLoading(false);
       return;
     }
     
     if (!formData.email.trim() && !formData.phone.trim()) {
       toast({ title: "Error", description: "Either email or phone is required", variant: "destructive" });
+      setLoading(false);
       return;
     }
 
     // Email validation
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       toast({ title: "Error", description: "Please enter a valid email address", variant: "destructive" });
+      setLoading(false);
       return;
     }
 
-    toast({
-      title: isEdit ? "Customer Updated" : "Customer Created",
-      description: `${formData.name} has been ${isEdit ? "updated" : "added"} successfully.`
-    });
-    
-    navigate("/customers");
+    try {
+      if (isEdit && id) {
+        await customersService.update(parseInt(id), formData);
+        toast({
+          title: "Customer Updated",
+          description: `${formData.name} has been updated successfully.`
+        });
+      } else {
+        await customersService.create(formData);
+        toast({
+          title: "Customer Created",
+          description: `${formData.name} has been added successfully.`
+        });
+      }
+      navigate("/customers");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: isEdit ? "Failed to update customer" : "Failed to create customer",
+        variant: "destructive"
+      });
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -213,9 +278,18 @@ const CustomerForm = () => {
               <Card className="shadow-warm">
                 <CardContent className="pt-6">
                   <div className="flex gap-3">
-                    <Button type="submit" className="flex-1">
-                      <Save className="h-4 w-4 mr-2" />
-                      {isEdit ? "Update Customer" : "Create Customer"}
+                    <Button type="submit" className="flex-1" disabled={loading || fetchLoading}>
+                      {loading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          {isEdit ? "Updating..." : "Creating..."}
+                        </>
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4 mr-2" />
+                          {isEdit ? "Update Customer" : "Create Customer"}
+                        </>
+                      )}
                     </Button>
                     <Button type="button" variant="outline" asChild>
                       <Link to="/customers">Cancel</Link>
@@ -227,69 +301,77 @@ const CustomerForm = () => {
           </div>
 
           {/* Preview Card */}
-          <div className="space-y-6">
-            <Card className="shadow-warm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Customer Preview
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <User className="h-8 w-8 text-primary" />
+          {fetchLoading ? (
+            <div className="space-y-6">
+              <div className="flex justify-center py-8">
+                <PastryProSpinner />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <Card className="shadow-warm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Customer Preview
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <User className="h-8 w-8 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-foreground">
+                        {formData.name || "Customer Name"}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {formData.status === "active" ? "Active Customer" : "Inactive Customer"}
+                      </p>
                     </div>
-                    <h3 className="font-semibold text-foreground">
-                      {formData.name || "Customer Name"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {formData.status === "active" ? "Active Customer" : "Inactive Customer"}
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2 text-sm">
-                    {formData.email && (
-                      <p className="text-foreground">📧 {formData.email}</p>
-                    )}
-                    {formData.phone && (
-                      <p className="text-foreground">📞 {formData.phone}</p>
-                    )}
-                    {formData.address && (
-                      <p className="text-foreground">📍 {formData.address}</p>
-                    )}
-                  </div>
-                  
-                  <div className="flex justify-between items-center pt-3 border-t">
-                    <span className="text-sm text-muted-foreground">Loyalty Points</span>
-                    <span className="font-medium text-foreground">{formData.loyaltyPoints || 0}</span>
-                  </div>
-                  
-                  {formData.notes && (
-                    <div className="pt-3 border-t">
-                      <p className="text-sm text-muted-foreground mb-1">Notes</p>
-                      <p className="text-sm text-foreground italic">"{formData.notes}"</p>
+                   
+                    <div className="space-y-2 text-sm">
+                      {formData.email && (
+                        <p className="text-foreground">📧 {formData.email}</p>
+                      )}
+                      {formData.phone && (
+                        <p className="text-foreground">📞 {formData.phone}</p>
+                      )}
+                      {formData.address && (
+                        <p className="text-foreground">📍 {formData.address}</p>
+                      )}
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Guidelines */}
-            <Card className="shadow-warm">
-              <CardHeader>
-                <CardTitle>Guidelines</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground space-y-2">
-                <p>• Either email or phone number is required</p>
-                <p>• Use notes to track customer preferences</p>
-                <p>• Loyalty points can be manually adjusted</p>
-                <p>• Birthday helps with promotional campaigns</p>
-                <p>• Inactive customers won't receive marketing emails</p>
-              </CardContent>
-            </Card>
-          </div>
+                   
+                    <div className="flex justify-between items-center pt-3 border-t">
+                      <span className="text-sm text-muted-foreground">Loyalty Points</span>
+                      <span className="font-medium text-foreground">{formData.loyaltyPoints || 0}</span>
+                    </div>
+                   
+                    {formData.notes && (
+                      <div className="pt-3 border-t">
+                        <p className="text-sm text-muted-foreground mb-1">Notes</p>
+                        <p className="text-sm text-foreground italic">"{formData.notes}"</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+        
+              {/* Guidelines */}
+              <Card className="shadow-warm">
+                <CardHeader>
+                  <CardTitle>Guidelines</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground space-y-2">
+                  <p>• Either email or phone number is required</p>
+                  <p>• Use notes to track customer preferences</p>
+                  <p>• Loyalty points can be manually adjusted</p>
+                  <p>• Birthday helps with promotional campaigns</p>
+                  <p>• Inactive customers won't receive marketing emails</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </main>
     </div>

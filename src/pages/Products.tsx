@@ -1,81 +1,120 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navigation from "../components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
 import { 
-  Search, 
-  Plus, 
-  Edit, 
-  Eye, 
+  Plus,
   Filter,
-  DollarSign,
-  Clock,
-  Package
+  Package,
+  Edit,
+  Trash2,
+  Loader2
 } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { getProducts, deleteProduct, Product } from "../services/products";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
+  // const [filterCategory, setFilterCategory] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedDeleteId, setSelectedDeleteId] = useState<number | null>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Mock data
-  const products = [
-    {
-      id: 1,
-      name: "Sourdough Bread",
-      category: "Bread",
-      price: 8.50,
-      cost: 3.20,
-      prepTime: 240,
-      status: "active",
-      ingredients: ["Flour", "Water", "Salt", "Starter"],
-      description: "Traditional sourdough with 24-hour fermentation"
-    },
-    {
-      id: 2,
-      name: "Chocolate Croissant",
-      category: "Pastry", 
-      price: 4.25,
-      cost: 1.80,
-      prepTime: 180,
-      status: "active",
-      ingredients: ["Butter", "Flour", "Chocolate", "Yeast"],
-      description: "Flaky pastry with Belgian dark chocolate"
-    },
-    {
-      id: 3,
-      name: "Red Velvet Cupcake",
-      category: "Cake",
-      price: 3.75,
-      cost: 1.50,
-      prepTime: 45,
-      status: "active",
-      ingredients: ["Flour", "Cocoa", "Cream Cheese", "Eggs"],
-      description: "Moist red velvet with cream cheese frosting"
-    },
-    {
-      id: 4,
-      name: "Blueberry Muffin",
-      category: "Muffin",
-      price: 3.00,
-      cost: 1.20,
-      prepTime: 30,
-      status: "inactive",
-      ingredients: ["Flour", "Blueberries", "Sugar", "Eggs"],
-      description: "Fresh blueberries in vanilla muffin base"
-    }
-  ];
+  const categories = ["all"];
 
-  const categories = ["all", "Bread", "Pastry", "Cake", "Muffin"];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await getProducts();
+        setProducts(data || []);
+      } catch (err) {
+        setError("Failed to load products");
+        toast({
+          title: "Error",
+          description: "Failed to load products",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [toast]);
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === "all" || product.category === filterCategory;
-    return matchesSearch && matchesCategory;
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  }).sort((a, b) => {
+    if (sortBy === "name") return a.name.localeCompare(b.name);
+    if (sortBy === "price") return a.price - b.price;
+    if (sortBy === "stock") return a.quantity - b.quantity;
+    return 0;
   });
+
+  const getStockStatus = (quantity: number) => {
+    if (quantity < 10) return "Low Stock";
+    if (quantity < 25) return "Medium Stock";
+    return "In Stock";
+  };
+
+  const getStockColor = (quantity: number) => {
+    if (quantity < 10) return "text-destructive";
+    if (quantity < 25) return "text-warning";
+    return "text-success";
+  };
+
+  const handleEditProduct = (product: Product) => {
+    navigate(`/products/${product.id}/edit`);
+  };
+
+  const openDeleteDialog = (productId: number) => {
+    setSelectedDeleteId(productId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async (productId: number) => {
+    try {
+      await deleteProduct(productId);
+      toast({
+        title: "Success",
+        description: "Product deleted successfully",
+      });
+      // Refetch products
+      const data = await getProducts();
+      setProducts(data || []);
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
+    setDeleteDialogOpen(false);
+  };
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -87,105 +126,112 @@ const Products = () => {
               <h1 className="text-3xl font-bold text-foreground">Products</h1>
               <p className="text-muted-foreground">Manage your bakery's product catalog</p>
             </div>
-            <Button asChild className="shadow-warm">
+            <Button className="shadow-warm" asChild>
               <Link to="/products/new">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Product
+                New Product
               </Link>
             </Button>
           </div>
+        </div>
 
-          {/* Search and Filters */}
-          <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        {/* Filters - Moved to top */}
+        <Card className="bg-transparent shadow-none border-0 mb-2 py-4">
+          <CardContent className="space-y-4 py-0 flex items-center">
+            <div className="space-y-2 mr-4 flex-1">
+              <Label htmlFor="search">Search</Label>
               <Input
+                id="search"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={filterCategory === category ? "default" : "outline"}
-                  onClick={() => setFilterCategory(category)}
-                  size="sm"
-                >
-                  {category === "all" ? "All" : category}
-                </Button>
-              ))}
+            <div className="space-y-2" style={{ marginTop: '0' }}>
+              <Label htmlFor="sort" >Sort By</Label>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Sort products" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="price">Price</SelectItem>
+                  <SelectItem value="stock">Stock</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 gap-6">
+          {/* Products Table */}
+          <div className="space-y-4">
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin" />
+              </div>
+            ) : error ? (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-destructive">{error}</p>
+                  <Button onClick={() => window.location.reload()} className="mt-4">
+                    Retry
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>${product.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={getStockColor(product.quantity)}>
+                          {getStockStatus(product.quantity)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
+                          {product.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={() => handleEditProduct(product)}>
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(product.id)}>
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              </Card>
+            )}
           </div>
         </div>
 
-        {/* Products Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredProducts.map((product) => (
-            <Card key={product.id} className="shadow-warm hover:shadow-glow transition-shadow">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-lg">{product.name}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary">{product.category}</Badge>
-                      <Badge variant={product.status === "active" ? "default" : "outline"}>
-                        {product.status}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/products/${product.id}`}>
-                        <Eye className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to={`/products/${product.id}/edit`}>
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{product.description}</p>
-                
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <DollarSign className="h-4 w-4 text-accent" />
-                      <span className="font-medium">${product.price}</span>
-                    </div>
-                    <span className="text-sm text-muted-foreground">
-                      Cost: ${product.cost}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{product.prepTime} mins prep</span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{product.ingredients.length} ingredients</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredProducts.length === 0 && (
+        {filteredProducts.length === 0 && !loading && (
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No products found</h3>
             <p className="text-muted-foreground mb-4">
-              {searchTerm || filterCategory !== "all" 
-                ? "Try adjusting your search or filters" 
+              {searchTerm
+                ? "Try adjusting your search"
                 : "Get started by adding your first product"}
             </p>
             <Button asChild>
@@ -193,6 +239,44 @@ const Products = () => {
             </Button>
           </div>
         )}
+      
+        {/* Delete Confirmation Dialog */}
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Confirm Delete"
+          message="Are you sure you want to delete this product? This action cannot be undone."
+          onConfirm={() => selectedDeleteId && confirmDelete(selectedDeleteId)}
+        />
+      
+        {/* Delete Confirmation Dialog */}
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Confirm Delete"
+          message="Are you sure you want to delete this product? This action cannot be undone."
+          onConfirm={() => selectedDeleteId && confirmDelete(selectedDeleteId)}
+        />
+      
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Confirm Delete</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this product? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={() => selectedDeleteId && confirmDelete(selectedDeleteId)}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );

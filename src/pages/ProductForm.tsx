@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Navigation from "../components/Navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,59 +8,106 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { 
   ArrowLeft,
   Save,
   Plus,
-  Trash2
+  Trash2,
+  Loader2
 } from "lucide-react";
+import { createProduct, updateProduct, getProduct, Product } from "../services/products";
 
 const ProductForm = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const isEdit = Boolean(id);
-
-  const [formData, setFormData] = useState({
-    name: isEdit ? "Sourdough Bread" : "",
-    category: isEdit ? "Bread" : "",
-    price: isEdit ? "8.50" : "",
-    prepTime: isEdit ? "240" : "",
-    status: isEdit ? "active" : "active",
-    description: isEdit ? "Traditional sourdough with 24-hour fermentation process." : "",
-    instructions: isEdit ? [
-      "Feed starter 8-12 hours before baking",
-      "Mix flour, water, and starter - autolyse 30 mins"
-    ] : [""]
+  const [formData, setFormData] = useState<{
+    name: string;
+    price: string;
+    prepTime: string;
+    status: "active" | "inactive";
+    description: string;
+    instructions: string[];
+  }>({
+    name: "",
+    price: "",
+    prepTime: "",
+    status: "active",
+    description: "",
+    instructions: [""]
   });
 
-  const [ingredients, setIngredients] = useState(isEdit ? [
-    { name: "Bread Flour", amount: "500g", cost: "0.80" },
-    { name: "Water", amount: "350ml", cost: "0.01" }
-  ] : [{ name: "", amount: "", cost: "" }]);
+  const productQuery = useQuery({
+    queryKey: ['product', id],
+    queryFn: () => getProduct(Number(id)),
+    enabled: isEdit,
+  });
 
-  const categories = ["Bread", "Pastry", "Cake", "Muffin", "Cookie", "Pie"];
+  const createMutation = useMutation({
+    mutationFn: (data: {
+      name: string;
+      price: number;
+      instructions: string[];
+      productRecipes: {inventoryItemId: number; amountRequired: number}[];
+      description?: string;
+      prepTime?: number;
+      status?: 'active' | 'inactive';
+    }) => createProduct(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Product Created",
+        description: `${formData.name} has been created successfully.`
+      });
+      navigate("/products");
+    },
+    onError: (err) => {
+      toast({
+        title: "Error",
+        description: "Failed to create product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) => updateProduct(Number(id), data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      toast({
+        title: "Product Updated",
+        description: `${formData.name} has been updated successfully.`
+      });
+      navigate("/products");
+    },
+    onError: (err) => {
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive",
+      });
+    },
+  });
+
+  useEffect(() => {
+    if (isEdit && productQuery.data) {
+      const product = productQuery.data;
+      setFormData({
+        name: product.name,
+        price: product.price.toString(),
+        prepTime: product.prepTime?.toString() || "",
+        status: product.status,
+        description: product.description || "",
+        instructions: product.instructions
+      });
+    }
+  }, [productQuery.data]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleIngredientChange = (index: number, field: string, value: string) => {
-    const newIngredients = [...ingredients];
-    newIngredients[index] = { ...newIngredients[index], [field]: value };
-    setIngredients(newIngredients);
-  };
-
-  const addIngredient = () => {
-    setIngredients([...ingredients, { name: "", amount: "", cost: "" }]);
-  };
-
-  const removeIngredient = (index: number) => {
-    if (ingredients.length > 1) {
-      setIngredients(ingredients.filter((_, i) => i !== index));
-    }
   };
 
   const handleInstructionChange = (index: number, value: string) => {
@@ -84,34 +132,52 @@ const ProductForm = () => {
     }
   };
 
-  const calculateTotalCost = () => {
-    return ingredients.reduce((total, ingredient) => {
-      return total + (parseFloat(ingredient.cost) || 0);
-    }, 0);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validation
     if (!formData.name.trim()) {
       toast({ title: "Error", description: "Product name is required", variant: "destructive" });
       return;
     }
-    
-    if (!formData.category) {
-      toast({ title: "Error", description: "Please select a category", variant: "destructive" });
-      return;
-    }
 
-    // Simulate save
-    toast({
-      title: isEdit ? "Product Updated" : "Product Created",
-      description: `${formData.name} has been ${isEdit ? "updated" : "created"} successfully.`
-    });
-    
-    navigate("/products");
+    try {
+      const productData = {
+        name: formData.name,
+        description: formData.description || undefined,
+        price: parseFloat(formData.price) || 0,
+        prepTime: parseInt(formData.prepTime) || undefined,
+        instructions: formData.instructions.filter(inst => inst.trim()),
+        status: formData.status,
+        productRecipes: []  // To be implemented with inventory selection
+      };
+
+      if (isEdit && id) {
+        updateMutation.mutate({ id, data: productData });
+      } else {
+        createMutation.mutate(productData);
+      }
+      
+      navigate("/products");
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: isEdit ? "Failed to update product" : "Failed to create product",
+        variant: "destructive",
+      });
+    }
   };
+
+  if (isEdit && productQuery.isLoading) {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <Navigation />
+        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -148,32 +214,15 @@ const ProductForm = () => {
                 <CardTitle>Basic Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="name">Product Name *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      placeholder="Enter product name"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="category">Category *</Label>
-                    <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category}>
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="md:col-span-2">
+                  <Label htmlFor="name">Product Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="Enter product name"
+                    required
+                  />
                 </div>
 
                 <div>
@@ -226,62 +275,6 @@ const ProductForm = () => {
               </CardContent>
             </Card>
 
-            {/* Ingredients */}
-            <Card className="shadow-warm">
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>Ingredients</CardTitle>
-                  <Button type="button" onClick={addIngredient} size="sm" variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Ingredient
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {ingredients.map((ingredient, index) => (
-                  <div key={index} className="flex gap-3 items-end">
-                    <div className="flex-1">
-                      <Label>Ingredient</Label>
-                      <Input
-                        value={ingredient.name}
-                        onChange={(e) => handleIngredientChange(index, "name", e.target.value)}
-                        placeholder="e.g., Flour"
-                      />
-                    </div>
-                    <div className="w-32">
-                      <Label>Amount</Label>
-                      <Input
-                        value={ingredient.amount}
-                        onChange={(e) => handleIngredientChange(index, "amount", e.target.value)}
-                        placeholder="500g"
-                      />
-                    </div>
-                    <div className="w-24">
-                      <Label>Cost ($)</Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        value={ingredient.cost}
-                        onChange={(e) => handleIngredientChange(index, "cost", e.target.value)}
-                        placeholder="0.00"
-                      />
-                    </div>
-                    {ingredients.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeIngredient(index)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
             {/* Instructions */}
             <Card className="shadow-warm">
               <CardHeader>
@@ -322,48 +315,26 @@ const ProductForm = () => {
                 ))}
               </CardContent>
             </Card>
+
+            {/* Note on Recipes */}
+            <Card>
+              <CardContent className="p-4 text-muted-foreground">
+                <p>Note: Product recipes (ingredients) will be configured separately in inventory management.</p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Cost Summary */}
-            <Card className="shadow-warm">
-              <CardHeader>
-                <CardTitle>Cost Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Total Ingredients</span>
-                  <span className="font-medium">${calculateTotalCost().toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">Selling Price</span>
-                  <span className="font-medium">${formData.price || "0.00"}</span>
-                </div>
-                <div className="border-t pt-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Projected Margin</span>
-                    <span className="font-semibold text-green-600">
-                      ${((parseFloat(formData.price) || 0) - calculateTotalCost()).toFixed(2)}
-                    </span>
-                  </div>
-                  {formData.price && (
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="text-muted-foreground">Margin %</span>
-                      <span className="font-semibold text-green-600">
-                        {(((parseFloat(formData.price) - calculateTotalCost()) / parseFloat(formData.price)) * 100).toFixed(1)}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Actions */}
             <Card className="shadow-warm">
               <CardContent className="pt-6 space-y-3">
-                <Button type="submit" className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
+                <Button type="submit" className="w-full" disabled={createMutation.isPending || updateMutation.isPending}>
+                  {(createMutation.isPending || updateMutation.isPending) ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Save className="h-4 w-4 mr-2" />
+                  )}
                   {isEdit ? "Update Product" : "Create Product"}
                 </Button>
                 <Button type="button" variant="outline" className="w-full" asChild>
