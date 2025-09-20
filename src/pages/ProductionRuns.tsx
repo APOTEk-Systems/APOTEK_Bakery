@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Navigation from "../components/Navigation";
 import { Button } from "@/components/ui/button";
@@ -22,7 +22,8 @@ import {
   Trash2,
   Loader2,
   Calendar as CalendarIcon,
-  Search
+  Search,
+  Eye
 } from "lucide-react";
 import { 
   Table, 
@@ -32,7 +33,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { getProductionRuns, createProductionRun, updateProductionRun, deleteProductionRun, ProductionRun } from "../services/productionRuns";
+import { getProductionRuns, createProductionRun, deleteProductionRun, ProductionRun } from "../services/productionRuns";
 import { getProducts, Product } from "../services/products";
 import { formatCurrency } from "@/lib/funcs";
 
@@ -40,8 +41,6 @@ const ProductionRuns = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [date, setDate] = useState(new Date());
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedRun, setSelectedRun] = useState<ProductionRun | null>(null);
   const [formData, setFormData] = useState({
     productId: "",
     quantity: "",
@@ -93,26 +92,6 @@ const ProductionRuns = () => {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => updateProductionRun(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['productionRuns', today] });
-      toast({
-        title: "Success",
-        description: "Production run updated successfully",
-      });
-      setEditDialogOpen(false);
-      setSelectedRun(null);
-      setFormData({ productId: "", quantity: "", notes: "" });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update production run",
-        variant: "destructive",
-      });
-    },
-  });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteProductionRun(id),
@@ -158,38 +137,12 @@ const ProductionRuns = () => {
     });
   };
 
-  const handleEdit = () => {
-    if (!selectedRun || !formData.quantity) {
-      toast({
-        title: "Error",
-        description: "Quantity is required",
-        variant: "destructive",
-      });
-      return;
-    }
-    updateMutation.mutate({
-      id: selectedRun.id,
-      data: {
-        quantityProduced: parseInt(formData.quantity),
-        notes: formData.notes || undefined
-      }
-    });
-  };
 
   const handleDelete = (id: string) => {
     if (!window.confirm("Are you sure you want to delete this production run?")) return;
     deleteMutation.mutate(id);
   };
 
-  const openEditDialog = (run: ProductionRun) => {
-    setSelectedRun(run);
-    setFormData({
-      productId: String(run.productId),
-      quantity: run.quantityProduced.toString(),
-      notes: run.notes || ""
-    });
-    setEditDialogOpen(true);
-  };
 
   if (loading) {
     return (
@@ -369,17 +322,19 @@ const ProductionRuns = () => {
                         <TableCell>{formatCurrency(Number(run.cost))}</TableCell>
                         <TableCell>
                           <div className="flex gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => openEditDialog(run)}
-                              disabled={updateMutation.isPending || deleteMutation.isPending}
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                              disabled={deleteMutation.isPending}
                             >
-                              <Edit className="h-3 w-3" />
+                              <Link to={`/production-runs/${run.id}`}>
+                                <Eye className="h-3 w-3" />
+                              </Link>
                             </Button>
-                            <Button 
-                              variant="destructive" 
-                              size="sm" 
+                            <Button
+                              variant="destructive"
+                              size="sm"
                               onClick={() => handleDelete(run.id)}
                               disabled={deleteMutation.isPending}
                             >
@@ -414,53 +369,7 @@ const ProductionRuns = () => {
           </div>
         )}
 
-        {/* Edit Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="max-w-md">
-            <DialogHeader>
-              <DialogTitle>Edit Production Run</DialogTitle>
-              <DialogDescription>
-                Update the production run details.
-              </DialogDescription>
-            </DialogHeader>
-            {selectedRun && (
-              <div className="space-y-4">
-                <div>
-                  <Label>Product</Label>
-                  <Input value={products.find(p => p.id.toString() === selectedRun.productId)?.name || ''} disabled />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="quantity">Quantity</Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
-                    disabled={updateMutation.isPending}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="notes">Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                    disabled={updateMutation.isPending}
-                  />
-                </div>
-              </div>
-            )}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)} disabled={updateMutation.isPending}>
-                Cancel
-              </Button>
-              <Button onClick={handleEdit} disabled={!formData.quantity || updateMutation.isPending}>
-                {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+
       </main>
     </div>
   );

@@ -4,7 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
+import { PastryProSpinner } from "./components/ui/PastryProSpinner";
 const ProtectedRoute = lazy(() => import("@/components/ProtectedRoute"));
 const Index = lazy(() => import("./pages/Index"));
 const SaleDetail = lazy(() => import("./pages/SaleDetail"));
@@ -12,6 +13,7 @@ const Products = lazy(() => import("./pages/Products"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const ProductForm = lazy(() => import("./pages/ProductForm"));
 const ProductionRuns = lazy(() => import("./pages/ProductionRuns"));
+const ProductionRunDetail = lazy(() => import("./pages/ProductionRunDetail"));
 const Inventory = lazy(() => import("./pages/Inventory"));
 const Supplies = lazy(() => import("./pages/Supplies"));
 const SuppliesForm = lazy(() => import("./pages/SuppliesForm"));
@@ -42,151 +44,158 @@ const App = () => (
       <Sonner position={`top-right`} />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Index />
-              </ProtectedRoute>
-            } />
-            <Route path="/products" element={
-              <ProtectedRoute>
-                <Products />
-              </ProtectedRoute>
-            } />
-            <Route path="/products/new" element={
-              <ProtectedRoute>
-                <ProductForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/products/:id" element={
-              <ProtectedRoute>
-                <ProductDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/products/:id/edit" element={
-              <ProtectedRoute>
-                <ProductForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory" element={
-              <ProtectedRoute>
-                <Inventory />
-              </ProtectedRoute>
-            } />
-            <Route path="/supplies" element={
-              <ProtectedRoute>
-                <Supplies />
-              </ProtectedRoute>
-            } />
-            <Route path="/purchases" element={
-              <ProtectedRoute>
-                <Purchases />
-              </ProtectedRoute>
-            } />
-            <Route path="/purchases/:id" element={
-              <ProtectedRoute>
-                <PurchaseOrderView />
-              </ProtectedRoute>
-            } />
-            <Route path="/purchases/:id/receive" element={
-              <ProtectedRoute>
-                <GoodsReceivingView />
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory/new" element={
-              <ProtectedRoute>
-                <InventoryForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory/:id/edit" element={
-              <ProtectedRoute>
-                <InventoryForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/inventory/adjustments" element={
-              <ProtectedRoute>
-                <InventoryAdjustments />
-              </ProtectedRoute>
-            } />
-            <Route path="/supplies/new" element={
-              <ProtectedRoute>
-                <SuppliesForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/supplies/:id/edit" element={
-              <ProtectedRoute>
-                <SuppliesForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/supplies/adjustments" element={
-              <ProtectedRoute>
-                <SuppliesAdjustments />
-              </ProtectedRoute>
-            } />
-            <Route path="/customers" element={
-              <ProtectedRoute>
-                <Customers />
-              </ProtectedRoute>
-            } />
-            <Route path="/customers/new" element={
-              <ProtectedRoute>
-                <CustomerForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/customers/:id" element={
-              <ProtectedRoute>
-                <CustomerDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/customers/:id/edit" element={
-              <ProtectedRoute>
-                <CustomerForm />
-              </ProtectedRoute>
-            } />
-            <Route path="/sales" element={
-              <ProtectedRoute>
-                <Sales />
-              </ProtectedRoute>
-            } />
-            <Route path="/sales/new" element={
-              <ProtectedRoute>
-                <NewSale />
-              </ProtectedRoute>
-            } />
-            <Route path="/sales/:id" element={
-              <ProtectedRoute>
-                <SaleDetail />
-              </ProtectedRoute>
-            } />
-            <Route path="/sales/stats" element={
-              <ProtectedRoute>
-                <SalesStats />
-              </ProtectedRoute>
-            } />
-            <Route path="/production-runs" element={
-              <ProtectedRoute>
-                <ProductionRuns />
-              </ProtectedRoute>
-            } />
-            <Route path="/accounting" element={
-              <ProtectedRoute>
-                <Accounting />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={
-              <ProtectedRoute>
-                <NotFound />
-              </ProtectedRoute>
-            } />
-          </Routes>
+          <Suspense fallback={<PastryProSpinner />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/" element={
+                <ProtectedRoute>
+                  <Index />
+                </ProtectedRoute>
+              } />
+              <Route path="/products" element={
+                <ProtectedRoute>
+                  <Products />
+                </ProtectedRoute>
+              } />
+              <Route path="/products/new" element={
+                <ProtectedRoute>
+                  <ProductForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/products/:id" element={
+                <ProtectedRoute>
+                  <ProductDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/products/:id/edit" element={
+                <ProtectedRoute>
+                  <ProductForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory" element={
+                <ProtectedRoute>
+                  <Inventory />
+                </ProtectedRoute>
+              } />
+              <Route path="/supplies" element={
+                <ProtectedRoute>
+                  <Supplies />
+                </ProtectedRoute>
+              } />
+              <Route path="/purchases" element={
+                <ProtectedRoute>
+                  <Purchases />
+                </ProtectedRoute>
+              } />
+              <Route path="/purchases/:id" element={
+                <ProtectedRoute>
+                  <PurchaseOrderView />
+                </ProtectedRoute>
+              } />
+              <Route path="/purchases/:id/receive" element={
+                <ProtectedRoute>
+                  <GoodsReceivingView />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/new" element={
+                <ProtectedRoute>
+                  <InventoryForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/:id/edit" element={
+                <ProtectedRoute>
+                  <InventoryForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/inventory/adjustments" element={
+                <ProtectedRoute>
+                  <InventoryAdjustments />
+                </ProtectedRoute>
+              } />
+              <Route path="/supplies/new" element={
+                <ProtectedRoute>
+                  <SuppliesForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/supplies/:id/edit" element={
+                <ProtectedRoute>
+                  <SuppliesForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/supplies/adjustments" element={
+                <ProtectedRoute>
+                  <SuppliesAdjustments />
+                </ProtectedRoute>
+              } />
+              <Route path="/customers" element={
+                <ProtectedRoute>
+                  <Customers />
+                </ProtectedRoute>
+              } />
+              <Route path="/customers/new" element={
+                <ProtectedRoute>
+                  <CustomerForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/customers/:id" element={
+                <ProtectedRoute>
+                  <CustomerDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/customers/:id/edit" element={
+                <ProtectedRoute>
+                  <CustomerForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/sales" element={
+                <ProtectedRoute>
+                  <Sales />
+                </ProtectedRoute>
+              } />
+              <Route path="/sales/new" element={
+                <ProtectedRoute>
+                  <NewSale />
+                </ProtectedRoute>
+              } />
+              <Route path="/sales/:id" element={
+                <ProtectedRoute>
+                  <SaleDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/sales/stats" element={
+                <ProtectedRoute>
+                  <SalesStats />
+                </ProtectedRoute>
+              } />
+              <Route path="/production-runs" element={
+                <ProtectedRoute>
+                  <ProductionRuns />
+                </ProtectedRoute>
+              } />
+              <Route path="/production-runs/:id" element={
+                <ProtectedRoute>
+                  <ProductionRunDetail />
+                </ProtectedRoute>
+              } />
+              <Route path="/accounting" element={
+                <ProtectedRoute>
+                  <Accounting />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={
+                <ProtectedRoute>
+                  <NotFound />
+                </ProtectedRoute>
+              } />
+            </Routes>
+          </Suspense>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
