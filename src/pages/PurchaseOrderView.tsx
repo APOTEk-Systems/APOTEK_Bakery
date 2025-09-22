@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import Navigation from "@/components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -95,31 +95,29 @@ const PurchaseOrderView = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-8 flex items-center justify-center">
+      <Layout>
+        <div className="p-8 flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p>Loading purchase order...</p>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   if (error || !po) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-8">
+      <Layout>
+        <div className="p-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold">Purchase Order Not Found</h1>
             <Link to="/purchases">
               <Button variant="outline" className="mt-4">Back to Purchases</Button>
             </Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
@@ -131,9 +129,8 @@ const PurchaseOrderView = () => {
 
   return (
     <>
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-8">
+      <Layout>
+        <div className="p-8">
           <div className="max-w-6xl mx-auto space-y-8">
             <div className="flex justify-between items-center">
               <div>
@@ -249,8 +246,8 @@ const PurchaseOrderView = () => {
               </CardContent>
             </Card>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
       <ConfirmationDialog
         open={showDialog}
         onOpenChange={setShowDialog}
@@ -261,9 +258,12 @@ const PurchaseOrderView = () => {
           setShowDialog(false);
           setDialogAction(null);
         }}
+        confirmVariant="default"
       />
     </>
   );
 };
 
 export default PurchaseOrderView;
+
+

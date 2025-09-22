@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,8 +22,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useToast } from "@/hooks/use-toast";
 import { getInventory, deleteInventoryItem, createAdjustment, InventoryItem } from "../services/inventory";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { formatCurrency } from "@/lib/funcs";
 
 const Inventory = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -136,19 +136,17 @@ const Inventory = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </main>
-      </div>
+      <Layout>
+        <div className="flex h-screen items-center justify-center">
+         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -273,13 +271,32 @@ const Inventory = () => {
                 <TableBody>
                   {filteredInventory.map((item) => {
                     const status = getStatus(item.currentQuantity, item.minLevel);
+
+                    // Convert display values for kg/l units
+                    let displayUnit = item.unit || 'N/A';
+                    let displayQuantity = item.currentQuantity;
+                    let displayMinLevel = item.minLevel;
+                    let displayCost = item.cost;
+
+                    if (item.unit.toLowerCase() === 'kg') {
+                      displayUnit = 'kg';
+                      displayQuantity = item.currentQuantity / 1000;
+                      displayCost = item.cost * 1000
+                    } else if (item.unit.toLowerCase() === 'l') {
+                      displayUnit = 'l';
+                      displayQuantity = item.currentQuantity / 1000;
+                      displayCost = item.cost * 1000
+                    } else {
+                      // Leave as is for other units
+                    }
+
                     return (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell>{item.unit || 'N/A'}</TableCell>
-                        <TableCell>{item.currentQuantity}</TableCell>
-                        <TableCell>{item.minLevel}</TableCell>
-                        <TableCell>${item.cost.toFixed(2)}</TableCell>
+                        <TableCell>{displayUnit}</TableCell>
+                        <TableCell>{displayQuantity}</TableCell>
+                        <TableCell>{displayMinLevel}</TableCell>
+                        <TableCell>{formatCurrency(displayCost)}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusColor(status)}>
                             {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -292,17 +309,17 @@ const Inventory = () => {
                                 <Edit className="h-3 w-3" />
                               </Link>
                             </Button>
-                            <Button 
-                              variant="destructive" 
-                              size="sm" 
+                            <Button
+                              variant="destructive"
+                              size="sm"
                               onClick={() => openDeleteDialog(item.id.toString())}
                               disabled={deleteMutation.isPending}
                             >
                               <Trash2 className="h-3 w-3" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => openAdjustDialog(item)}
                               disabled={adjustMutation.isPending}
                             >
@@ -404,9 +421,11 @@ const Inventory = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
 export default Inventory;
+
+

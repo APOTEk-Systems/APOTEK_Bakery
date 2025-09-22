@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -93,36 +93,37 @@ const SuppliesAdjustments = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </main>
-      </div>
+      <Layout>
+        <div className="flex min-h-screen bg-background">
+          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </main>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+        <div className="p-6">
         <div className="mb-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
+           <Button variant="outline" size="sm" className="mb-2" asChild>
                 <Link to="/supplies">
                   <ArrowLeft className="h-4 w-4" />
                   Back to Supplies
                 </Link>
               </Button>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex items-center gap-4">
+             
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Supplies Adjustments</h1>
+                <h1 className="text-3xl font-bold text-foreground">Supplies Issued</h1>
                 <p className="text-muted-foreground">View and manage inventory adjustments for supplies</p>
               </div>
             </div>
             <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
               <Plus className="h-4 w-4 mr-2" />
-              Add Adjustment
+              Issue Supplies
             </Button>
           </div>
 
@@ -144,7 +145,7 @@ const SuppliesAdjustments = () => {
 
         <Card className="shadow-warm">
           <CardHeader>
-            <CardTitle>Adjustments List</CardTitle>
+            <CardTitle>Supplies Issued</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -240,9 +241,10 @@ const SuppliesAdjustments = () => {
             </form>
           </DialogContent>
         </Dialog>
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default SuppliesAdjustments;
+
+

@@ -92,7 +92,7 @@ export const purchasesService = {
     return response.data;
   },
 
-  createReceipt: async (receiptData: { purchaseOrderId: number; items: GoodsReceiptItem[] }): Promise<GoodsReceipt> => {
+  createReceipt: async (receiptData: { purchaseOrderId: number; items: GoodsReceiptItem[], notes?:string }): Promise<GoodsReceipt> => {
     const response = await api.post('/purchases/receiving', receiptData);
     return response.data;
   },

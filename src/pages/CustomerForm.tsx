@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,7 +28,8 @@ const CustomerForm = () => {
     notes: "",
     isCredit: false,
     birthday: "",
-    preferredContact: "email"
+    creditLimit: 0,
+    currentCredit: 0,
   });
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(false);
@@ -49,7 +50,8 @@ const CustomerForm = () => {
             loyaltyPoints: customer.loyaltyPoints,
             notes: customer.notes || "",
             birthday: customer.birthday || "",
-            preferredContact: customer.preferredContact
+            creditLimit: customer.creditLimit,
+            currentCredit: customer.currentCredit,
           });
         } catch (err) {
           toast({
@@ -125,9 +127,8 @@ const CustomerForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" size="sm" asChild>
@@ -202,29 +203,14 @@ const CustomerForm = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="birthday">Birthday (Optional)</Label>
-                      <Input
-                        id="birthday"
-                        type="date"
-                        value={formData.birthday}
-                        onChange={(e) => handleInputChange("birthday", e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="preferredContact">Preferred Contact</Label>
-                      <Select value={formData.preferredContact} onValueChange={(value) => handleInputChange("preferredContact", value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="email">Email</SelectItem>
-                          <SelectItem value="phone">Phone</SelectItem>
-                          <SelectItem value="both">Both</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                  <div>
+                    <Label htmlFor="birthday">Birthday (Optional)</Label>
+                    <Input
+                      id="birthday"
+                      type="date"
+                      value={formData.birthday}
+                      onChange={(e) => handleInputChange("birthday", e.target.value)}
+                    />
                   </div>
                 </CardContent>
               </Card>
@@ -373,9 +359,10 @@ const CustomerForm = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default CustomerForm;
+
+

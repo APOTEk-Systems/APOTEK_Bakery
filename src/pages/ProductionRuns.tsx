@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,7 @@ const ProductionRuns = () => {
     quantity: "",
     notes: ""
   });
+  const [quantityError, setQuantityError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const today = format(date, "yyyy-MM-dd");
@@ -73,6 +74,7 @@ const ProductionRuns = () => {
       });
       setCreateDialogOpen(false);
       setFormData({ productId: "", quantity: "", notes: "" });
+      setQuantityError(null);
     },
     onError: (error: any) => {
       if (error.response?.status !== 500) {
@@ -116,6 +118,16 @@ const ProductionRuns = () => {
   const loading = productionRunsQuery.isLoading || productsQuery.isLoading;
   const error = productionRunsQuery.error || productsQuery.error;
 
+  useEffect(() => {
+    if (formData.productId) {
+      const selectedProduct = products.find(p => p.id.toString() === formData.productId);
+      if (selectedProduct) {
+        setFormData(prev => ({ ...prev, quantity: selectedProduct.batchSize.toString() }));
+        setQuantityError(null);
+      }
+    }
+  }, [formData.productId, products]);
+
   const filteredRuns = productionRuns.filter(run =>
     run.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     products.find(p => p.id === Number(run.productId))?.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -127,6 +139,14 @@ const ProductionRuns = () => {
         title: "Error",
         description: "Product and quantity are required",
         variant: "destructive",
+      });
+      return;
+    }
+    if (quantityError) {
+      toast({
+        title: "Warning",
+        description: quantityError,
+        variant: "default",
       });
       return;
     }
@@ -146,19 +166,18 @@ const ProductionRuns = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </main>
-      </div>
+      <Layout>
+        <div className="flex min-h-screen bg-background">
+          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </main>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -201,10 +220,27 @@ const ProductionRuns = () => {
                       id="quantity"
                       type="number"
                       value={formData.quantity}
-                      onChange={(e) => setFormData(prev => ({ ...prev, quantity: e.target.value }))}
+                      onChange={(e) => {
+                        const newQuantity = e.target.value;
+                        setFormData(prev => ({ ...prev, quantity: newQuantity }));
+                        const val = parseInt(newQuantity);
+                        if (isNaN(val) || val <= 0) {
+                          setQuantityError("Quantity must be a positive number");
+                        } else {
+                          const selectedProduct = products.find(p => p.id.toString() === formData.productId);
+                          if (selectedProduct && val % selectedProduct.batchSize !== 0) {
+                            setQuantityError(`Quantity must be a multiple of ${selectedProduct.batchSize}`);
+                          } else {
+                            setQuantityError(null);
+                          }
+                        }
+                      }}
                       placeholder="Enter quantity"
                       disabled={createMutation.isPending}
                     />
+                    {quantityError && (
+                      <p className="text-yellow-600 text-sm mt-1">{quantityError}</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="notes">Notes</Label>
@@ -370,9 +406,10 @@ const ProductionRuns = () => {
         )}
 
 
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default ProductionRuns;
+
+

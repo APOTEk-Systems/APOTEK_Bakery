@@ -1,6 +1,6 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
-import Navigation from "@/components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { purchasesService, type PurchaseOrder, type GoodsReceipt } from "@/servi
 import { suppliersService } from "@/services/suppliers";
 import { getInventory } from "@/services/inventory";
 import type { InventoryItem } from "@/services/inventory";
+import { formatCurrency } from "@/lib/funcs";
 
 const GoodsReceivingView = () => {
   const { id } = useParams<{ id: string }>();
@@ -54,31 +55,29 @@ const GoodsReceivingView = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-8 flex items-center justify-center">
+      <Layout>
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p>Loading purchase order...</p>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   if (!po) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-8">
+      <Layout>
+        <div className="p-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold">Purchase Order Not Found</h1>
             <Link to="/purchases">
               <Button variant="outline" className="mt-4">Back to Purchases</Button>
             </Link>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
@@ -119,9 +118,8 @@ const GoodsReceivingView = () => {
   const capitalizeStatus = (status: string) => status.charAt(0).toUpperCase() + status.slice(1);
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Navigation />
-      <main className="flex-1 ml-64 p-8">
+    <Layout>
+      <div className="p-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="flex justify-between items-center">
             <div>
@@ -156,7 +154,7 @@ const GoodsReceivingView = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Total Cost</p>
-                  <p className="text-2xl font-bold">${po.totalCost.toFixed(2)}</p>
+                  <p className="text-2xl font-bold">{formatCurrency(po.totalCost)}</p>
                 </div>
               </div>
               {po.notes && (
@@ -193,9 +191,11 @@ const GoodsReceivingView = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
 export default GoodsReceivingView;
+
+

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -60,20 +60,18 @@ const Customers = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+      <Layout>
+        <div className="flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6">
+      <Layout>
+        <div className="p-6">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6">
               <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to fetch customers'}</p>
@@ -82,15 +80,14 @@ const Customers = () => {
               </Button>
             </CardContent>
           </Card>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -120,10 +117,7 @@ const Customers = () => {
         </div>
 
         {/* Customers List */}
-     {loading ? (<div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin" />
-              </div>) : (
-                <Card>
+        <Card>
       <Table>
       <TableHeader>
         <TableRow>
@@ -203,11 +197,13 @@ const Customers = () => {
           </TableRow>
         ))}
       </TableBody>
-    </Table> </Card>)}
-        
-        </main>
+    </Table>
+        </Card>
       </div>
+    </Layout>
     );
   };
   
   export default Customers;
+
+

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -115,9 +115,7 @@ const OrderForm = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" size="sm" asChild>
@@ -378,9 +376,10 @@ const OrderForm = () => {
             </Card>
           </div>
         </form>
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default OrderForm;
+
+

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -136,19 +136,17 @@ const Supplies = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+      <Layout>
+        <div className="flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -404,9 +402,11 @@ const Supplies = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
 export default Supplies;
+
+

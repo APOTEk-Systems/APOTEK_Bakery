@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,31 +82,25 @@ const Orders = () => {
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p>Loading orders...</p>
           </div>
-        </main>
-      </div>
+        </div>\r\n    </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6">
+      <Layout>\r\n      <div className="p-6">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6">
               <p className="text-destructive">{error}</p>
               <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
             </CardContent>
           </Card>
-        </main>
-      </div>
+        </div>\r\n    </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -293,9 +287,10 @@ const Orders = () => {
             </Button>
           </div>
         )}
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default Orders;
+
+

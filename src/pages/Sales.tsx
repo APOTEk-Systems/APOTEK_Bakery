@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import Navigation from '@/components/Navigation';
+import Layout from "../components/Layout";
 import RecentSales from '@/components/sales/RecentSales';
 import UnpaidSales from '@/components/sales/UnpaidSales';
 import {
@@ -16,9 +16,7 @@ import {
 
 const Sales: React.FC = () => {
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -45,9 +43,10 @@ const Sales: React.FC = () => {
             <UnpaidSales />
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default Sales;
+
+

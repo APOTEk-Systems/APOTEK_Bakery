@@ -8,9 +8,10 @@ interface ConfirmationDialogProps {
   message: string;
   onConfirm: () => void;
   onCancel?: () => void;
+  confirmVariant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
 }
 
-export const ConfirmationDialog = ({ open, onOpenChange, title, message, onConfirm, onCancel }: ConfirmationDialogProps) => {
+export const ConfirmationDialog = ({ open, onOpenChange, title, message, onConfirm, onCancel, confirmVariant = "destructive" }: ConfirmationDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -22,7 +23,7 @@ export const ConfirmationDialog = ({ open, onOpenChange, title, message, onConfi
           <Button type="button" variant="outline" onClick={onCancel || (() => onOpenChange(false))}>
             Cancel
           </Button>
-          <Button variant="destructive" onClick={onConfirm}>
+          <Button variant={confirmVariant} onClick={onConfirm}>
             Confirm
           </Button>
         </DialogFooter>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -12,23 +12,7 @@ import CategoriesTab from "../components/accounting/CategoriesTab";
 import ReportsTab from "../components/accounting/ReportsTab";
 import AddExpenseModal from "../components/accounting/AddExpenseModal";
 
-const monthlyOverview = {
-  revenue: 25000,
-  expenses: 5000,
-  profit: 20000,
-  profitMargin: 80,
-};
 
-const categoryTotals = {
-  "Ingredients": 1500,
-  "Utilities": 300,
-  "Equipment": 800,
-  "Marketing": 200,
-  "Rent": 1200,
-  "Staff": 5000,
-  "Insurance": 250,
-  "Other": 100,
-};
 
 const expenseCategories = [
   "electricity",
@@ -45,8 +29,6 @@ const expenseCategories = [
 ];
 
 const Accounting = () => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterCategory, setFilterCategory] = useState("all");
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
 
   const getStatusColor = (status: string) => {
@@ -82,9 +64,8 @@ const Accounting = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -113,25 +94,20 @@ const Accounting = () => {
           </TabsList>
 
           <TabsContent value="overview">
-            <OverviewTab 
+            <OverviewTab
               getStatusColor={getStatusColor}
             />
           </TabsContent>
 
           <TabsContent value="expenses">
-            <ExpensesTab 
-              searchTerm={searchTerm}
-              setSearchTerm={setSearchTerm}
-              filterCategory={filterCategory}
-              setFilterCategory={setFilterCategory}
-              // filteredExpenses={filteredExpenses} // Removed as ExpensesTab now manages its own data
+            <ExpensesTab
               getCategoryColor={getCategoryColor}
               getStatusColor={getStatusColor}
             />
           </TabsContent>
 
           <TabsContent value="categories">
-            <CategoriesTab 
+            <CategoriesTab
               expenseCategories={expenseCategories}
               // expenses={expenses} // Removed as ExpensesTab now manages its own data
               getCategoryColor={getCategoryColor}
@@ -142,15 +118,17 @@ const Accounting = () => {
             <ReportsTab />
           </TabsContent>
         </Tabs>
-      </main>
+      </div>
 
-      <AddExpenseModal 
-        isOpen={isAddExpenseModalOpen} 
-        onClose={() => setIsAddExpenseModalOpen(false)} 
+      <AddExpenseModal
+        isOpen={isAddExpenseModalOpen}
+        onClose={() => setIsAddExpenseModalOpen(false)}
         onExpenseAdded={handleExpenseAdded}
       />
-    </div>
+    </Layout>
   );
 };
 
 export default Accounting;
+
+

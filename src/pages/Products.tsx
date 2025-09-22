@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ import { getProducts, deleteProduct, Product } from "../services/products";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
+import { formatCurrency } from "@/lib/funcs";
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -117,9 +118,7 @@ const Products = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -195,7 +194,7 @@ const Products = () => {
                   {filteredProducts.map((product) => (
                     <TableRow key={product.id}>
                       <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>${product.price.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(product.price)}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={getStockColor(product.quantity)}>
                           {getStockStatus(product.quantity)}
@@ -277,9 +276,10 @@ const Products = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default Products;
+
+

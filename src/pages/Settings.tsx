@@ -1,4 +1,4 @@
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,9 +44,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
           <p className="text-muted-foreground">Manage your bakery's configuration and preferences</p>
@@ -427,9 +425,10 @@ const Settings = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default Settings;
+
+

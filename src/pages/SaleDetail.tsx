@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -50,36 +50,38 @@ const SaleDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Loading sale details...</p>
-          </div>
-        </main>
-      </div>
+      <Layout>
+        <div className="flex min-h-screen bg-background">
+          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Loading sale details...</p>
+            </div>
+          </main>
+        </div>
+      </Layout>
     );
   }
 
   if (error || !sale) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-          <Card className="max-w-md w-full">
-            <CardContent className="p-6 text-center">
-              <p className="text-destructive mb-4">Sale not found or error loading details.</p>
-              <Button asChild>
-                <Link to="/sales">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Sales
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
+      <Layout>
+        <div className="flex min-h-screen bg-background">
+          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+            <Card className="max-w-md w-full">
+              <CardContent className="p-6 text-center">
+                <p className="text-destructive mb-4">Sale not found or error loading details.</p>
+                <Button asChild>
+                  <Link to="/sales">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Sales
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
+      </Layout>
     );
   }
 
@@ -99,9 +101,7 @@ const SaleDetail = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>\r\n      <div className="p-6">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
             <Link to="/sales">
@@ -223,9 +223,10 @@ const SaleDetail = () => {
           message={`Are you sure you want to mark sale #${sale.id} as complete? This action cannot be undone.`}
           onConfirm={handleCompleteSale}
         />
-      </main>
-    </div>
+      </div>\r\n    </Layout>
   );
 };
 
 export default SaleDetail;
+
+

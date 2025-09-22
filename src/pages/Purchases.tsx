@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Navigation from "@/components/Navigation";
+import Layout from "../components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, Package, Users } from "lucide-react";
 import PurchaseOrdersTab from "@/components/purchases/PurchaseOrdersTab";
@@ -11,9 +11,8 @@ export default function Purchases() {
   const [activeTab, setActiveTab] = useState("purchase-orders");
 
   return (
-    <div className="min-h-screen bg-background flex">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
           <div>
@@ -50,7 +49,9 @@ export default function Purchases() {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 }
+
+

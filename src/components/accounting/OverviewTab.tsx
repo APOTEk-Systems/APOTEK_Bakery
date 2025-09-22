@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { expensesService, Expense, DailyBreakdown } from "@/services/expenses";
 import { accountingService, MonthlySummary } from "@/services/accounting";
+import { formatCurrency } from "@/lib/funcs";
 
 // TODO: Define proper types for props
 const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
@@ -76,7 +77,7 @@ const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
             <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">${monthlySummary?.monthlyRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-foreground">{formatCurrency(monthlySummary?.monthlyRevenue)}</div>
             <p className="text-xs text-success">
               {monthlySummary?.comparison.lastMonthRevenue !== undefined && monthlySummary.comparison.lastMonthRevenue !== 0
                 ? `+${((monthlySummary.monthlyRevenue - monthlySummary.comparison.lastMonthRevenue) / monthlySummary.comparison.lastMonthRevenue * 100).toFixed(1)}% from last month`
@@ -91,7 +92,7 @@ const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
             <TrendingDown className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">${monthlySummary?.monthlyExpenses.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-foreground">{formatCurrency(monthlySummary?.monthlyExpenses)}</div>
             <p className="text-xs text-muted-foreground">
               {monthlySummary?.comparison.lastMonthExpenses !== undefined && monthlySummary.comparison.lastMonthExpenses !== 0
                 ? `+${((monthlySummary.monthlyExpenses - monthlySummary.comparison.lastMonthExpenses) / monthlySummary.comparison.lastMonthExpenses * 100).toFixed(1)}% from last month`
@@ -106,7 +107,7 @@ const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
             <DollarSign className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-foreground">${monthlySummary?.netProfit.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-foreground">{formatCurrency(monthlySummary?.netProfit)}</div>
             <p className="text-xs text-success">
               {monthlySummary?.comparison.netProfitChange !== undefined && monthlySummary.comparison.netProfitChange !== "N/A"
                 ? `${monthlySummary.comparison.netProfitChange} from last month`
@@ -158,7 +159,7 @@ const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-medium text-foreground">${expense.total?.toFixed(2) ?? 0}</p>
+                    <p className="font-medium text-foreground">{formatCurrency(expense.total) ?? 0}</p>
                     <Badge className={getStatusColor(expense.status)}>
                       {expense.status}
                     </Badge>

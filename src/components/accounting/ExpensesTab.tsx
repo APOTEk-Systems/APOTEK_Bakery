@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,12 +17,9 @@ import {
   Receipt
 } from "lucide-react";
 import { expensesService, Expense, ExpensesList, DailyBreakdown } from "@/services/expenses";
+import { formatCurrency } from "@/lib/funcs";
 
 interface ExpensesTabProps {
-  searchTerm: string;
-  setSearchTerm: (term: string) => void;
-  filterCategory: string;
-  setFilterCategory: (category: string) => void;
   getCategoryColor: (category: string) => string;
   getStatusColor: (status: string) => string;
 }
@@ -37,43 +35,31 @@ interface ExpensesSummary {
   dailyBreakdown: DailyBreakdown[];
 }
 
-const ExpensesTab = ({ searchTerm, setSearchTerm, filterCategory, setFilterCategory, getCategoryColor, getStatusColor }: ExpensesTabProps) => {
-  const [expenses, setExpenses] = useState<DailyBreakdown []>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [expensesSummary, setExpensesSummary] = useState<ExpensesSummary | null>(null);
+const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("all");
 
-  useEffect(() => {
-    const fetchExpenses = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const fetchedData = await expensesService.getExpenses({
-          category: filterCategory === "all" ? undefined : filterCategory,
-          search: searchTerm || undefined,
-          date : new Date().toISOString()
-        });
+  const expensesQuery = useQuery({
+    queryKey: ['expenses', filterCategory, searchTerm],
+    queryFn: () => expensesService.getExpenses({
+      category: filterCategory === "all" ? undefined : filterCategory,
+      search: searchTerm || undefined,
+      date: new Date().toISOString()
+    }),
+  });
 
-        setExpenses(fetchedData.dailyBreakdown);
-        setExpensesSummary({ totalExpenses: fetchedData.totalExpenses, dailyBreakdown: fetchedData.dailyBreakdown });
+  const expenses = expensesQuery.data?.dailyBreakdown || [];
+  const expensesSummary = expensesQuery.data ? {
+    totalExpenses: expensesQuery.data.totalExpenses,
+    dailyBreakdown: expensesQuery.data.dailyBreakdown
+  } : null;
 
-      } catch (err) {
-        console.error("Failed to fetch expenses:", err);
-        setError("Failed to load expenses.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchExpenses();
-  }, [filterCategory, searchTerm]);
-
-  if (loading) {
+  if (expensesQuery.isLoading) {
     return <div className="text-center py-8">Loading expenses...</div>;
   }
 
-  if (error) {
-    return <div className="text-center py-8 text-destructive">Error: {error}</div>;
+  if (expensesQuery.error) {
+    return <div className="text-center py-8 text-destructive">Error: {expensesQuery.error.message}</div>;
   }
 
   return (
@@ -188,7 +174,7 @@ const ExpensesTab = ({ searchTerm, setSearchTerm, filterCategory, setFilterCateg
             <CardTitle>Expenses Summary</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-lg font-bold">Total Expenses: ${expensesSummary.totalExpenses.toFixed(2)}</p>
+            <p className="text-lg font-bold">Total Expenses: {formatCurrency(expensesSummary.totalExpenses)}</p>
             <h4 className="font-semibold mt-4">Daily Breakdown:</h4>
             <div className="space-y-2 mt-2">
               {expensesSummary.dailyBreakdown.length === 0 ? (

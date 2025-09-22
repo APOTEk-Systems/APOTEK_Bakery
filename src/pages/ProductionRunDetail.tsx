@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import Navigation from "../components/Navigation";
+import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,20 +21,18 @@ const ProductionRunDetail = () => {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+      <Layout>
+        <div className="flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   if (error || !run) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+      <Layout>
+        <div className="p-6 flex items-center justify-center">
           <Card className="max-w-md w-full">
             <CardContent className="p-6 text-center">
               <p className="text-destructive mb-4">Production run not found or error loading details.</p>
@@ -46,15 +44,14 @@ const ProductionRunDetail = () => {
               </Button>
             </CardContent>
           </Card>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
-      <Navigation />
-      <main className="flex-1 ml-64 p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
             <Link to="/production-runs">
@@ -110,24 +107,36 @@ const ProductionRunDetail = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {(run as any).ingredientsDeducted?.map((ingredient: any, index: number) => (
-                  <div key={index} className="flex justify-between items-center p-3 border rounded">
+                {(run as any).ingredientsDeducted?.map((ingredient: any, index: number) => 
+                  {
+                    let unit = ingredient.unit;
+
+                    if(unit.toLowerCase() === "kg"){
+                      unit = "g"
+                    } else if(unit.toLowerCase() === "l"){
+                      unit = "ml"
+                    }
+
+                    return(<div key={ingredient.id} className="flex justify-between items-center p-3 border rounded">
                     <div className="flex-1">
                       <span className="font-medium">{ingredient.name}</span>
                     </div>
                     <div className="flex space-x-4 text-sm text-muted-foreground">
-                      <span>{ingredient.amountDeducted} {ingredient.unit}</span>
+                      <span>{ingredient.amountDeducted} {unit}</span>
                       <span>{formatCurrency(Number(ingredient.cost))}</span>
                     </div>
-                  </div>
-                )) || <p>No ingredients deducted</p>}
+                  </div>)
+                  }
+                ) || <p>No ingredients deducted</p>}
               </div>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
 export default ProductionRunDetail;
+
+

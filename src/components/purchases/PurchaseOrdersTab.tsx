@@ -1,62 +1,104 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Loader2, Trash, Calendar as CalendarIcon, Eye, Truck } from "lucide-react";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { useToast } from "@/hooks/use-toast";
-import { suppliersService, type Supplier } from "@/services/suppliers";
-import { purchasesService, type PurchaseOrder } from "@/services/purchases";
-import type { InventoryItem } from "@/services/inventory";
-import { getInventory } from "@/services/inventory";
-import { formatCurrency } from "@/lib/funcs";
-import { Link } from "react-router-dom";
+import {useState} from "react";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {Button} from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Textarea} from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Plus,
+  Loader2,
+  Trash,
+  Calendar as CalendarIcon,
+  Eye,
+  Truck,
+} from "lucide-react";
+import {useToast} from "@/hooks/use-toast";
+import {suppliersService, type Supplier} from "@/services/suppliers";
+import {purchasesService, type PurchaseOrder} from "@/services/purchases";
+import type {InventoryItem} from "@/services/inventory";
+import {getInventory} from "@/services/inventory";
+import {formatCurrency} from "@/lib/funcs";
+import {Link} from "react-router-dom";
 
-import type { GoodsReceiptItem } from "@/services/purchases";
+import type {GoodsReceiptItem} from "@/services/purchases";
 
 interface POItem {
   inventoryItemId: string;
   quantity: number;
   price: number;
+  unit: string;
 }
 export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [date, setDate] = useState<Date | null>(null);
   const [isCreatePODialogOpen, setIsCreatePODialogOpen] = useState(false);
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
-  const [selectedPOForReceive, setSelectedPOForReceive] = useState<PurchaseOrder | null>(null);
+  const [selectedPOForReceive, setSelectedPOForReceive] =
+    useState<PurchaseOrder | null>(null);
   const [receiveForm, setReceiveForm] = useState<GoodsReceiptItem[]>([]);
-  const [createPOForm, setCreatePOForm] = useState<{ supplierId: string; items: POItem[] }>({
+  const [receiveNotes, setReceiveNotes] = useState("");
+  const [createPOForm, setCreatePOForm] = useState<{
+    supplierId: string;
+    items: POItem[];
+  }>({
     supplierId: "",
-    items: [{ inventoryItemId: "", quantity: 0, price: 0 }]
+    items: [{inventoryItemId: "", quantity: 0, price: 0, unit: ""}],
   });
-  const { toast } = useToast();
+  const {toast} = useToast();
   const queryClient = useQueryClient();
 
   const suppliersQuery = useQuery<Supplier[]>({
-    queryKey: ['suppliers'],
+    queryKey: ["suppliers"],
     queryFn: () => suppliersService.getAll(),
   });
 
   const purchaseOrdersQuery = useQuery<PurchaseOrder[]>({
-    queryKey: ['purchaseOrders'],
+    queryKey: ["purchaseOrders"],
     queryFn: () => purchasesService.getAllPOs(),
   });
 
   const inventoryQuery = useQuery<InventoryItem[]>({
-    queryKey: ['inventory'],
+    queryKey: ["inventory"],
     queryFn: () => getInventory(),
   });
 
@@ -74,22 +116,32 @@ export default function PurchaseOrdersTab() {
     return acc;
   }, {} as Record<number, string>);
 
-  const filteredPOs = purchaseOrders.filter(po => {
-    const dateKey = date ? new Date(date.setHours(0, 0, 0, 0)).toISOString().split('T')[0] : null;
-    const matchesSearch = po.items.some(i => inventoryMap[i.inventoryItemId]?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                          supplierMap[po.supplierId]?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          po.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredPOs = purchaseOrders.filter((po) => {
+    const matchesSearch =
+      po.items.some((i) =>
+        inventoryMap[i.inventoryItemId]
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase())
+      ) ||
+      supplierMap[po.supplierId]
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      po.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || po.status === filterStatus;
-    const matchesDate = !dateKey || new Date(po.createdAt).toISOString().split('T')[0] === dateKey;
-    return matchesSearch && matchesStatus && matchesDate;
+    return matchesSearch && matchesStatus;
   });
 
   const getStatusVariant = (status: string) => {
     switch (status) {
-      case "approved": case "completed": return "default";
-      case "pending": return "outline";
-      case "cancelled": return "secondary";
-      default: return "default";
+      case "approved":
+      case "completed":
+        return "default";
+      case "pending":
+        return "outline";
+      case "cancelled":
+        return "secondary";
+      default:
+        return "default";
     }
   };
 
@@ -100,172 +152,212 @@ export default function PurchaseOrdersTab() {
   const createPOMutation = useMutation({
     mutationFn: (data: any) => purchasesService.createPO(data),
     onSuccess: (newPO) => {
-      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-      toast({ title: "PO Created", description: `Purchase order ${newPO.id} created successfully.` });
+      queryClient.invalidateQueries({queryKey: ["purchaseOrders"]});
+      toast({
+        title: "PO Created",
+        description: `Purchase order ${newPO.id} created successfully.`,
+      });
       setIsCreatePODialogOpen(false);
-      setCreatePOForm({ supplierId: "", items: [{ inventoryItemId: "", quantity: 0, price: 0 }] });
+      setCreatePOForm({
+        supplierId: "",
+        items: [{inventoryItemId: "", quantity: 0, price: 0, unit: ""}],
+      });
     },
     onError: (err) => {
-      toast({ title: "Error", description: "Failed to create PO", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to create PO",
+        variant: "destructive",
+      });
     },
   });
 
   const receiveMutation = useMutation({
-    mutationFn: (data: { purchaseOrderId: number; items: GoodsReceiptItem[] }) => purchasesService.createReceipt(data),
+    mutationFn: (data: {purchaseOrderId: number; items: GoodsReceiptItem[], notes?:string}) =>
+      purchasesService.createReceipt(data),
     onSuccess: (newReceipt) => {
-      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-      toast({ title: "Goods Received", description: `Goods receipt for PO ${selectedPOForReceive?.id} created successfully.` });
+      queryClient.invalidateQueries({queryKey: ["purchaseOrders"]});
+      toast({
+        title: "Goods Received",
+        description: `Goods receipt for PO ${selectedPOForReceive?.id} created successfully.`,
+      });
       setIsReceiveDialogOpen(false);
       setSelectedPOForReceive(null);
       setReceiveForm([]);
+      setReceiveNotes("");
     },
     onError: (err) => {
-      toast({ title: "Error", description: "Failed to create goods receipt", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Failed to create goods receipt",
+        variant: "destructive",
+      });
     },
   });
 
   const addItemToForm = () => {
     setCreatePOForm({
       ...createPOForm,
-      items: [...createPOForm.items, { inventoryItemId: "", quantity: 0, price: 0 }]
+      items: [
+        ...createPOForm.items,
+        {inventoryItemId: "", quantity: 0, price: 0, unit: ""},
+      ],
     });
   };
 
   const removeItemFromForm = (index: number) => {
     const newItems = createPOForm.items.filter((_, i) => i !== index);
-    setCreatePOForm({ ...createPOForm, items: newItems });
+    setCreatePOForm({...createPOForm, items: newItems});
   };
 
   const updateItemId = (index: number, id: string) => {
-    const selectedItem = inventoryItems.find(inv => inv.id.toString() === id);
+    const selectedItem = inventoryItems.find((inv) => inv.id.toString() === id);
     const newItems = createPOForm.items.map((item, i) => {
       if (i === index) {
-        return { ...item, inventoryItemId: id, price: selectedItem?.cost || 0 };
+        return {
+          ...item,
+          inventoryItemId: id,
+          price: selectedItem?.cost || 0,
+          unit: selectedItem?.unit || "",
+        };
       }
       return item;
     });
-    setCreatePOForm({ ...createPOForm, items: newItems });
+    setCreatePOForm({...createPOForm, items: newItems});
   };
 
   const updateItemQuantity = (index: number, quantity: number) => {
     const newItems = createPOForm.items.map((item, i) => {
       if (i === index) {
-        return { ...item, quantity };
+        return {...item, quantity};
       }
       return item;
     });
-    setCreatePOForm({ ...createPOForm, items: newItems });
+    setCreatePOForm({...createPOForm, items: newItems});
   };
 
   const updateItemPrice = (index: number, price: number) => {
     const newItems = createPOForm.items.map((item, i) => {
       if (i === index) {
-        return { ...item, price };
+        return {...item, price};
       }
       return item;
     });
-    setCreatePOForm({ ...createPOForm, items: newItems });
+    setCreatePOForm({...createPOForm, items: newItems});
+  };
+
+  const updateItemUnit = (index: number, unit: string) => {
+    const newItems = createPOForm.items.map((item, i) => {
+      if (i === index) {
+        return {...item, unit};
+      }
+      return item;
+    });
+    setCreatePOForm({...createPOForm, items: newItems});
   };
 
   const calculateTotal = () => {
     return createPOForm.items.reduce((sum, item) => {
-      return sum + (item.quantity * item.price);
+      let price = item.price;
+      if (item.unit.toLowerCase() === "l" || item.unit.toLowerCase() === "kg") {
+        price *= 1000;
+      }
+      return sum + item.quantity * price;
     }, 0);
   };
 
   const handleCreatePO = async (e: React.FormEvent) => {
     e.preventDefault();
     const supplierId = parseInt(createPOForm.supplierId);
-    if (isNaN(supplierId) || createPOForm.items.some(item => !item.inventoryItemId || item.quantity === 0)) {
-      toast({ title: "Invalid Form", description: "Please select supplier and fill item fields", variant: "destructive" });
+    if (
+      isNaN(supplierId) ||
+      createPOForm.items.some(
+        (item) => !item.inventoryItemId || item.quantity === 0
+      )
+    ) {
+      toast({
+        title: "Invalid Form",
+        description: "Please select supplier and fill item fields",
+        variant: "destructive",
+      });
       return;
     }
-    const items = createPOForm.items.map(item => ({
-      inventoryItemId: parseInt(item.inventoryItemId, 10),
-      quantity: item.quantity,
-      price: item.price
-    }));
+    const items = createPOForm.items.map((item) => {
+      let quantity = item.quantity;
+      let price = item.price;
+
+      if (item.unit.toLowerCase() === "l" || item.unit.toLowerCase() === "kg") {
+        price *= 1000;
+      }
+
+      return {
+        inventoryItemId: parseInt(item.inventoryItemId, 10),
+        quantity,
+        price: price,
+      };
+    });
     const totalCost = calculateTotal();
-    createPOMutation.mutate({ supplierId, items, totalCost });
+    createPOMutation.mutate({supplierId, items, totalCost});
   };
 
   const handleReceiveGoods = (po: PurchaseOrder) => {
-    const initialItems = po.items.map(item => ({
+    const initialItems = po.items.map((item) => ({
       inventoryItemId: item.inventoryItemId,
-      receivedQuantity: item.quantity
+      receivedQuantity: item.quantity,
     }));
     setReceiveForm(initialItems);
+    setReceiveNotes("");
     setSelectedPOForReceive(po);
     setIsReceiveDialogOpen(true);
   };
 
-  const updateReceivedQuantity = (index: number, quantity: number) => {
-    const newItems = receiveForm.map((item, i) => {
-      if (i === index) {
-        return { ...item, receivedQuantity: quantity };
-      }
-      return item;
-    });
-    setReceiveForm(newItems);
-  };
 
   const handleSubmitReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPOForReceive || receiveForm.some(item => item.receivedQuantity <= 0)) {
-      toast({ title: "Invalid Form", description: "Please enter valid received quantities", variant: "destructive" });
+    if (
+      !selectedPOForReceive ||
+      receiveForm.some((item) => item.receivedQuantity <= 0)
+    ) {
+      toast({
+        title: "Invalid Form",
+        description: "Please enter valid received quantities",
+        variant: "destructive",
+      });
       return;
     }
-    receiveMutation.mutate({ purchaseOrderId: selectedPOForReceive.id, items: receiveForm });
+    receiveMutation.mutate({
+      purchaseOrderId: selectedPOForReceive.id,
+      items: receiveForm,
+      notes: receiveNotes,
+    });
   };
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="flex flex-col sm:flex-row gap-4">
-            <Input
-              placeholder="Search by item, supplier, or ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-[200px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date || undefined}
-                  onSelect={(d) => setDate(d || null)}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+          <Input
+            placeholder="Search by item, supplier, or ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Button onClick={() => setIsCreatePODialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Purchase Order
+          <Plus className="mr-2 h-4 w-4" />
+          New Purchase Order
         </Button>
       </div>
       <Card>
@@ -282,12 +374,16 @@ export default function PurchaseOrdersTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPOs.map(po => (
+              {filteredPOs.map((po) => (
                 <TableRow key={po.id} className="py-0">
                   <TableCell>{po.id}</TableCell>
-                  <TableCell>{supplierMap[po.supplierId] || 'Unknown'}</TableCell>
+                  <TableCell>
+                    {supplierMap[po.supplierId] || "Unknown"}
+                  </TableCell>
                   <TableCell>{po.items.length}</TableCell>
-                  <TableCell className="text-right">{formatCurrency(po.totalCost) || '0.00'}</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(po.totalCost) || "0.00"}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(po.status)}>
                       {capitalizeStatus(po.status)}
@@ -295,13 +391,20 @@ export default function PurchaseOrdersTab() {
                   </TableCell>
                   <TableCell className="space-x-2">
                     <Button asChild variant="outline">
-                      <Link to={`/purchases/${po.id}`} className="flex items-center">
+                      <Link
+                        to={`/purchases/${po.id}`}
+                        className="flex items-center"
+                      >
                         <Eye className="h-4 w-4 mr-1" />
                         View
                       </Link>
                     </Button>
-                    {po.status === 'approved' && (
-                      <Button variant="default" onClick={() => handleReceiveGoods(po)} disabled={receiveMutation.isPending}>
+                    {po.status === "approved" && (
+                      <Button
+                        variant="default"
+                        onClick={() => handleReceiveGoods(po)}
+                        disabled={receiveMutation.isPending}
+                      >
                         {receiveMutation.isPending ? (
                           <Loader2 className="h-4 w-4 mr-1 animate-spin" />
                         ) : (
@@ -326,7 +429,10 @@ export default function PurchaseOrdersTab() {
       </Card>
 
       {/* Create PO Dialog */}
-      <Dialog open={isCreatePODialogOpen} onOpenChange={setIsCreatePODialogOpen}>
+      <Dialog
+        open={isCreatePODialogOpen}
+        onOpenChange={setIsCreatePODialogOpen}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Create Purchase Order</DialogTitle>
@@ -334,13 +440,21 @@ export default function PurchaseOrdersTab() {
           <form onSubmit={handleCreatePO} className="space-y-4">
             <div>
               <Label htmlFor="supplierId">Supplier *</Label>
-              <Select value={createPOForm.supplierId} onValueChange={(v) => setCreatePOForm(prev => ({ ...prev, supplierId: v }))} required>
+              <Select
+                value={createPOForm.supplierId}
+                onValueChange={(v) =>
+                  setCreatePOForm((prev) => ({...prev, supplierId: v}))
+                }
+                required
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a supplier" />
                 </SelectTrigger>
                 <SelectContent>
-                  {suppliers.map(s => (
-                    <SelectItem key={s.id} value={s.id.toString()}>{s.name}</SelectItem>
+                  {suppliers.map((s) => (
+                    <SelectItem key={s.id} value={s.id.toString()}>
+                      {s.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -351,53 +465,108 @@ export default function PurchaseOrdersTab() {
                 <div className="flex gap-2 text-xs font-medium text-muted-foreground mb-1">
                   <div className="flex-1">Item</div>
                   <div className="w-20">Quantity</div>
+                  <div className="w-20">Unit</div>
                   <div className="w-20">Price</div>
                 </div>
-                {createPOForm.items.map((item, index) => (
-                  <div key={index} className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      <Label className="sr-only">Item</Label>
-                      <Select value={item.inventoryItemId} onValueChange={(v) => updateItemId(index, v)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select item" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {inventoryItems.map(i => (
-                            <SelectItem key={i.id} value={i.id.toString()}>{i.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                {createPOForm.items.map((item, index) => {
+                  let price = item.price;
+                  if (item.unit === "kg") {
+                    price = price * 1000;
+                  } else if (item.unit === "l") {
+                    price = price * 1000;
+                  }
+                  return (
+                    <div key={index} className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        <Label className="sr-only">Item</Label>
+                        <Select
+                          value={item.inventoryItemId}
+                          onValueChange={(v) => updateItemId(index, v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select item" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {inventoryItems.map((i) => (
+                              <SelectItem key={i.id} value={i.id.toString()}>
+                                {i.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-20">
+                        <Label className="sr-only">Quantity</Label>
+                        <Input
+                          type="number"
+                          value={item.quantity || ""} // 👈 if 0, show empty
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateItemQuantity(
+                              index,
+                              val === "" ? 0 : parseInt(val, 10)
+                            );
+                          }}
+                          placeholder="Qty"
+                          className="w-full"
+                          min="1"
+                        />
+                      </div>
+                      <div className="w-20">
+                        <Label className="sr-only">Unit</Label>
+                        <Select
+                          value={item.unit}
+                          onValueChange={(v) => updateItemUnit(index, v)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Unit" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="pieces">pieces</SelectItem>
+                            <SelectItem value="kg">kg</SelectItem>
+                            <SelectItem value="g">g</SelectItem>
+                            <SelectItem value="l">l</SelectItem>
+                            <SelectItem value="ml">ml</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="w-20">
+                        <Label className="sr-only">Price</Label>
+                        <Input
+                          type="number"
+                          value={price || ""} // 👈 prevents "0" and leading zeros
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateItemPrice(
+                              index,
+                              val === "" ? 0 : parseFloat(val)
+                            );
+                          }}
+                          placeholder="Price"
+                          className="w-full"
+                          min="0"
+                          step="1000"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        onClick={() => removeItemFromForm(index)}
+                        variant="destructive"
+                        size="sm"
+                        disabled={createPOForm.items.length === 1}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div className="w-20">
-                      <Label className="sr-only">Quantity</Label>
-                      <Input
-                        type="number"
-                        value={item.quantity}
-                        onChange={(e) => updateItemQuantity(index, parseInt(e.target.value) || 0)}
-                        placeholder="Qty"
-                        className="w-full"
-                        min="1"
-                      />
-                    </div>
-                    <div className="w-20">
-                      <Label className="sr-only">Price</Label>
-                      <Input
-                        type="number"
-                        value={item.price}
-                        onChange={(e) => updateItemPrice(index, parseFloat(e.target.value) || 0)}
-                        placeholder="Price"
-                        className="w-full"
-                        min="0"
-                        step="1000"
-                      />
-                    </div>
-                    <Button type="button" onClick={() => removeItemFromForm(index)} variant="destructive" size="sm" disabled={createPOForm.items.length === 1}>
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
-              <Button type="button" onClick={addItemToForm} variant="outline" className="mt-2">
+              <Button
+                type="button"
+                onClick={addItemToForm}
+                variant="outline"
+                className="mt-2"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Item
               </Button>
@@ -409,7 +578,11 @@ export default function PurchaseOrdersTab() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" onClick={() => setIsCreatePODialogOpen(false)} variant="outline">
+              <Button
+                type="button"
+                onClick={() => setIsCreatePODialogOpen(false)}
+                variant="outline"
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={createPOMutation.isPending}>
@@ -429,55 +602,63 @@ export default function PurchaseOrdersTab() {
       <Dialog open={isReceiveDialogOpen} onOpenChange={setIsReceiveDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Receive Goods for PO {selectedPOForReceive?.id}</DialogTitle>
+            <DialogTitle>
+              Receive Goods for PO {selectedPOForReceive?.id}
+            </DialogTitle>
           </DialogHeader>
           {selectedPOForReceive && (
             <form onSubmit={handleSubmitReceipt} className="space-y-4">
               <div>
-                <Label>Received Items</Label>
+                <Label>Items and Costs</Label>
                 <div className="space-y-2">
                   {selectedPOForReceive.items.map((item, index) => (
-                    <div key={index} className="flex gap-2 items-end">
-                      <div className="flex-1">
+                    <div key={index} className="flex gap-2 items-center justify-between">
+                      <div className="w-full">
                         <Input
-                          value={inventoryItems.find(i => i.id === item.inventoryItemId)?.name || 'Unknown'}
+                          value={
+                            inventoryItems.find(
+                              (i) => i.id === item.inventoryItemId
+                            )?.name || "Unknown"
+                          }
                           className="bg-muted"
                           readOnly
                         />
                       </div>
-                      <div className="w-20">
-                        <Label className="sr-only">Ordered Quantity</Label>
+                      <div className="w-1/2">
                         <Input
-                          type="number"
-                          value={item.quantity}
+                          value={formatCurrency(item.price)}
                           className="bg-muted text-center"
                           readOnly
-                        />
-                      </div>
-                      <div className="w-20">
-                        <Label className="sr-only">Received Quantity</Label>
-                        <Input
-                          type="number"
-                          value={receiveForm[index]?.receivedQuantity || 0}
-                          onChange={(e) => updateReceivedQuantity(index, parseInt(e.target.value) || 0)}
-                          placeholder="Received"
-                          className="w-full"
-                          min="0"
                         />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+              <div>
+                <Label htmlFor="receiveNotes">Notes</Label>
+                <Textarea
+                  id="receiveNotes"
+                  value={receiveNotes}
+                  onChange={(e) => setReceiveNotes(e.target.value)}
+                  placeholder="Add any notes..."
+                />
+              </div>
               <DialogFooter>
-                <Button type="button" onClick={() => setIsReceiveDialogOpen(false)} variant="outline">
+                <Button
+                  type="button"
+                  onClick={() => setIsReceiveDialogOpen(false)}
+                  variant="outline"
+                >
                   Cancel
                 </Button>
                 <Button type="submit" disabled={receiveMutation.isPending}>
                   {receiveMutation.isPending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : null}
-                  Submit Receipt
+                  ) : (
+                    <Truck className="mr-2 h-4 w-4" />
+                  )}
+                  Receive Goods
                 </Button>
               </DialogFooter>
             </form>

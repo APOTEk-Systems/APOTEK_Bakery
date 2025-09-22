@@ -1,7 +1,7 @@
 import {useState} from "react";
 import {Link} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import Navigation from "@/components/Navigation";
+import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
@@ -67,8 +67,58 @@ const NewSale = () => {
     phone: "",
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+const [soldCart, setSoldCart] = useState<CartItem[]>([]);
+const [saleCompleted, setSaleCompleted] = useState(false);
+const [newSale, setNewSale] = useState<any>(null);
+const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
 
   const {toast} = useToast();
+const ReceiptPreview = ({ format, sale, cart, customer, paymentMethod, creditDueDate, total, subtotal, tax }) => {
+  const isA5 = format === 'a5';
+  const className = isA5 ? 'w-full max-w-2xl mx-auto' : 'w-full max-w-sm mx-auto';
+  return (
+    <div className={`${className} p-4 border bg-white text-sm`}>
+      <div className="text-center mb-4">
+        <h2 className="text-lg font-bold">Pastry Pros Receipt</h2>
+        <p>Sale ID: {sale?.id}</p>
+        <p>Date: {new Date().toLocaleString()}</p>
+      </div>
+      <div className="mb-4">
+        <h3 className="font-semibold mb-2">Items:</h3>
+        {cart.map(item => (
+          <div key={item.id} className="flex justify-between">
+            <span>{item.name} x{item.quantity}</span>
+            <span>{formatCurrency(item.price * item.quantity)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="border-b"></div>
+       <p className="my-2">Payment: {paymentMethod === 'credit' ? 'Credit' : 'Cash'}</p>
+        {paymentMethod === 'credit' && creditDueDate && <p>Due: {new Date(creditDueDate).toLocaleDateString()}</p>}
+        {customer && <p>Customer: {customer.name}</p>}
+
+      <div className="border-t py-2 space-y-1">
+        <div className="flex justify-between">
+          <span>Subtotal:</span>
+          <span>{formatCurrency(subtotal)}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>VAT:</span>
+          <span>{formatCurrency(tax)}</span>
+        </div>
+        <div className="flex justify-between font-semibold">
+          <span>Total:</span>
+          <span>{formatCurrency(total)}</span>
+        </div>
+
+      </div>
+      <div className="text-center mt-4 text-xs">
+        Thank you for shopping with us<br />
+        Enjoy!
+      </div>
+    </div>
+  );
+};
 
   const queryClient = useQueryClient();
 
@@ -118,12 +168,14 @@ const NewSale = () => {
         title: "Success",
         description: `Sale ${newSale?.id ?? ""} created successfully`,
       });
+      setSoldCart(cart);
       setCart([]);
       setSelectedCustomer("");
       setCustomerName("");
       setPaymentMethod("");
       setCreditDueDate("");
-      setShowConfirmDialog(false);
+      setSaleCompleted(true);
+      setNewSale(newSale);
     },
     onError: (err) => {
       toast({
@@ -169,6 +221,9 @@ const NewSale = () => {
 
   // validate & open confirm
   const handleConfirmSale = () => {
+    setSaleCompleted(false);
+    setNewSale(null);
+    setPreviewFormat(null);
     if (cart.length === 0) {
       toast({
         title: "Invalid Sale",
@@ -273,23 +328,21 @@ const NewSale = () => {
   // loading / error UIs
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+      <Layout>
+        <div className="flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p>Loading...</p>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6">
+      <Layout>
+        <div className="p-6">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6">
               <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to fetch data'}</p>
@@ -298,16 +351,15 @@ const NewSale = () => {
               </Button>
             </CardContent>
           </Card>
-        </main>
-      </div>
+        </div>
+      </Layout>
     );
   }
 
   return (
     <>
-      <div className="min-h-screen bg-background flex">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6">
+      <Layout>
+        <div className="p-6">
           <div className="mb-6">
             <div className="flex items-center gap-4 mb-4">
               <div>
@@ -605,102 +657,152 @@ const NewSale = () => {
               </Card>
             </div>
           </div>
-        </main>
-      </div>
+        </div>
+      </Layout>
 
       {/* Confirm Sale Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
+        <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
           <DialogHeader>
-            <DialogTitle>Confirm Sale</DialogTitle>
+            <DialogTitle>
+              {saleCompleted ? (previewFormat ? `Receipt Preview (${previewFormat.toUpperCase()})` : "Sale Completed") : "Confirm Sale"}
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to complete this sale?
+              {saleCompleted ? (previewFormat ? "Review the receipt before printing." : "Sale created successfully. Choose a receipt format to preview.") : "Are you sure you want to complete this sale?"}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Total Amount:</span>
-              <span className="font-semibold">{formatCurrency(total)}</span>
-            </div>
-
-            <div className="flex justify-between">
-              <span>Payment Method:</span>
-              <span className="font-semibold">
-                {paymentMethod === "credit" ? "Credit" : "Cash"}
-              </span>
-            </div>
-
-            {paymentMethod === "credit" && (
+          {!saleCompleted ? (
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span>Credit Due Date:</span>
+                <span>Total Amount:</span>
+                <span className="font-semibold">{formatCurrency(total)}</span>
+              </div>
+
+              <div className="flex justify-between">
+                <span>Payment Method:</span>
                 <span className="font-semibold">
-                  {creditDueDate
-                    ? new Date(creditDueDate).toLocaleDateString()
-                    : "Not set"}
+                  {paymentMethod === "credit" ? "Credit" : "Cash"}
                 </span>
               </div>
-            )}
 
-            {selectedCustomer && (
-              <div className="text-sm text-muted-foreground">
-                For:{" "}
-                {customers.find((c) => c.id.toString() === selectedCustomer)
-                  ?.name ?? "Selected customer"}
-              </div>
-            )}
-
-            {!selectedCustomer && customerName && (
-              <div className="text-sm text-muted-foreground">
-                Walk-in name: {customerName}
-              </div>
-            )}
-
-            {paymentMethod === "credit" && (
-              <div className="text-sm text-muted-foreground">
-                This sale will be recorded as credit
-                {selectedCustomer
-                  ? ` for ${
-                      customers.find(
-                        (c) => c.id.toString() === selectedCustomer
-                      )?.name
-                    }`
-                  : ""}
-                .
-              </div>
-            )}
-
-            {/* ❌ Error when trying credit without a customer */}
-            {paymentMethod === "credit" &&
-              !customers.some((c) => c.id.toString() === selectedCustomer) && (
-                <p className="text-sm text-red-500 font-medium">
-                  Error: Credit sales must be linked to a valid customer.
-                </p>
+              {paymentMethod === "credit" && (
+                <div className="flex justify-between">
+                  <span>Credit Due Date:</span>
+                  <span className="font-semibold">
+                    {creditDueDate
+                      ? new Date(creditDueDate).toLocaleDateString()
+                      : "Not set"}
+                  </span>
+                </div>
               )}
-          </div>
+
+              {selectedCustomer && (
+                <div className="text-sm text-muted-foreground">
+                  For:{" "}
+                  {customers.find((c) => c.id.toString() === selectedCustomer)
+                    ?.name ?? "Selected customer"}
+                </div>
+              )}
+
+              {!selectedCustomer && customerName && (
+                <div className="text-sm text-muted-foreground">
+                  Walk-in name: {customerName}
+                </div>
+              )}
+
+              {paymentMethod === "credit" && (
+                <div className="text-sm text-muted-foreground">
+                  This sale will be recorded as credit
+                  {selectedCustomer
+                    ? ` for ${
+                        customers.find(
+                          (c) => c.id.toString() === selectedCustomer
+                        )?.name
+                      }`
+                    : ""}
+                  .
+                </div>
+              )}
+
+              {/* ❌ Error when trying credit without a customer */}
+              {paymentMethod === "credit" &&
+                !customers.some((c) => c.id.toString() === selectedCustomer) && (
+                  <p className="text-sm text-red-500 font-medium">
+                    Error: Credit sales must be linked to a valid customer.
+                  </p>
+                )}
+            </div>
+          ) : previewFormat ? (
+            <ReceiptPreview
+              format={previewFormat}
+              sale={newSale}
+              cart={soldCart}
+              customer={selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null}
+              paymentMethod={paymentMethod}
+              creditDueDate={creditDueDate}
+              total={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) + (soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0)}
+              subtotal={soldCart.reduce((s, it) => s + it.price * it.quantity, 0)}
+              tax={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0}
+            />
+          ) : (
+            <div className="text-center space-y-4">
+              <p className="text-lg font-semibold">Choose Receipt Format</p>
+              <div className="flex gap-4 justify-center">
+                <Button onClick={() => setPreviewFormat('a5')} variant="outline">
+                  A5 Paper
+                </Button>
+                <Button onClick={() => setPreviewFormat('thermal')} variant="outline">
+                  Thermal Paper
+                </Button>
+              </div>
+            </div>
+          )}
 
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowConfirmDialog(false)}
-              disabled={createSaleMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCompleteSale}
-              disabled={
-                createSaleMutation.isPending ||
-                (paymentMethod === "credit" && !selectedCustomer)
-              }
-            >
-              {createSaleMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Receipt className="h-4 w-4 mr-2" />
-              )}
-              {createSaleMutation.isPending ? "Processing..." : "Confirm Sale"}
-            </Button>
+            {!saleCompleted ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowConfirmDialog(false)}
+                  disabled={createSaleMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCompleteSale}
+                  disabled={
+                    createSaleMutation.isPending ||
+                    (paymentMethod === "credit" && !selectedCustomer)
+                  }
+                >
+                  {createSaleMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Receipt className="h-4 w-4 mr-2" />
+                  )}
+                  {createSaleMutation.isPending ? "Processing..." : "Confirm Sale"}
+                </Button>
+              </>
+            ) : previewFormat ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setPreviewFormat(null)}
+                >
+                  Back
+                </Button>
+                <Button onClick={() => window.print()}>
+                  Print Receipt
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => setShowConfirmDialog(false)}
+              >
+                Close
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -790,3 +892,5 @@ const NewSale = () => {
 };
 
 export default NewSale;
+
+

@@ -13,7 +13,6 @@ export interface Customer {
   loyaltyPoints: number;
   notes?: string;
   birthday?: string;
-  preferredContact: 'email' | 'phone' | 'both';
   totalOrders?: number;
   totalSpent?: number;
   lastOrder?: string;

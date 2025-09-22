@@ -29,6 +29,7 @@ export interface Product {
   prepTime: number | null;
   instructions: string[];
   quantity: number;
+  batchSize: number;
   image?: string | null;
   status: "active" | "inactive";
   createdAt: string;
