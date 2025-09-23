@@ -82,10 +82,16 @@ export const purchasesService = {
   },
 
   // Goods Receipts
-  getAllReceipts: async (): Promise<GoodsReceipt[]> => {
-    const response = await api.get('/purchases/receiving');
-    return response.data;
-  },
+ getAllReceipts: async (params?: { date?: string; status?: string }): Promise<GoodsReceipt[]> => {
+  const response = await api.get('/purchases/receiving', {
+    params: {
+      ...(params?.date ? { date: params.date } : {}),
+      ...(params?.status ? { status: params.status } : {}),
+    },
+  });
+  return response.data;
+},
+
 
   getReceiptById: async (id: number): Promise<GoodsReceipt> => {
     const response = await api.get(`/purchases/receiving/${id}`);

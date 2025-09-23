@@ -1,31 +1,36 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {useState, useEffect} from "react";
+import {Link, useParams, useNavigate} from "react-router-dom";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useToast } from "@/hooks/use-toast";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Textarea} from "@/components/ui/textarea";
 import {
-  ArrowLeft,
-  Save,
-  Plus,
-  Trash2,
-  Loader2
-} from "lucide-react";
-import { createProduct, updateProduct, getProduct, Product } from "../services/products";
-import { getInventory, InventoryItem } from "../services/inventory";
-import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import {useToast} from "@/hooks/use-toast";
+import {ArrowLeft, Save, Plus, Trash2, Loader2} from "lucide-react";
+import {
+  createProduct,
+  updateProduct,
+  getProduct,
+  Product,
+} from "../services/products";
+import {getInventory, InventoryItem} from "../services/inventory";
+import {ConfirmationDialog} from "@/components/ConfirmationDialog";
 
 const ProductForm = () => {
-  const { id } = useParams<{ id: string }>();
+  const {id} = useParams<{id: string}>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { toast } = useToast();
+  const {toast} = useToast();
   const isEdit = Boolean(id);
   const [formData, setFormData] = useState<{
     name: string;
@@ -42,10 +47,12 @@ const ProductForm = () => {
     status: "active",
     description: "",
     instructions: [""],
-    batchSize: "1"
+    batchSize: "1",
   });
 
-  const [productRecipes, setProductRecipes] = useState<{inventoryItemId: string, amount: string, unit: string}[]>([]);
+  const [productRecipes, setProductRecipes] = useState<
+    {inventoryItemId: string; amount: string; unit: string}[]
+  >([]);
   const [activeTab, setActiveTab] = useState("details");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingProductData, setPendingProductData] = useState<any>(null);
@@ -53,23 +60,23 @@ const ProductForm = () => {
   const isDetailsComplete = formData.name.trim() && formData.price.trim();
 
   const unitOptions = [
-    { value: 'kg', label: 'kilograms (kg)' },
-    { value: 'g', label: 'grams (g)' },
-    { value: 'l', label: 'liters (l)' },
-    { value: 'ml', label: 'milliliters (ml)' },
-    { value: 'pcs', label: 'piece (pcs)' },
-    { value: 'pair', label: 'pair' }
+    {value: "kg", label: "kilograms (kg)"},
+    {value: "g", label: "grams (g)"},
+    {value: "l", label: "liters (l)"},
+    {value: "ml", label: "milliliters (ml)"},
+    {value: "pcs", label: "piece (pcs)"},
+    {value: "pair", label: "pair"},
   ];
 
   const productQuery = useQuery({
-    queryKey: ['product', id],
+    queryKey: ["product", id],
     queryFn: () => getProduct(Number(id)),
     enabled: isEdit,
   });
 
   const inventoryQuery = useQuery({
-    queryKey: ['inventory'],
-    queryFn: () => getInventory({type:"raw_material"}),
+    queryKey: ["inventory"],
+    queryFn: () => getInventory({type: "raw_material"}),
   });
 
   const createMutation = useMutation({
@@ -80,13 +87,13 @@ const ProductForm = () => {
       productRecipes: {inventoryItemId: number; amountRequired: number}[];
       description?: string;
       prepTime?: number;
-      status?: 'active' | 'inactive';
+      status?: "active" | "inactive";
     }) => createProduct(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({queryKey: ["products"]});
       toast({
         title: "Product Created",
-        description: `${formData.name} has been created successfully.`
+        description: `${formData.name} has been created successfully.`,
       });
       navigate("/products");
     },
@@ -100,12 +107,13 @@ const ProductForm = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) => updateProduct(Number(id), data),
+    mutationFn: ({id, data}: {id: string; data: Partial<Product>}) =>
+      updateProduct(Number(id), data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({queryKey: ["products"]});
       toast({
         title: "Product Updated",
-        description: `${formData.name} has been updated successfully.`
+        description: `${formData.name} has been updated successfully.`,
       });
       navigate("/products");
     },
@@ -128,52 +136,57 @@ const ProductForm = () => {
         status: product.status,
         description: product.description || "",
         instructions: product.instructions,
-        batchSize: (product as any).batchSize?.toString() || "1"
+        batchSize: (product as any).batchSize?.toString() || "1",
       });
       if ((product as any).productRecipes) {
-        setProductRecipes((product as any).productRecipes.map((r: any) => ({
-          inventoryItemId: r.inventoryItemId.toString(),
-          amount: r.amountRequired.toString(),
-          unit: ''
-        })));
+        setProductRecipes(
+          (product as any).productRecipes.map((r: any) => ({
+            inventoryItemId: r.inventoryItemId.toString(),
+            amount: r.amountRequired.toString(),
+            unit: "",
+          }))
+        );
       }
     }
   }, [productQuery.data]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({...prev, [field]: value}));
   };
 
   const handleInstructionChange = (index: number, value: string) => {
     const newInstructions = [...formData.instructions];
     newInstructions[index] = value;
-    setFormData(prev => ({ ...prev, instructions: newInstructions }));
+    setFormData((prev) => ({...prev, instructions: newInstructions}));
   };
 
   const addInstruction = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      instructions: [...prev.instructions, ""]
+      instructions: [...prev.instructions, ""],
     }));
   };
 
   const removeInstruction = (index: number) => {
     if (formData.instructions.length > 1) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        instructions: prev.instructions.filter((_, i) => i !== index)
+        instructions: prev.instructions.filter((_, i) => i !== index),
       }));
     }
   };
 
   const handleRecipeChange = (index: number, field: string, value: string) => {
     const newRecipes = [...productRecipes];
-    newRecipes[index] = { ...newRecipes[index], [field]: value };
+    newRecipes[index] = {...newRecipes[index], [field]: value};
     setProductRecipes(newRecipes);
   };
 
   const addRecipe = () => {
-    setProductRecipes([...productRecipes, { inventoryItemId: '', amount: '', unit: '' }]);
+    setProductRecipes([
+      ...productRecipes,
+      {inventoryItemId: "", amount: "", unit: ""},
+    ]);
   };
 
   const removeRecipe = (index: number) => {
@@ -185,19 +198,26 @@ const ProductForm = () => {
 
     // Validation
     if (!formData.name.trim()) {
-      toast({ title: "Error", description: "Product name is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Product name is required",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
-      const convertedRecipes = productRecipes.map(recipe => {
+      const convertedRecipes = productRecipes.map((recipe) => {
         let amountRequired = parseFloat(recipe.amount) || 0;
-        if (recipe.unit.toLowerCase() === 'kg' || recipe.unit.toLowerCase() === 'l') {
+        if (
+          recipe.unit.toLowerCase() === "kg" ||
+          recipe.unit.toLowerCase() === "l"
+        ) {
           amountRequired /= 1000;
         }
         return {
           inventoryItemId: parseInt(recipe.inventoryItemId),
-          amountRequired
+          amountRequired,
         };
       });
 
@@ -206,10 +226,10 @@ const ProductForm = () => {
         description: formData.description || undefined,
         price: parseFloat(formData.price) || 0,
         prepTime: parseInt(formData.prepTime) || undefined,
-        instructions: formData.instructions.filter(inst => inst.trim()),
+        instructions: formData.instructions.filter((inst) => inst.trim()),
         status: formData.status,
         batchSize: parseInt(formData.batchSize) || 1,
-        productRecipes: convertedRecipes
+        productRecipes: convertedRecipes,
       };
 
       setPendingProductData(productData);
@@ -217,7 +237,9 @@ const ProductForm = () => {
     } catch (err) {
       toast({
         title: "Error",
-        description: isEdit ? "Failed to update product" : "Failed to create product",
+        description: isEdit
+          ? "Failed to update product"
+          : "Failed to create product",
         variant: "destructive",
       });
     }
@@ -227,7 +249,7 @@ const ProductForm = () => {
     if (!pendingProductData) return;
 
     if (isEdit && id) {
-      updateMutation.mutate({ id, data: pendingProductData });
+      updateMutation.mutate({id, data: pendingProductData});
     } else {
       createMutation.mutate(pendingProductData);
     }
@@ -250,7 +272,8 @@ const ProductForm = () => {
   }
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" size="sm" asChild>
@@ -260,14 +283,16 @@ const ProductForm = () => {
               </Link>
             </Button>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-foreground">
                 {isEdit ? "Edit Product" : "Add New Product"}
               </h1>
               <p className="text-muted-foreground">
-                {isEdit ? "Update product information" : "Create a new bakery product"}
+                {isEdit
+                  ? "Update product information"
+                  : "Create a new bakery product"}
               </p>
             </div>
           </div>
@@ -276,7 +301,9 @@ const ProductForm = () => {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="details">Product Details</TabsTrigger>
-            <TabsTrigger value="recipe" disabled={!isDetailsComplete}>Recipe</TabsTrigger>
+            <TabsTrigger value="recipe" disabled={!isDetailsComplete}>
+              Recipe
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="details" className="mt-6">
@@ -292,7 +319,9 @@ const ProductForm = () => {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
                       placeholder="Enter product name"
                       required
                     />
@@ -303,7 +332,9 @@ const ProductForm = () => {
                     <Textarea
                       id="description"
                       value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("description", e.target.value)
+                      }
                       placeholder="Describe your product"
                       rows={3}
                     />
@@ -316,7 +347,9 @@ const ProductForm = () => {
                         id="price"
                         type="number"
                         value={formData.price}
-                        onChange={(e) => handleInputChange("price", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("price", e.target.value)
+                        }
                         placeholder="1000"
                         required
                       />
@@ -327,13 +360,20 @@ const ProductForm = () => {
                         id="prepTime"
                         type="number"
                         value={formData.prepTime}
-                        onChange={(e) => handleInputChange("prepTime", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("prepTime", e.target.value)
+                        }
                         placeholder="30"
                       />
                     </div>
                     <div>
                       <Label htmlFor="status">Status</Label>
-                      <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value) =>
+                          handleInputChange("status", value)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -352,7 +392,12 @@ const ProductForm = () => {
                 <CardHeader>
                   <div className="flex justify-between items-center">
                     <CardTitle>Preparation Instructions</CardTitle>
-                    <Button type="button" onClick={addInstruction} size="sm" variant="outline">
+                    <Button
+                      type="button"
+                      onClick={addInstruction}
+                      size="sm"
+                      variant="outline"
+                    >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Step
                     </Button>
@@ -367,7 +412,9 @@ const ProductForm = () => {
                       <div className="flex-1">
                         <Textarea
                           value={instruction}
-                          onChange={(e) => handleInstructionChange(index, e.target.value)}
+                          onChange={(e) =>
+                            handleInstructionChange(index, e.target.value)
+                          }
                           placeholder="Describe this step..."
                           rows={2}
                         />
@@ -392,10 +439,20 @@ const ProductForm = () => {
               <Card className="shadow-warm">
                 <CardContent className="pt-6 space-y-3">
                   <div className="flex gap-3">
-                    <Button type="button" variant="outline" className="flex-1" asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      asChild
+                    >
                       <Link to="/products">Cancel</Link>
                     </Button>
-                    <Button type="button" className="flex-1" onClick={() => setActiveTab("recipe")} disabled={!isDetailsComplete}>
+                    <Button
+                      type="button"
+                      className="flex-1"
+                      onClick={() => setActiveTab("recipe")}
+                      disabled={!isDetailsComplete}
+                    >
                       Next
                     </Button>
                   </div>
@@ -412,33 +469,55 @@ const ProductForm = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="batchSize">Batch Size (units produced by this recipe)</Label>
+                    <Label htmlFor="batchSize">
+                      Batch Size (units produced by this recipe)
+                    </Label>
                     <Input
                       id="batchSize"
                       type="number"
                       value={formData.batchSize}
-                      onChange={(e) => handleInputChange("batchSize", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("batchSize", e.target.value)
+                      }
                       placeholder="1"
                     />
                   </div>
-                  <Button type="button" onClick={addRecipe} size="sm" variant="outline">
+                  <Button
+                    type="button"
+                    onClick={addRecipe}
+                    size="sm"
+                    variant="outline"
+                  >
                     <Plus className="h-4 w-4 mr-2" />
                     Add Ingredient
                   </Button>
                   {productRecipes.map((recipe, index) => (
-                    <div key={index} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                    <div
+                      key={index}
+                      className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
+                    >
                       <div>
                         <Label>Inventory Item</Label>
-                        <Select value={recipe.inventoryItemId} onValueChange={(value) => handleRecipeChange(index, 'inventoryItemId', value)}>
+                        <Select
+                          value={recipe.inventoryItemId}
+                          onValueChange={(value) =>
+                            handleRecipeChange(index, "inventoryItemId", value)
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select item" />
                           </SelectTrigger>
                           <SelectContent>
-                            {(inventoryQuery.data as InventoryItem[])?.map(item => (
-                              <SelectItem key={item.id} value={item.id.toString()}>
-                                {item.name}
-                              </SelectItem>
-                            ))}
+                            {(inventoryQuery.data as InventoryItem[])?.map(
+                              (item) => (
+                                <SelectItem
+                                  key={item.id}
+                                  value={item.id.toString()}
+                                >
+                                  {item.name}
+                                </SelectItem>
+                              )
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
@@ -448,19 +527,29 @@ const ProductForm = () => {
                           type="number"
                           step="0.01"
                           value={recipe.amount}
-                          onChange={(e) => handleRecipeChange(index, 'amount', e.target.value)}
+                          onChange={(e) =>
+                            handleRecipeChange(index, "amount", e.target.value)
+                          }
                           placeholder="0.00"
                         />
                       </div>
                       <div>
                         <Label>Unit</Label>
-                        <Select value={recipe.unit} onValueChange={(value) => handleRecipeChange(index, 'unit', value)}>
+                        <Select
+                          value={recipe.unit}
+                          onValueChange={(value) =>
+                            handleRecipeChange(index, "unit", value)
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select unit" />
                           </SelectTrigger>
                           <SelectContent>
-                            {unitOptions.map(option => (
-                              <SelectItem key={option.value} value={option.value}>
+                            {unitOptions.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
                                 {option.label}
                               </SelectItem>
                             ))}
@@ -468,7 +557,13 @@ const ProductForm = () => {
                         </Select>
                       </div>
                       <div>
-                        <Button type="button" variant="ghost" size="sm" onClick={() => removeRecipe(index)} className="text-destructive">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeRecipe(index)}
+                          className="text-destructive"
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -480,15 +575,26 @@ const ProductForm = () => {
               {/* Actions */}
               <Card className="shadow-warm">
                 <CardContent className="pt-6 space-y-3">
-                  <Button type="submit" className="w-full" disabled={createMutation.isPending || updateMutation.isPending}>
-                    {(createMutation.isPending || updateMutation.isPending) ? (
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={
+                      createMutation.isPending || updateMutation.isPending
+                    }
+                  >
+                    {createMutation.isPending || updateMutation.isPending ? (
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     ) : (
                       <Save className="h-4 w-4 mr-2" />
                     )}
                     {isEdit ? "Update Product" : "Create Product"}
                   </Button>
-                  <Button type="button" variant="outline" className="w-full" asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    asChild
+                  >
                     <Link to="/products">Cancel</Link>
                   </Button>
                 </CardContent>
@@ -505,10 +611,9 @@ const ProductForm = () => {
           onConfirm={confirmSubmit}
           confirmVariant="default"
         />
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default ProductForm;
-
-

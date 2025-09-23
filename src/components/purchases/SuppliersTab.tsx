@@ -19,6 +19,7 @@ export default function SuppliersTab() {
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
   const [editingSupplierId, setEditingSupplierId] = useState<number | null>(null);
   const [newSupplier, setNewSupplier] = useState<{ id?: number; name: string; contactInfo: string; email: string; address: string }>({ name: "", contactInfo: "", email: "", address: "" });
+  const [validationErrors, setValidationErrors] = useState<{ email?: string; contactInfo?: string; address?: string }>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -35,6 +36,64 @@ export default function SuppliersTab() {
     (sup.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (sup.address || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Validation functions
+  const validateEmail = (email: string): string | undefined => {
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return undefined;
+  };
+
+  const validatePhone = (phone: string): string | undefined => {
+    if (!phone.trim()) {
+      return "Phone number is required";
+    }
+
+    // Remove any spaces or hyphens
+    const cleanPhone = phone.replace(/[\s\-]/g, '');
+
+    // Check for +255 prefix (12 digits total including +)
+    if (cleanPhone.startsWith('+255')) {
+      if (cleanPhone.length !== 13) { // +255 + 10 digits = 13
+        return "Phone number with +255 must be 13 characters (including +)";
+      }
+      return undefined;
+    }
+
+    // Check for 07 or 06 prefix (10 digits total)
+    if (cleanPhone.startsWith('07') || cleanPhone.startsWith('06')) {
+      if (cleanPhone.length !== 10) {
+        return "Phone number with 07/06 must be 10 digits";
+      }
+      return undefined;
+    }
+
+    return "Phone number must start with 07, 06, or +255";
+  };
+
+  const validateAddress = (address: string): string | undefined => {
+    if (!address.trim()) {
+      return "Address is required";
+    }
+    return undefined;
+  };
+
+  const validateForm = (): boolean => {
+    const errors: { email?: string; contactInfo?: string; address?: string } = {};
+
+    const emailError = validateEmail(newSupplier.email);
+    if (emailError) errors.email = emailError;
+
+    const phoneError = validatePhone(newSupplier.contactInfo);
+    if (phoneError) errors.contactInfo = phoneError;
+
+    const addressError = validateAddress(newSupplier.address);
+    if (addressError) errors.address = addressError;
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const updateSupplierMutation = useMutation({
     mutationFn: (data: { name: string; contactInfo: string }) => 
@@ -68,7 +127,11 @@ export default function SuppliersTab() {
 
   const handleUpdateSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newSupplier.name) return;
+    if (!newSupplier.name.trim()) return;
+
+    // Validate form
+    if (!validateForm()) return;
+
     const data = { name: newSupplier.name, contactInfo: newSupplier.contactInfo, email: newSupplier.email, address: newSupplier.address };
     updateSupplierMutation.mutate(data);
   };
@@ -108,6 +171,7 @@ export default function SuppliersTab() {
         <Button onClick={() => {
           setEditingSupplierId(null);
           setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
+          setValidationErrors({});
           setIsSupplierDialogOpen(true);
         }}>
           <Plus className="h-4 w-4 mr-2" />
@@ -174,13 +238,23 @@ export default function SuppliersTab() {
               />
             </div>
             <div>
-              <Label htmlFor="contactInfo">Phone</Label>
+              <Label htmlFor="contactInfo">Phone *</Label>
               <Input
                 id="contactInfo"
                 value={newSupplier.contactInfo}
-                onChange={(e) => setNewSupplier(prev => ({ ...prev, contactInfo: e.target.value }))}
-                placeholder="+1234567890"
+                onChange={(e) => {
+                  setNewSupplier(prev => ({ ...prev, contactInfo: e.target.value }));
+                  // Clear validation error when user starts typing
+                  if (validationErrors.contactInfo) {
+                    setValidationErrors(prev => ({ ...prev, contactInfo: undefined }));
+                  }
+                }}
+                placeholder="07XXXXXXXX or 06XXXXXXXX or +255XXXXXXXXXX"
+                className={validationErrors.contactInfo ? "border-destructive" : ""}
               />
+              {validationErrors.contactInfo && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.contactInfo}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="email">Email</Label>
@@ -188,28 +262,49 @@ export default function SuppliersTab() {
                 id="email"
                 type="email"
                 value={newSupplier.email}
-                onChange={(e) => setNewSupplier(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => {
+                  setNewSupplier(prev => ({ ...prev, email: e.target.value }));
+                  // Clear validation error when user starts typing
+                  if (validationErrors.email) {
+                    setValidationErrors(prev => ({ ...prev, email: undefined }));
+                  }
+                }}
                 placeholder="supplier@example.com"
+                className={validationErrors.email ? "border-destructive" : ""}
               />
+              {validationErrors.email && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.email}</p>
+              )}
             </div>
             <div>
-              <Label htmlFor="address">Address</Label>
+              <Label htmlFor="address">Address *</Label>
               <Textarea
                 id="address"
                 value={newSupplier.address}
-                onChange={(e) => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
+                onChange={(e) => {
+                  setNewSupplier(prev => ({ ...prev, address: e.target.value }));
+                  // Clear validation error when user starts typing
+                  if (validationErrors.address) {
+                    setValidationErrors(prev => ({ ...prev, address: undefined }));
+                  }
+                }}
                 placeholder="Supplier address..."
+                className={validationErrors.address ? "border-destructive" : ""}
               />
+              {validationErrors.address && (
+                <p className="text-sm text-destructive mt-1">{validationErrors.address}</p>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" onClick={() => {
                 setIsSupplierDialogOpen(false);
                 setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
+                setValidationErrors({});
                 setEditingSupplierId(null);
               }} variant="outline">
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateSupplierMutation.isPending || !newSupplier.name.trim()}>
+              <Button type="submit" disabled={updateSupplierMutation.isPending || !newSupplier.name.trim() || !newSupplier.contactInfo.trim() || !newSupplier.address.trim()}>
                 {updateSupplierMutation.isPending ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

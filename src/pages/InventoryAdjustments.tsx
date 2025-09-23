@@ -1,17 +1,43 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import {useState, useEffect} from "react";
+import {Link} from "react-router-dom";
+import {ArrowLeft} from "lucide-react";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Loader2, Calendar } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getInventory, getAdjustments, createAdjustment, InventoryItem } from "../services/inventory";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {useToast} from "@/hooks/use-toast";
+import {Search, Plus, Loader2, Calendar} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  getInventory,
+  getAdjustments,
+  createAdjustment,
+  InventoryItem,
+} from "../services/inventory";
+import { format } from 'date-fns';
 
 const InventoryAdjustments = () => {
   const [date, setDate] = useState("");
@@ -23,7 +49,7 @@ const InventoryAdjustments = () => {
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
-  const { toast } = useToast();
+  const {toast} = useToast();
 
   useEffect(() => {
     fetchInventory();
@@ -32,7 +58,7 @@ const InventoryAdjustments = () => {
 
   const fetchInventory = async () => {
     try {
-      const data = await getInventory({ type: 'raw_material' });
+      const data = await getInventory({type: "raw_material"});
       setInventory(data);
     } catch (err) {
       toast({
@@ -46,7 +72,9 @@ const InventoryAdjustments = () => {
   const fetchAdjustments = async () => {
     try {
       setLoading(true);
-      const params = date ? { date, type: 'raw_material' } : { type: 'raw_material' };
+      const params = date
+        ? {date, type: "raw_material"}
+        : {type: "raw_material"};
       const data = await getAdjustments(params);
       setAdjustments(data);
     } catch (err) {
@@ -69,7 +97,7 @@ const InventoryAdjustments = () => {
       await createAdjustment({
         inventoryItemId: parseInt(selectedItemId),
         amount: parseFloat(amount),
-        reason: reason.trim() || undefined
+        reason: reason.trim() || undefined,
       });
       toast({
         title: "Success",
@@ -104,7 +132,9 @@ const InventoryAdjustments = () => {
   }
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      {" "}
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div className="flex items-center gap-4">
@@ -115,8 +145,12 @@ const InventoryAdjustments = () => {
                 </Link>
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Raw Materials Adjustments</h1>
-                <p className="text-muted-foreground">View and manage inventory adjustments for raw materials</p>
+                <h1 className="text-3xl font-bold text-foreground">
+                  Raw Materials Adjustments
+                </h1>
+                <p className="text-muted-foreground">
+                  View and manage inventory adjustments for raw materials
+                </p>
               </div>
             </div>
             <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
@@ -135,9 +169,7 @@ const InventoryAdjustments = () => {
               />
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
-            <Button onClick={fetchAdjustments}>
-              Filter
-            </Button>
+            <Button onClick={fetchAdjustments}>Filter</Button>
           </div>
         </div>
 
@@ -158,10 +190,20 @@ const InventoryAdjustments = () => {
               <TableBody>
                 {adjustments.map((adjustment) => (
                   <TableRow key={adjustment.id}>
-                    <TableCell>{inventory.find(item => item.id === adjustment.inventoryItemId)?.name || 'Unknown'}</TableCell>
-                    <TableCell>{adjustment.amount > 0 ? `+${adjustment.amount}` : adjustment.amount}</TableCell>
+                    <TableCell>
+                      {inventory.find(
+                        (item) => item.id === adjustment.inventoryItemId
+                      )?.name || "Unknown"}
+                    </TableCell>
+                    <TableCell>
+                      {adjustment.amount > 0
+                        ? `+${adjustment.amount}`
+                        : adjustment.amount}
+                    </TableCell>
                     <TableCell>{adjustment.reason}</TableCell>
-                    <TableCell>{new Date(adjustment.createdAt).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {format(new Date(adjustment.createdAt), 'dd-MM-yyyy')}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -170,9 +212,13 @@ const InventoryAdjustments = () => {
             {adjustments.length === 0 && !loading && (
               <div className="text-center py-12">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No adjustments found</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  No adjustments found
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  {date ? "No adjustments for selected date" : "Get started by adding your first adjustment"}
+                  {date
+                    ? "No adjustments for selected date"
+                    : "Get started by adding your first adjustment"}
                 </p>
                 <Button onClick={() => setDialogOpen(true)}>
                   Add Adjustment
@@ -194,7 +240,10 @@ const InventoryAdjustments = () => {
             <form onSubmit={handleSubmitAdjustment} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="item">Item</Label>
-                <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+                <Select
+                  value={selectedItemId}
+                  onValueChange={setSelectedItemId}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select item" />
                   </SelectTrigger>
@@ -228,21 +277,31 @@ const InventoryAdjustments = () => {
                 />
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" disabled={submitLoading || !selectedItemId || !amount}>
-                  {submitLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Plus className="h-4 w-4 mr-2" />}
+                <Button
+                  type="submit"
+                  disabled={submitLoading || !selectedItemId || !amount}
+                >
+                  {submitLoading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
                   Add Adjustment
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default InventoryAdjustments;
-
-

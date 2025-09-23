@@ -1,12 +1,13 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { Truck, Loader2 } from "lucide-react";
+import { Truck, Loader2, CheckCircle } from "lucide-react";
 
 import { purchasesService, type PurchaseOrder, type GoodsReceipt } from "@/services/purchases";
 import { suppliersService } from "@/services/suppliers";
@@ -19,40 +20,39 @@ const GoodsReceivingView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [po, setPo] = useState<PurchaseOrder | null>(null);
-  const [supplierMap, setSupplierMap] = useState<Record<number, string>>({});
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [deliveryNotes, setDeliveryNotes] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [submitLoading, setSubmitLoading] = useState(false)
+  const [submitLoading, setSubmitLoading] = useState(false);
 
-  useEffect(() => {
-    async function fetchPO() {
-      if (!id) return;
-      try {
-        setLoading(true);
-        const poId = parseInt(id);
-        const [poData, sups, inv] = await Promise.all([
-          purchasesService.getPOById(poId),
-          suppliersService.getAll(),
-          getInventory()
-        ]);
-        setPo(poData);
-        const supMap = sups.reduce((acc, s) => {
-          acc[s.id] = s.name;
-          return acc;
-        }, {} as Record<number, string>);
-        setSupplierMap(supMap);
-        setInventory(inv);
-  setInventory(inv);
-      } catch (error) {
-        toast({ title: "Error", description: "Failed to load purchase order", variant: "destructive" });
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchPO();
-  }, [id]);
+  // Fetch PO data
+  const poQuery = useQuery({
+    queryKey: ['purchaseOrder', id],
+    queryFn: () => purchasesService.getPOById(parseInt(id!)),
+    enabled: !!id,
+  });
+
+  // Fetch suppliers
+  const suppliersQuery = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: () => suppliersService.getAll(),
+  });
+
+  // Fetch inventory
+  const inventoryQuery = useQuery({
+    queryKey: ['inventory'],
+    queryFn: () => getInventory(),
+  });
+
+  const po = poQuery.data;
+  const suppliers = suppliersQuery.data || [];
+  const inventory = inventoryQuery.data || [];
+
+  const supplierMap = suppliers.reduce((acc, s) => {
+    acc[s.id] = s.name;
+    return acc;
+  }, {} as Record<number, string>);
+
+  const loading = poQuery.isLoading || suppliersQuery.isLoading || inventoryQuery.isLoading;
+  const error = poQuery.error || suppliersQuery.error || inventoryQuery.error;
 
   if (loading) {
     return (
@@ -67,12 +67,17 @@ const GoodsReceivingView = () => {
     );
   }
 
-  if (!po) {
+  if (error || !po) {
     return (
       <Layout>
         <div className="p-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Purchase Order Not Found</h1>
+            <h1 className="text-2xl font-bold">
+              {error ? "Error Loading Purchase Order" : "Purchase Order Not Found"}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {error ? "Failed to load purchase order data" : "The requested purchase order could not be found"}
+            </p>
             <Link to="/purchases">
               <Button variant="outline" className="mt-4">Back to Purchases</Button>
             </Link>
@@ -85,6 +90,10 @@ const GoodsReceivingView = () => {
   const totalQty = po.items.reduce((sum, i) => sum + i.quantity, 0);
   const unit = inventory.find(i => i.id === (po.items[0]?.inventoryItemId))?.unit || '';
 
+  // Check if goods are already received
+  const hasReceipt = po.goodsReceipts && po.goodsReceipts.length > 0;
+  const receiptStatus = hasReceipt ? po.goodsReceipts[0].status : null;
+
   const handleSubmitReceive = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitLoading(true)
@@ -96,7 +105,8 @@ const GoodsReceivingView = () => {
       }));
       const newReceipt = await purchasesService.createReceipt({
         purchaseOrderId: po.id,
-        items
+        items,
+        notes: deliveryNotes.trim() || undefined
       });
       toast({ title: "Goods Received", description: `Receipt ${newReceipt.id} created for PO ${po.id}` });
       setDeliveryNotes("");
@@ -124,8 +134,12 @@ const GoodsReceivingView = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Receive Goods for {po.id}</h1>
-              <p className="text-muted-foreground mt-1">Mark delivery as completed</p>
+              <h1 className="text-3xl font-bold tracking-tight">
+                {hasReceipt ? 'Goods Receipt' : 'Receive Goods'} for PO {po.id}
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {hasReceipt ? 'View received goods' : 'Mark delivery as completed'}
+              </p>
             </div>
             <Button asChild variant="outline">
               <Link to={`/purchases/${po.id}`}>Back to PO</Link>
@@ -135,7 +149,7 @@ const GoodsReceivingView = () => {
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
-                PO Summary
+                Goods Received Summary
                 <Badge variant={getStatusVariant(po.status)}>{capitalizeStatus(po.status)}</Badge>
               </CardTitle>
             </CardHeader>
@@ -148,10 +162,6 @@ const GoodsReceivingView = () => {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Order Date</p>
                   <p className="text-xl">{format(new Date(po.createdAt), 'dd-MM-yyyy')}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Quantity</p>
-                  <p className="text-xl font-semibold">{totalQty} {unit}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Total Cost</p>
@@ -167,30 +177,36 @@ const GoodsReceivingView = () => {
             </CardContent>
           </Card>
 
+          {/* Received Items */}
           <Card>
             <CardHeader>
-              <CardTitle>Delivery Notes (Optional)</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5" />
+                Ordered Items
+              </CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
-              <form onSubmit={handleSubmitReceive} className="space-y-4">
-                <Textarea
-                  placeholder="Enter any delivery notes or comments..."
-                  value={deliveryNotes}
-                  onChange={(e) => setDeliveryNotes(e.target.value)}
-                  className="min-h-[100px]"
-                />
-                <div className="flex justify-end gap-2">
-                  <Button type="button" variant="outline" onClick={() => navigate(`/purchases/${po.id}`)}>
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={submitLoading}>
-                    <Truck className="mr-2 h-4 w-4" />
-                    {submitLoading ? "Receving ..." : "Mark as Delivered"}
-                  </Button>
-                </div>
-              </form>
+            <CardContent>
+              <div className="space-y-3">
+                {po.items.map((item, index) => {
+                  const inventoryItem = inventory.find(i => i.id === item.inventoryItemId);
+                  return (
+                    <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <div>
+                        <p className="font-medium">{inventoryItem?.name || 'Unknown Item'}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {item.quantity} {inventoryItem?.unit || 'units'} × {formatCurrency(item.price)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">{formatCurrency(item.quantity * item.price)}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
+
         </div>
       </div>
     </Layout>

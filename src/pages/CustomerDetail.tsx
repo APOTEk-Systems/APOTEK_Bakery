@@ -1,11 +1,11 @@
-import { Link, useParams } from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { 
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {
   ArrowLeft,
-  Edit, 
+  Edit,
   User,
   Phone,
   Mail,
@@ -13,12 +13,13 @@ import {
   DollarSign,
   Calendar,
   Star,
-  TrendingUp
+  TrendingUp,
 } from "lucide-react";
+import { format } from 'date-fns';
 
 const CustomerDetail = () => {
-  const { id } = useParams();
-  
+  const {id} = useParams();
+
   // Mock data - in real app, fetch by ID
   const customer = {
     id: parseInt(id || "1"),
@@ -27,24 +28,49 @@ const CustomerDetail = () => {
     phone: "(555) 123-4567",
     address: "123 Main St, Anytown, ST 12345",
     totalOrders: 15,
-    totalSpent: 285.50,
+    totalSpent: 285.5,
     averageOrder: 19.03,
     lastOrder: "2024-01-22",
     firstOrder: "2023-06-15",
     status: "active",
     loyaltyPoints: 142,
     favoriteItems: [
-      { name: "Chocolate Croissant", orders: 8, lastOrdered: "2024-01-22" },
-      { name: "Cappuccino", orders: 12, lastOrdered: "2024-01-22" },
-      { name: "Sourdough Bread", orders: 3, lastOrdered: "2024-01-18" }
+      {name: "Chocolate Croissant", orders: 8, lastOrdered: "2024-01-22"},
+      {name: "Cappuccino", orders: 12, lastOrdered: "2024-01-22"},
+      {name: "Sourdough Bread", orders: 3, lastOrdered: "2024-01-18"},
     ],
-    notes: "Prefers extra chocolate on pastries. Always orders cappuccino with croissants.",
+    notes:
+      "Prefers extra chocolate on pastries. Always orders cappuccino with croissants.",
     recentOrders: [
-      { id: "ORD-025", date: "2024-01-22", total: 12.00, status: "completed", items: "2x Chocolate Croissant, 1x Cappuccino" },
-      { id: "ORD-018", date: "2024-01-18", total: 24.50, status: "completed", items: "1x Sourdough, 3x Muffins" },
-      { id: "ORD-012", date: "2024-01-15", total: 8.50, status: "completed", items: "1x Sourdough Bread" },
-      { id: "ORD-006", date: "2024-01-10", total: 15.75, status: "completed", items: "3x Chocolate Croissant, 1x Coffee" }
-    ]
+      {
+        id: "ORD-025",
+        date: "2024-01-22",
+        total: 12.0,
+        status: "completed",
+        items: "2x Chocolate Croissant, 1x Cappuccino",
+      },
+      {
+        id: "ORD-018",
+        date: "2024-01-18",
+        total: 24.5,
+        status: "completed",
+        items: "1x Sourdough, 3x Muffins",
+      },
+      {
+        id: "ORD-012",
+        date: "2024-01-15",
+        total: 8.5,
+        status: "completed",
+        items: "1x Sourdough Bread",
+      },
+      {
+        id: "ORD-006",
+        date: "2024-01-10",
+        total: 15.75,
+        status: "completed",
+        items: "3x Chocolate Croissant, 1x Coffee",
+      },
+    ],
   };
 
   const getStatusColor = (status: string) => {
@@ -52,11 +78,13 @@ const CustomerDetail = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return format(new Date(dateString), 'dd-MM-yyyy');
   };
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      {" "}
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" size="sm" asChild>
@@ -66,10 +94,12 @@ const CustomerDetail = () => {
               </Link>
             </Button>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{customer.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                {customer.name}
+              </h1>
               <div className="flex items-center gap-2">
                 <Badge variant={getStatusColor(customer.status)}>
                   {customer.status}
@@ -105,7 +135,10 @@ const CustomerDetail = () => {
                     <Mail className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Email</p>
-                      <a href={`mailto:${customer.email}`} className="text-foreground hover:text-primary">
+                      <a
+                        href={`mailto:${customer.email}`}
+                        className="text-foreground hover:text-primary"
+                      >
                         {customer.email}
                       </a>
                     </div>
@@ -114,7 +147,10 @@ const CustomerDetail = () => {
                     <Phone className="h-5 w-5 text-muted-foreground" />
                     <div>
                       <p className="text-sm text-muted-foreground">Phone</p>
-                      <a href={`tel:${customer.phone}`} className="text-foreground hover:text-primary">
+                      <a
+                        href={`tel:${customer.phone}`}
+                        className="text-foreground hover:text-primary"
+                      >
                         {customer.phone}
                       </a>
                     </div>
@@ -122,7 +158,9 @@ const CustomerDetail = () => {
                 </div>
                 {customer.address && (
                   <div>
-                    <p className="text-sm text-muted-foreground mb-1">Address</p>
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Address
+                    </p>
                     <p className="text-foreground">{customer.address}</p>
                   </div>
                 )}
@@ -140,15 +178,22 @@ const CustomerDetail = () => {
               <CardContent>
                 <div className="space-y-3">
                   {customer.favoriteItems.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                    <div
+                      key={index}
+                      className="flex justify-between items-center p-3 bg-muted/30 rounded-lg"
+                    >
                       <div>
-                        <p className="font-medium text-foreground">{item.name}</p>
+                        <p className="font-medium text-foreground">
+                          {item.name}
+                        </p>
                         <p className="text-sm text-muted-foreground">
                           Last ordered: {formatDate(item.lastOrdered)}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-foreground">{item.orders}</p>
+                        <p className="font-semibold text-foreground">
+                          {item.orders}
+                        </p>
                         <p className="text-sm text-muted-foreground">orders</p>
                       </div>
                     </div>
@@ -168,10 +213,13 @@ const CustomerDetail = () => {
               <CardContent>
                 <div className="space-y-3">
                   {customer.recentOrders.map((order) => (
-                    <div key={order.id} className="flex justify-between items-center p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div
+                      key={order.id}
+                      className="flex justify-between items-center p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                    >
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-1">
-                          <Link 
+                          <Link
                             to={`/orders/${order.id}`}
                             className="font-medium text-foreground hover:text-primary"
                           >
@@ -179,11 +227,17 @@ const CustomerDetail = () => {
                           </Link>
                           <Badge variant="outline">{order.status}</Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-1">{order.items}</p>
-                        <p className="text-sm text-muted-foreground">{formatDate(order.date)}</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {order.items}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatDate(order.date)}
+                        </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-foreground">${order.total.toFixed(2)}</p>
+                        <p className="font-bold text-foreground">
+                          ${order.total.toFixed(2)}
+                        </p>
                       </div>
                     </div>
                   ))}
@@ -210,31 +264,47 @@ const CustomerDetail = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-foreground">{customer.totalOrders}</p>
-                    <p className="text-sm text-muted-foreground">Total Orders</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {customer.totalOrders}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Total Orders
+                    </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold text-foreground">${customer.totalSpent.toFixed(0)}</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      ${customer.totalSpent.toFixed(0)}
+                    </p>
                     <p className="text-sm text-muted-foreground">Total Spent</p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-3 pt-4 border-t">
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Average Order</span>
-                    <span className="font-medium text-foreground">${customer.averageOrder.toFixed(2)}</span>
+                    <span className="font-medium text-foreground">
+                      ${customer.averageOrder.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Loyalty Points</span>
-                    <span className="font-medium text-foreground">{customer.loyaltyPoints}</span>
+                    <span className="text-muted-foreground">
+                      Loyalty Points
+                    </span>
+                    <span className="font-medium text-foreground">
+                      {customer.loyaltyPoints}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Member Since</span>
-                    <span className="font-medium text-foreground">{formatDate(customer.firstOrder)}</span>
+                    <span className="font-medium text-foreground">
+                      {formatDate(customer.firstOrder)}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Last Order</span>
-                    <span className="font-medium text-foreground">{formatDate(customer.lastOrder)}</span>
+                    <span className="font-medium text-foreground">
+                      {formatDate(customer.lastOrder)}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -271,10 +341,9 @@ const CustomerDetail = () => {
             </Card>
           </div>
         </div>
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default CustomerDetail;
-
-

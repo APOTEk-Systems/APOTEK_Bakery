@@ -22,6 +22,7 @@ import {
 import {Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { PastryProSpinner } from "@/components/ui/PastryProSpinner";
 import { customersService, type Customer } from "../services/customers";
+import { format } from 'date-fns';
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,7 +47,7 @@ const Customers = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return format(new Date(dateString), 'dd-MM-yyyy');
   };
 
   // Compute stats from fetched data

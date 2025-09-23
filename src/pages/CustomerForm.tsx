@@ -1,24 +1,40 @@
-import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import {useState, useEffect} from "react";
+import {Link, useParams, useNavigate} from "react-router-dom";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, User, Loader2 } from "lucide-react";
-import { PastryProSpinner } from "@/components/ui/PastryProSpinner";
-import { customersService, type Customer } from "../services/customers";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Textarea} from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {useToast} from "@/hooks/use-toast";
+import {ArrowLeft, Save, User, Loader2} from "lucide-react";
+import {PastryProSpinner} from "@/components/ui/PastryProSpinner";
+import {customersService, type Customer} from "../services/customers";
 
 const CustomerForm = () => {
-  const { id } = useParams();
+  const {id} = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {toast} = useToast();
   const isEdit = Boolean(id);
 
-  const [formData, setFormData] = useState<Omit<Customer, 'id' | 'totalOrders' | 'totalSpent' | 'lastOrder' | 'favoriteItems' | 'recentOrders' >>({
+  const [formData, setFormData] = useState<
+    Omit<
+      Customer,
+      | "id"
+      | "totalOrders"
+      | "totalSpent"
+      | "lastOrder"
+      | "favoriteItems"
+      | "recentOrders"
+    >
+  >({
     name: "",
     email: "",
     phone: "",
@@ -57,7 +73,7 @@ const CustomerForm = () => {
           toast({
             title: "Error",
             description: "Failed to load customer data",
-            variant: "destructive"
+            variant: "destructive",
           });
         } finally {
           setFetchLoading(false);
@@ -69,32 +85,44 @@ const CustomerForm = () => {
   }, [id, isEdit, toast]);
 
   const handleInputChange = (field: string, value: any) => {
-    if (field === 'loyaltyPoints') {
-      setFormData(prev => ({ ...prev, [field]: parseInt(value) || 0 }));
+    if (field === "loyaltyPoints") {
+      setFormData((prev) => ({...prev, [field]: parseInt(value) || 0}));
     } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
+      setFormData((prev) => ({...prev, [field]: value}));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     if (!formData.name.trim()) {
-      toast({ title: "Error", description: "Customer name is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Customer name is required",
+        variant: "destructive",
+      });
       setLoading(false);
       return;
     }
-    
+
     if (!formData.email.trim() && !formData.phone.trim()) {
-      toast({ title: "Error", description: "Either email or phone is required", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Either email or phone is required",
+        variant: "destructive",
+      });
       setLoading(false);
       return;
     }
 
     // Email validation
     if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      toast({ title: "Error", description: "Please enter a valid email address", variant: "destructive" });
+      toast({
+        title: "Error",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
       setLoading(false);
       return;
     }
@@ -104,21 +132,23 @@ const CustomerForm = () => {
         await customersService.update(parseInt(id), formData);
         toast({
           title: "Customer Updated",
-          description: `${formData.name} has been updated successfully.`
+          description: `${formData.name} has been updated successfully.`,
         });
       } else {
         await customersService.create(formData);
         toast({
           title: "Customer Created",
-          description: `${formData.name} has been added successfully.`
+          description: `${formData.name} has been added successfully.`,
         });
       }
       navigate("/customers");
     } catch (err) {
       toast({
         title: "Error",
-        description: isEdit ? "Failed to update customer" : "Failed to create customer",
-        variant: "destructive"
+        description: isEdit
+          ? "Failed to update customer"
+          : "Failed to create customer",
+        variant: "destructive",
       });
       console.error(err);
     } finally {
@@ -138,13 +168,15 @@ const CustomerForm = () => {
               </Link>
             </Button>
           </div>
-          
+
           <div>
             <h1 className="text-3xl font-bold text-foreground">
               {isEdit ? "Edit Customer" : "Add New Customer"}
             </h1>
             <p className="text-muted-foreground">
-              {isEdit ? "Update customer information" : "Add a new customer to your database"}
+              {isEdit
+                ? "Update customer information"
+                : "Add a new customer to your database"}
             </p>
           </div>
         </div>
@@ -163,12 +195,14 @@ const CustomerForm = () => {
                     <Input
                       id="name"
                       value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
                       placeholder="Enter customer's full name"
                       required
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="email">Email Address</Label>
@@ -176,7 +210,9 @@ const CustomerForm = () => {
                         id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => handleInputChange("email", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
                         placeholder="customer@email.com"
                       />
                     </div>
@@ -186,7 +222,9 @@ const CustomerForm = () => {
                         id="phone"
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => handleInputChange("phone", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("phone", e.target.value)
+                        }
                         placeholder="(555) 123-4567"
                       />
                     </div>
@@ -197,7 +235,9 @@ const CustomerForm = () => {
                     <Textarea
                       id="address"
                       value={formData.address}
-                      onChange={(e) => handleInputChange("address", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("address", e.target.value)
+                      }
                       placeholder="Enter customer's address"
                       rows={3}
                     />
@@ -209,7 +249,9 @@ const CustomerForm = () => {
                       id="birthday"
                       type="date"
                       value={formData.birthday}
-                      onChange={(e) => handleInputChange("birthday", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("birthday", e.target.value)
+                      }
                     />
                   </div>
                 </CardContent>
@@ -224,7 +266,12 @@ const CustomerForm = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="status">Status</Label>
-                      <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value) =>
+                          handleInputChange("status", value)
+                        }
+                      >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
@@ -241,7 +288,9 @@ const CustomerForm = () => {
                         type="number"
                         min="0"
                         value={formData.loyaltyPoints}
-                        onChange={(e) => handleInputChange("loyaltyPoints", e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("loyaltyPoints", e.target.value)
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -252,7 +301,9 @@ const CustomerForm = () => {
                     <Textarea
                       id="notes"
                       value={formData.notes}
-                      onChange={(e) => handleInputChange("notes", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("notes", e.target.value)
+                      }
                       placeholder="Any special notes about this customer..."
                       rows={4}
                     />
@@ -264,7 +315,11 @@ const CustomerForm = () => {
               <Card className="shadow-warm">
                 <CardContent className="pt-6">
                   <div className="flex gap-3">
-                    <Button type="submit" className="flex-1" disabled={loading || fetchLoading}>
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={loading || fetchLoading}
+                    >
                       {loading ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -312,10 +367,12 @@ const CustomerForm = () => {
                         {formData.name || "Customer Name"}
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        {formData.status === "active" ? "Active Customer" : "Inactive Customer"}
+                        {formData.status === "active"
+                          ? "Active Customer"
+                          : "Inactive Customer"}
                       </p>
                     </div>
-                   
+
                     <div className="space-y-2 text-sm">
                       {formData.email && (
                         <p className="text-foreground">📧 {formData.email}</p>
@@ -327,22 +384,30 @@ const CustomerForm = () => {
                         <p className="text-foreground">📍 {formData.address}</p>
                       )}
                     </div>
-                   
+
                     <div className="flex justify-between items-center pt-3 border-t">
-                      <span className="text-sm text-muted-foreground">Loyalty Points</span>
-                      <span className="font-medium text-foreground">{formData.loyaltyPoints || 0}</span>
+                      <span className="text-sm text-muted-foreground">
+                        Loyalty Points
+                      </span>
+                      <span className="font-medium text-foreground">
+                        {formData.loyaltyPoints || 0}
+                      </span>
                     </div>
-                   
+
                     {formData.notes && (
                       <div className="pt-3 border-t">
-                        <p className="text-sm text-muted-foreground mb-1">Notes</p>
-                        <p className="text-sm text-foreground italic">"{formData.notes}"</p>
+                        <p className="text-sm text-muted-foreground mb-1">
+                          Notes
+                        </p>
+                        <p className="text-sm text-foreground italic">
+                          "{formData.notes}"
+                        </p>
                       </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
-        
+
               {/* Guidelines */}
               <Card className="shadow-warm">
                 <CardHeader>
@@ -359,10 +424,9 @@ const CustomerForm = () => {
             </div>
           )}
         </div>
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default CustomerForm;
-
-

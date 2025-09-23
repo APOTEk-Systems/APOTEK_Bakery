@@ -1,17 +1,18 @@
 import Layout from "../components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Textarea} from "@/components/ui/textarea";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {Switch} from "@/components/ui/switch";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -20,39 +21,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Save, 
-  Store, 
-  Bell, 
-  Users, 
+import {useToast} from "@/hooks/use-toast";
+import {
+  Save,
+  Store,
+  Bell,
+  Users,
   DollarSign,
   Clock,
   Mail,
   Smartphone,
-  Shield
+  Shield,
 } from "lucide-react";
 
 const Settings = () => {
-  const { toast } = useToast();
+  const {toast} = useToast();
 
   const handleSave = (section: string) => {
     toast({
       title: "Settings Saved",
-      description: `${section} settings have been updated successfully.`
+      description: `${section} settings have been updated successfully.`,
     });
   };
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      {" "}
+      <div className="p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">Manage your bakery's configuration and preferences</p>
+          <p className="text-muted-foreground">
+            Manage your bakery's configuration and preferences
+          </p>
         </div>
 
         <Tabs defaultValue="information" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="information" className="flex items-center gap-2">
+            <TabsTrigger
+              value="information"
+              className="flex items-center gap-2"
+            >
               <Store className="h-4 w-4" />
               Information
             </TabsTrigger>
@@ -60,7 +68,10 @@ const Settings = () => {
               <Users className="h-4 w-4" />
               Users
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-2"
+            >
               <Bell className="h-4 w-4" />
               Notifications
             </TabsTrigger>
@@ -84,44 +95,57 @@ const Settings = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="bakeryName">Bakery Name</Label>
-                      <Input id="bakeryName" defaultValue="Golden Crust Bakery" />
+                      <Input
+                        id="bakeryName"
+                        defaultValue="Golden Crust Bakery"
+                      />
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
                       <Input id="phone" defaultValue="(555) 123-BAKE" />
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="address">Address</Label>
-                    <Textarea 
-                      id="address" 
-                      defaultValue="123 Baker Street, Pastry City, PC 12345" 
+                    <Textarea
+                      id="address"
+                      defaultValue="123 Baker Street, Pastry City, PC 12345"
                       rows={2}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" defaultValue="info@goldencrustbakery.com" />
+                      <Input
+                        id="email"
+                        type="email"
+                        defaultValue="info@goldencrustbakery.com"
+                      />
                     </div>
                     <div>
                       <Label htmlFor="website">Website</Label>
-                      <Input id="website" defaultValue="www.goldencrustbakery.com" />
+                      <Input
+                        id="website"
+                        defaultValue="www.goldencrustbakery.com"
+                      />
                     </div>
                   </div>
-                  
+
                   <div>
                     <Label htmlFor="description">Description</Label>
-                    <Textarea 
-                      id="description" 
+                    <Textarea
+                      id="description"
                       defaultValue="Artisanal bakery serving fresh bread and pastries since 1995"
                       rows={3}
                     />
                   </div>
-                  
-                  <Button onClick={() => handleSave("Bakery Information")} className="w-full md:w-auto">
+
+                  <Button
+                    onClick={() => handleSave("Bakery Information")}
+                    className="w-full md:w-auto"
+                  >
                     <Save className="h-4 w-4 mr-2" />
                     Save Bakery Info
                   </Button>
@@ -138,7 +162,13 @@ const Settings = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {[
-                    'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday",
                   ].map((day, index) => (
                     <div key={day} className="flex items-center gap-4">
                       <div className="w-20">
@@ -146,24 +176,27 @@ const Settings = () => {
                       </div>
                       <Switch defaultChecked={index < 6} />
                       <div className="flex items-center gap-2">
-                        <Input 
-                          type="time" 
-                          defaultValue="07:00" 
+                        <Input
+                          type="time"
+                          defaultValue="07:00"
                           className="w-24"
                           disabled={index === 6}
                         />
                         <span className="text-muted-foreground">to</span>
-                        <Input 
-                          type="time" 
-                          defaultValue={index === 5 ? "20:00" : "18:00"} 
+                        <Input
+                          type="time"
+                          defaultValue={index === 5 ? "20:00" : "18:00"}
                           className="w-24"
                           disabled={index === 6}
                         />
                       </div>
                     </div>
                   ))}
-                  
-                  <Button onClick={() => handleSave("Business Hours")} className="w-full md:w-auto">
+
+                  <Button
+                    onClick={() => handleSave("Business Hours")}
+                    className="w-full md:w-auto"
+                  >
                     <Save className="h-4 w-4 mr-2" />
                     Save Hours
                   </Button>
@@ -206,8 +239,12 @@ const Settings = () => {
                         <TableCell>Admin</TableCell>
                         <TableCell>Active</TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" className="mr-2">Edit</Button>
-                          <Button variant="destructive" size="sm">Deactivate</Button>
+                          <Button variant="outline" size="sm" className="mr-2">
+                            Edit
+                          </Button>
+                          <Button variant="destructive" size="sm">
+                            Deactivate
+                          </Button>
                         </TableCell>
                       </TableRow>
                       <TableRow>
@@ -216,8 +253,12 @@ const Settings = () => {
                         <TableCell>Manager</TableCell>
                         <TableCell>Active</TableCell>
                         <TableCell>
-                          <Button variant="outline" size="sm" className="mr-2">Edit</Button>
-                          <Button variant="destructive" size="sm">Deactivate</Button>
+                          <Button variant="outline" size="sm" className="mr-2">
+                            Edit
+                          </Button>
+                          <Button variant="destructive" size="sm">
+                            Deactivate
+                          </Button>
                         </TableCell>
                       </TableRow>
                     </TableBody>
@@ -240,36 +281,47 @@ const Settings = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Low Inventory Alerts</Label>
-                    <p className="text-sm text-muted-foreground">Get notified when items are running low</p>
+                    <p className="text-sm text-muted-foreground">
+                      Get notified when items are running low
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>New Order Notifications</Label>
-                    <p className="text-sm text-muted-foreground">Instant alerts for new orders</p>
+                    <p className="text-sm text-muted-foreground">
+                      Instant alerts for new orders
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Daily Sales Summary</Label>
-                    <p className="text-sm text-muted-foreground">Email summary at end of day</p>
+                    <p className="text-sm text-muted-foreground">
+                      Email summary at end of day
+                    </p>
                   </div>
                   <Switch />
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <div>
                     <Label>Customer Birthday Reminders</Label>
-                    <p className="text-sm text-muted-foreground">Reminder to send birthday offers</p>
+                    <p className="text-sm text-muted-foreground">
+                      Reminder to send birthday offers
+                    </p>
                   </div>
                   <Switch defaultChecked />
                 </div>
-                
-                <Button onClick={() => handleSave("Notifications")} className="w-full">
+
+                <Button
+                  onClick={() => handleSave("Notifications")}
+                  className="w-full"
+                >
                   <Save className="h-4 w-4 mr-2" />
                   Save Notifications
                 </Button>
@@ -288,29 +340,39 @@ const Settings = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-            
-                  
                   <div>
                     <Label htmlFor="taxRate">VAT (%)</Label>
-                    <Input id="taxRate" type="number" step="1" defaultValue="18" />
-                  </div>    
+                    <Input
+                      id="taxRate"
+                      type="number"
+                      step="1"
+                      defaultValue="18"
+                    />
+                  </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Accept Cash</Label>
-                      <p className="text-sm text-muted-foreground">Allow cash payments</p>
+                      <p className="text-sm text-muted-foreground">
+                        Allow cash payments
+                      </p>
                     </div>
                     <Switch defaultChecked />
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
                     <div>
                       <Label>Accept Cards</Label>
-                      <p className="text-sm text-muted-foreground">Accept credit/debit cards</p>
+                      <p className="text-sm text-muted-foreground">
+                        Accept credit/debit cards
+                      </p>
                     </div>
                     <Switch defaultChecked />
                   </div>
-                  
-                  <Button onClick={() => handleSave("Payment & Tax")} className="w-full">
+
+                  <Button
+                    onClick={() => handleSave("Payment & Tax")}
+                    className="w-full"
+                  >
                     <Save className="h-4 w-4 mr-2" />
                     Save Payment Settings
                   </Button>
@@ -425,10 +487,9 @@ const Settings = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default Settings;
-
-

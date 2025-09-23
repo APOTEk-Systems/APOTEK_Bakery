@@ -1,25 +1,26 @@
-import { useState, useEffect } from "react";
-import { Link, useParams } from "react-router-dom";
+import {useState, useEffect} from "react";
+import {Link, useParams} from "react-router-dom";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { 
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {useToast} from "@/hooks/use-toast";
+import {
   ArrowLeft,
-  Edit, 
+  Edit,
   DollarSign,
   Clock,
   Package,
   TrendingUp,
   Calendar,
-  Loader2
+  Loader2,
 } from "lucide-react";
-import { getProduct, Product } from "../services/products";
+import { format } from 'date-fns';
+import {getProduct, Product} from "../services/products";
 
 const ProductDetail = () => {
-  const { id } = useParams();
-  const { toast } = useToast();
+  const {id} = useParams();
+  const {toast} = useToast();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +62,9 @@ const ProductDetail = () => {
 
   if (error || !product) {
     return (
-      <Layout>\r\n      <div className="p-6">
+      <Layout>
+        {" "}
+        <div className="p-6">
           <Card>
             <CardContent className="p-6 text-center">
               <p className="text-destructive">{error || "Product not found"}</p>
@@ -70,15 +73,24 @@ const ProductDetail = () => {
               </Button>
             </CardContent>
           </Card>
-        </div>\r\n    </Layout>
+        </div>{" "}
+      </Layout>
     );
   }
 
-  const cost = product.productRecipes ? product.productRecipes.reduce((sum, recipe) => sum + (recipe.amountRequired * recipe.inventoryItem.cost), 0) : 0;
+  const cost = product.productRecipes
+    ? product.productRecipes.reduce(
+        (sum, recipe) =>
+          sum + recipe.amountRequired * recipe.inventoryItem.cost,
+        0
+      )
+    : 0;
   const margin = product.price - cost;
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      {" "}
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" size="sm" asChild>
@@ -88,13 +100,17 @@ const ProductDetail = () => {
               </Link>
             </Button>
           </div>
-          
+
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">{product.name}</h1>
+              <h1 className="text-3xl font-bold text-foreground mb-2">
+                {product.name}
+              </h1>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">Product</Badge>
-                <Badge variant={product.status === "active" ? "default" : "outline"}>
+                <Badge
+                  variant={product.status === "active" ? "default" : "outline"}
+                >
                   {product.status}
                 </Badge>
               </div>
@@ -117,7 +133,9 @@ const ProductDetail = () => {
                 <CardTitle>Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground">{product.description || "No description available."}</p>
+                <p className="text-foreground">
+                  {product.description || "No description available."}
+                </p>
               </CardContent>
             </Card>
 
@@ -128,23 +146,42 @@ const ProductDetail = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {product.productRecipes && product.productRecipes.length > 0 ? (
+                  {product.productRecipes &&
+                  product.productRecipes.length > 0 ? (
                     product.productRecipes.map((recipe, index) => (
-                      <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center p-3 bg-muted/30 rounded-lg"
+                      >
                         <div>
-                          <p className="font-medium text-foreground">{recipe.inventoryItem.name}</p>
-                          <p className="text-sm text-muted-foreground">{recipe.amountRequired} {recipe.inventoryItem.unit}</p>
+                          <p className="font-medium text-foreground">
+                            {recipe.inventoryItem.name}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {recipe.amountRequired} {recipe.inventoryItem.unit}
+                          </p>
                         </div>
-                        <p className="font-medium text-foreground">${(recipe.amountRequired * recipe.inventoryItem.cost).toFixed(2)}</p>
+                        <p className="font-medium text-foreground">
+                          $
+                          {(
+                            recipe.amountRequired * recipe.inventoryItem.cost
+                          ).toFixed(2)}
+                        </p>
                       </div>
                     ))
                   ) : (
-                    <p className="text-muted-foreground text-center py-4">No ingredients configured</p>
+                    <p className="text-muted-foreground text-center py-4">
+                      No ingredients configured
+                    </p>
                   )}
                   <div className="border-t pt-3 mt-3">
                     <div className="flex justify-between items-center">
-                      <p className="font-semibold text-foreground">Total Cost</p>
-                      <p className="font-semibold text-foreground">${cost.toFixed(2)}</p>
+                      <p className="font-semibold text-foreground">
+                        Total Cost
+                      </p>
+                      <p className="font-semibold text-foreground">
+                        ${cost.toFixed(2)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -181,7 +218,9 @@ const ProductDetail = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Selling Price</span>
-                  <span className="font-bold text-lg text-foreground">${product.price.toFixed(2)}</span>
+                  <span className="font-bold text-lg text-foreground">
+                    ${product.price.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Cost</span>
@@ -189,7 +228,9 @@ const ProductDetail = () => {
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
                   <span className="text-muted-foreground">Margin</span>
-                  <span className="font-semibold text-green-600">${margin.toFixed(2)}</span>
+                  <span className="font-semibold text-green-600">
+                    ${margin.toFixed(2)}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Margin %</span>
@@ -211,32 +252,42 @@ const ProductDetail = () => {
               <CardContent className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Prep Time</span>
-                  <span className="text-foreground">{product.prepTime ? `${product.prepTime} mins` : 'N/A'}</span>
+                  <span className="text-foreground">
+                    {product.prepTime ? `${product.prepTime} mins` : "N/A"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Ingredients</span>
-                  <span className="text-foreground">{product.productRecipes ? product.productRecipes.length : 0} items</span>
+                  <span className="text-foreground">
+                    {product.productRecipes ? product.productRecipes.length : 0}{" "}
+                    items
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Stock</span>
-                  <span className="text-foreground">{product.quantity} units</span>
+                  <span className="text-foreground">
+                    {product.quantity} units
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Created</span>
-                  <span className="text-foreground">{new Date(product.createdAt).toLocaleDateString()}</span>
+                  <span className="text-foreground">
+                    {format(new Date(product.createdAt), 'dd-MM-yyyy')}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-muted-foreground">Updated</span>
-                  <span className="text-foreground">{new Date(product.updatedAt).toLocaleDateString()}</span>
+                  <span className="text-foreground">
+                    {format(new Date(product.updatedAt), 'dd-MM-yyyy')}
+                  </span>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default ProductDetail;
-
-

@@ -1,34 +1,38 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {useState, useEffect} from "react";
+import {Link, useNavigate} from "react-router-dom";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Plus,
-  Filter,
-  Package,
-  Edit,
-  Trash2,
-  Loader2
-} from "lucide-react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {Badge} from "@/components/ui/badge";
+import {useToast} from "@/hooks/use-toast";
+import {Plus, Filter, Package, Edit, Trash2, Loader2} from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { getProducts, deleteProduct, Product } from "../services/products";
-import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
-import { formatCurrency } from "@/lib/funcs";
+import {getProducts, deleteProduct, Product} from "../services/products";
+import {ConfirmationDialog} from "@/components/ConfirmationDialog";
+import {DialogHeader, DialogFooter} from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@radix-ui/react-dialog";
+import {formatCurrency} from "@/lib/funcs";
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -39,7 +43,7 @@ const Products = () => {
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState<number | null>(null);
-  const { toast } = useToast();
+  const {toast} = useToast();
   const navigate = useNavigate();
 
   const categories = ["all"];
@@ -66,15 +70,19 @@ const Products = () => {
     fetchProducts();
   }, [toast]);
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesSearch;
-  }).sort((a, b) => {
-    if (sortBy === "name") return a.name.localeCompare(b.name);
-    if (sortBy === "price") return a.price - b.price;
-    if (sortBy === "stock") return a.quantity - b.quantity;
-    return 0;
-  });
+  const filteredProducts = products
+    .filter((product) => {
+      const matchesSearch = product.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      return matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "price") return a.price - b.price;
+      if (sortBy === "stock") return a.quantity - b.quantity;
+      return 0;
+    });
 
   const getStockStatus = (quantity: number) => {
     if (quantity < 10) return "Low Stock";
@@ -118,12 +126,16 @@ const Products = () => {
   };
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      {" "}
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Products</h1>
-              <p className="text-muted-foreground">Manage your bakery's product catalog</p>
+              <p className="text-muted-foreground">
+                Manage your bakery's product catalog
+              </p>
             </div>
             <Button className="shadow-warm" asChild>
               <Link to="/products/new">
@@ -146,8 +158,8 @@ const Products = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <div className="space-y-2" style={{ marginTop: '0' }}>
-              <Label htmlFor="sort" >Sort By</Label>
+            <div className="space-y-2" style={{marginTop: "0"}}>
+              <Label htmlFor="sort">Sort By</Label>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Sort products" />
@@ -173,52 +185,74 @@ const Products = () => {
               <Card>
                 <CardContent className="p-6 text-center">
                   <p className="text-destructive">{error}</p>
-                  <Button onClick={() => window.location.reload()} className="mt-4">
+                  <Button
+                    onClick={() => window.location.reload()}
+                    className="mt-4"
+                  >
                     Retry
                   </Button>
                 </CardContent>
               </Card>
             ) : (
               <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.map((product) => (
-                    <TableRow key={product.id}>
-                      <TableCell className="font-medium">{product.name}</TableCell>
-                      <TableCell>{formatCurrency(product.price)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className={getStockColor(product.quantity)}>
-                          {getStockStatus(product.quantity)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={product.status === 'active' ? 'default' : 'secondary'}>
-                          {product.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleEditProduct(product)}>
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                          <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(product.id)}>
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Price</TableHead>
+                      <TableHead>Stock</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredProducts.map((product) => (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">
+                          {product.name}
+                        </TableCell>
+                        <TableCell>{formatCurrency(product.price)}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className={getStockColor(product.quantity)}
+                          >
+                            {getStockStatus(product.quantity)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              product.status === "active"
+                                ? "default"
+                                : "secondary"
+                            }
+                          >
+                            {product.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditProduct(product)}
+                            >
+                              <Edit className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => openDeleteDialog(product.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
               </Card>
             )}
           </div>
@@ -227,7 +261,9 @@ const Products = () => {
         {filteredProducts.length === 0 && !loading && (
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No products found</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              No products found
+            </h3>
             <p className="text-muted-foreground mb-4">
               {searchTerm
                 ? "Try adjusting your search"
@@ -238,7 +274,7 @@ const Products = () => {
             </Button>
           </div>
         )}
-      
+
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog
           open={deleteDialogOpen}
@@ -247,7 +283,7 @@ const Products = () => {
           message="Are you sure you want to delete this product? This action cannot be undone."
           onConfirm={() => selectedDeleteId && confirmDelete(selectedDeleteId)}
         />
-      
+
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog
           open={deleteDialogOpen}
@@ -256,30 +292,39 @@ const Products = () => {
           message="Are you sure you want to delete this product? This action cannot be undone."
           onConfirm={() => selectedDeleteId && confirmDelete(selectedDeleteId)}
         />
-      
+
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Confirm Delete</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete this product? This action cannot be undone.
+                Are you sure you want to delete this product? This action cannot
+                be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeleteDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => selectedDeleteId && confirmDelete(selectedDeleteId)}>
+              <Button
+                variant="destructive"
+                onClick={() =>
+                  selectedDeleteId && confirmDelete(selectedDeleteId)
+                }
+              >
                 Delete
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default Products;
-
-

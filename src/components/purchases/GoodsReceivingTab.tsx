@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { purchasesService, type GoodsReceipt } from "@/services/purchases";
+import { Link } from "react-router-dom";
 
 export default function GoodsReceivingTab() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,7 +23,7 @@ export default function GoodsReceivingTab() {
 
   const goodsReceiptsQuery = useQuery<GoodsReceipt[]>({
     queryKey: ['goodsReceipts'],
-    queryFn: () => purchasesService.getAllReceipts(),
+    queryFn: () => purchasesService.getAllReceipts({status:"completed"}),
   });
 
   const goodsReceiving = goodsReceiptsQuery.data || [];
@@ -89,8 +90,7 @@ export default function GoodsReceivingTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>PO ID</TableHead>
+                <TableHead>Order ID</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
@@ -99,7 +99,6 @@ export default function GoodsReceivingTab() {
             <TableBody>
               {filteredGR.map(gr => (
                 <TableRow key={gr.id}>
-                  <TableCell>{gr.id}</TableCell>
                   <TableCell>{gr.purchaseOrderId}</TableCell>
                   <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>
                   <TableCell>
@@ -108,9 +107,9 @@ export default function GoodsReceivingTab() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => handleViewGR(gr)}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      View
+                    <Button variant="ghost" size="sm">
+                      <Link to={`/purchases/${gr.id}/receive`} className="flex justify-between items-center"><Eye className="h-4 w-4 mr-1" />
+                      View</Link>
                     </Button>
                   </TableCell>
                 </TableRow>

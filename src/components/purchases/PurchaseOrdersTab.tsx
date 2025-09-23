@@ -173,8 +173,11 @@ export default function PurchaseOrdersTab() {
   });
 
   const receiveMutation = useMutation({
-    mutationFn: (data: {purchaseOrderId: number; items: GoodsReceiptItem[], notes?:string}) =>
-      purchasesService.createReceipt(data),
+    mutationFn: (data: {
+      purchaseOrderId: number;
+      items: GoodsReceiptItem[];
+      notes?: string;
+    }) => purchasesService.createReceipt(data),
     onSuccess: (newReceipt) => {
       queryClient.invalidateQueries({queryKey: ["purchaseOrders"]});
       toast({
@@ -311,7 +314,6 @@ export default function PurchaseOrdersTab() {
     setIsReceiveDialogOpen(true);
   };
 
-
   const handleSubmitReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
@@ -365,7 +367,7 @@ export default function PurchaseOrdersTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>ID</TableHead>
+                <TableHead>Order ID</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -533,18 +535,23 @@ export default function PurchaseOrdersTab() {
                       <div className="w-20">
                         <Label className="sr-only">Price</Label>
                         <Input
-                          type="number"
-                          value={price || ""} // 👈 prevents "0" and leading zeros
+                          type="text" // 👈 must be text so commas can appear
+                          value={
+                            price !== undefined && price !== null
+                              ? price.toLocaleString("en-US") // adds commas (1,000, 12,345)
+                              : ""
+                          }
                           onChange={(e) => {
-                            const val = e.target.value;
-                            updateItemPrice(
-                              index,
-                              val === "" ? 0 : parseFloat(val)
-                            );
+                            // remove commas before parsing
+                            const raw = e.target.value.replace(/,/g, "");
+                            const val = raw === "" ? 0 : parseFloat(raw);
+
+                            updateItemPrice(index, val);
                           }}
-                          placeholder="Price"
-                          className="w-full"
-                          min="0"
+                          placeholder="1,000"
+                          className="w-full text-right"
+                          inputMode="numeric"
+                          pattern="[0-9,]*"
                         />
                       </div>
                       <Button
@@ -611,7 +618,10 @@ export default function PurchaseOrdersTab() {
                 <Label>Items and Costs</Label>
                 <div className="space-y-2">
                   {selectedPOForReceive.items.map((item, index) => (
-                    <div key={index} className="flex gap-2 items-center justify-between">
+                    <div
+                      key={index}
+                      className="flex gap-2 items-center justify-between"
+                    >
                       <div className="w-full">
                         <Input
                           value={

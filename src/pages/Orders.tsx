@@ -17,6 +17,7 @@ import {
   Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { format } from 'date-fns';
 import { Order, salesService } from "@/services/sales";
 
 const Orders = () => {
@@ -66,7 +67,7 @@ const Orders = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString();
+    return format(new Date(dateString), 'dd-MM-yyyy');
   };
 
   const formatTime = (dateString: string) => {
@@ -82,25 +83,25 @@ const Orders = () => {
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p>Loading orders...</p>
           </div>
-        </div>\r\n    </Layout>
+        </div>    </Layout>
     );
   }
 
   if (error) {
     return (
-      <Layout>\r\n      <div className="p-6">
+      <Layout>      <div className="p-6">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6">
               <p className="text-destructive">{error}</p>
               <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
             </CardContent>
           </Card>
-        </div>\r\n    </Layout>
+        </div>    </Layout>
     );
   }
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -287,7 +288,7 @@ const Orders = () => {
             </Button>
           </div>
         )}
-      </div>\r\n    </Layout>
+      </div>    </Layout>
   );
 };
 

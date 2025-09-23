@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { getProductionRun } from "../services/productionRuns";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "../lib/funcs";
+import { format } from 'date-fns';
 
 const ProductionRunDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -85,7 +86,7 @@ const ProductionRunDetail = () => {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Date</Label>
-                  <p className="font-medium">{new Date(run.date).toLocaleDateString()}</p>
+                  <p className="font-medium">{format(new Date(run.date), 'dd-MM-yyyy')}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Cost</Label>

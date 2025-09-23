@@ -1,19 +1,33 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {useState, useEffect} from "react";
+import {Link, useNavigate} from "react-router-dom";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { format } from "date-fns";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {Badge} from "@/components/ui/badge";
+import {useToast} from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {Textarea} from "@/components/ui/textarea";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
+import {Calendar} from "@/components/ui/calendar";
+import {format} from "date-fns";
 import {
   Plus,
   Filter,
@@ -23,19 +37,24 @@ import {
   Loader2,
   Calendar as CalendarIcon,
   Search,
-  Eye
+  Eye,
 } from "lucide-react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { getProductionRuns, createProductionRun, deleteProductionRun, ProductionRun } from "../services/productionRuns";
-import { getProducts, Product } from "../services/products";
-import { formatCurrency } from "@/lib/funcs";
+import {
+  getProductionRuns,
+  createProductionRun,
+  deleteProductionRun,
+  ProductionRun,
+} from "../services/productionRuns";
+import {getProducts, Product} from "../services/products";
+import {formatCurrency} from "@/lib/funcs";
 
 const ProductionRuns = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,41 +63,42 @@ const ProductionRuns = () => {
   const [formData, setFormData] = useState({
     productId: "",
     quantity: "",
-    notes: ""
+    notes: "",
   });
   const [quantityError, setQuantityError] = useState<string | null>(null);
-  const { toast } = useToast();
+  const {toast} = useToast();
 
   const today = format(date, "yyyy-MM-dd");
 
   const queryClient = useQueryClient();
 
   const productionRunsQuery = useQuery({
-    queryKey: ['productionRuns', today],
-    queryFn: () => getProductionRuns({ date: today, limit: 100 }),
+    queryKey: ["productionRuns", today],
+    queryFn: () => getProductionRuns({date: today, limit: 100}),
     enabled: !!today,
   });
 
   const productsQuery = useQuery({
-    queryKey: ['products'],
+    queryKey: ["products"],
     queryFn: getProducts,
   });
 
   const createMutation = useMutation({
     mutationFn: (data: any) => createProductionRun(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['productionRuns', today] });
+      queryClient.invalidateQueries({queryKey: ["productionRuns", today]});
       toast({
         title: "Success",
         description: "Production run created successfully",
       });
       setCreateDialogOpen(false);
-      setFormData({ productId: "", quantity: "", notes: "" });
+      setFormData({productId: "", quantity: "", notes: ""});
       setQuantityError(null);
     },
     onError: (error: any) => {
       if (error.response?.status !== 500) {
-        const errorMsg = error.response?.data?.error || 'Failed to create production run';
+        const errorMsg =
+          error.response?.data?.error || "Failed to create production run";
         toast({
           title: "Warning",
           description: errorMsg,
@@ -94,11 +114,10 @@ const ProductionRuns = () => {
     },
   });
 
-
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteProductionRun(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['productionRuns', today] });
+      queryClient.invalidateQueries({queryKey: ["productionRuns", today]});
       toast({
         title: "Success",
         description: "Production run deleted successfully",
@@ -120,17 +139,26 @@ const ProductionRuns = () => {
 
   useEffect(() => {
     if (formData.productId) {
-      const selectedProduct = products.find(p => p.id.toString() === formData.productId);
+      const selectedProduct = products.find(
+        (p) => p.id.toString() === formData.productId
+      );
       if (selectedProduct) {
-        setFormData(prev => ({ ...prev, quantity: selectedProduct.batchSize.toString() }));
+        setFormData((prev) => ({
+          ...prev,
+          quantity: selectedProduct.batchSize.toString(),
+        }));
         setQuantityError(null);
       }
     }
   }, [formData.productId, products]);
 
-  const filteredRuns = productionRuns.filter(run =>
-    run.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    products.find(p => p.id === Number(run.productId))?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredRuns = productionRuns.filter(
+    (run) =>
+      run.notes?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      products
+        .find((p) => p.id === Number(run.productId))
+        ?.name.toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   const handleCreate = () => {
@@ -153,16 +181,15 @@ const ProductionRuns = () => {
     createMutation.mutate({
       productId: parseInt(formData.productId),
       quantity: parseInt(formData.quantity),
-      notes: formData.notes || undefined
+      notes: formData.notes || undefined,
     });
   };
 
-
   const handleDelete = (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this production run?")) return;
+    if (!window.confirm("Are you sure you want to delete this production run?"))
+      return;
     deleteMutation.mutate(id);
   };
-
 
   if (loading) {
     return (
@@ -177,12 +204,18 @@ const ProductionRuns = () => {
   }
 
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      {" "}
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Finished Goods Production</h1>
-              <p className="text-muted-foreground">Production activities for {format(date, 'MMMM do, yyyy')}</p>
+              <h1 className="text-3xl font-bold text-foreground">
+                Finished Goods Production
+              </h1>
+              <p className="text-muted-foreground">
+                Production activities for {format(date, "MMMM do, yyyy")}
+              </p>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
@@ -201,13 +234,21 @@ const ProductionRuns = () => {
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="productId">Product</Label>
-                    <Select value={formData.productId} onValueChange={(value) => setFormData(prev => ({ ...prev, productId: value }))}>
+                    <Select
+                      value={formData.productId}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({...prev, productId: value}))
+                      }
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder="Select product" />
                       </SelectTrigger>
                       <SelectContent>
                         {products.map((product) => (
-                          <SelectItem key={String(product.id)} value={product.id.toString()}>
+                          <SelectItem
+                            key={String(product.id)}
+                            value={product.id.toString()}
+                          >
                             {product.name}
                           </SelectItem>
                         ))}
@@ -222,14 +263,26 @@ const ProductionRuns = () => {
                       value={formData.quantity}
                       onChange={(e) => {
                         const newQuantity = e.target.value;
-                        setFormData(prev => ({ ...prev, quantity: newQuantity }));
+                        setFormData((prev) => ({
+                          ...prev,
+                          quantity: newQuantity,
+                        }));
                         const val = parseInt(newQuantity);
                         if (isNaN(val) || val <= 0) {
-                          setQuantityError("Quantity must be a positive number");
+                          setQuantityError(
+                            "Quantity must be a positive number"
+                          );
                         } else {
-                          const selectedProduct = products.find(p => p.id.toString() === formData.productId);
-                          if (selectedProduct && val % selectedProduct.batchSize !== 0) {
-                            setQuantityError(`Quantity must be a multiple of ${selectedProduct.batchSize}`);
+                          const selectedProduct = products.find(
+                            (p) => p.id.toString() === formData.productId
+                          );
+                          if (
+                            selectedProduct &&
+                            val % selectedProduct.batchSize !== 0
+                          ) {
+                            setQuantityError(
+                              `Quantity must be a multiple of ${selectedProduct.batchSize}`
+                            );
                           } else {
                             setQuantityError(null);
                           }
@@ -239,7 +292,9 @@ const ProductionRuns = () => {
                       disabled={createMutation.isPending}
                     />
                     {quantityError && (
-                      <p className="text-yellow-600 text-sm mt-1">{quantityError}</p>
+                      <p className="text-yellow-600 text-sm mt-1">
+                        {quantityError}
+                      </p>
                     )}
                   </div>
                   <div className="space-y-2">
@@ -247,18 +302,37 @@ const ProductionRuns = () => {
                     <Textarea
                       id="notes"
                       value={formData.notes}
-                      onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          notes: e.target.value,
+                        }))
+                      }
                       placeholder="Optional notes"
                       disabled={createMutation.isPending}
                     />
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)} disabled={createMutation.isPending}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setCreateDialogOpen(false)}
+                    disabled={createMutation.isPending}
+                  >
                     Cancel
                   </Button>
-                  <Button onClick={handleCreate} disabled={!formData.productId || !formData.quantity || createMutation.isPending}>
-                    {createMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Button
+                    onClick={handleCreate}
+                    disabled={
+                      !formData.productId ||
+                      !formData.quantity ||
+                      createMutation.isPending
+                    }
+                  >
+                    {createMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     Create
                   </Button>
                 </DialogFooter>
@@ -269,7 +343,6 @@ const ProductionRuns = () => {
 
         {/* Filters - Moved to top */}
         <Card className="shadow-none bg-transparent border-0 mb-6">
-           
           <CardContent className="p-4">
             <div className="flex items-end gap-4">
               <div className="flex-1 space-y-2">
@@ -282,7 +355,9 @@ const ProductionRuns = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date" className="mr-2">Date</Label>
+                <Label htmlFor="date" className="mr-2">
+                  Date
+                </Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -329,61 +404,76 @@ const ProductionRuns = () => {
             {error ? (
               <Card>
                 <CardContent className="p-6 text-center">
-                  <p className="text-destructive">{error ? (error as Error)?.message || 'Failed to load data' : 'Failed to load data'}</p>
-                  <Button onClick={() => window.location.reload()} className="mt-4">
+                  <p className="text-destructive">
+                    {error
+                      ? (error as Error)?.message || "Failed to load data"
+                      : "Failed to load data"}
+                  </p>
+                  <Button
+                    onClick={() => window.location.reload()}
+                    className="mt-4"
+                  >
                     Retry
                   </Button>
                 </CardContent>
               </Card>
             ) : (
-             <Card>
-               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredRuns.map((run) => {
-                    const productName = products.find(p => p.id === Number(run.productId))?.name || 'Unknown';
-                    return (
-                      <TableRow key={run.id}>
-                        <TableCell className="font-medium">{productName}</TableCell>
-                        <TableCell>{run.quantityProduced}</TableCell>
-                        <TableCell>{new Date(run.date).toLocaleDateString()}</TableCell>
-                        <TableCell>{formatCurrency(Number(run.cost))}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              asChild
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Link to={`/production-runs/${run.id}`}>
-                                <Eye className="h-3 w-3" />
-                              </Link>
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDelete(run.id)}
-                              disabled={deleteMutation.isPending}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-             </Card>
+              <Card>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Cost</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredRuns.map((run) => {
+                      const productName =
+                        products.find((p) => p.id === Number(run.productId))
+                          ?.name || "Unknown";
+                      return (
+                        <TableRow key={run.id}>
+                          <TableCell className="font-medium">
+                            {productName}
+                          </TableCell>
+                          <TableCell>{run.quantityProduced}</TableCell>
+                          <TableCell>
+                            {format(new Date(run.date), 'dd-MM-yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            {formatCurrency(Number(run.cost))}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                disabled={deleteMutation.isPending}
+                              >
+                                <Link to={`/production-runs/${run.id}`}>
+                                  <Eye className="h-3 w-3" />
+                                </Link>
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDelete(run.id)}
+                                disabled={deleteMutation.isPending}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </Card>
             )}
           </div>
         </div>
@@ -391,8 +481,12 @@ const ProductionRuns = () => {
         {filteredRuns.length === 0 && !loading && (
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No production runs for {format(date, 'MMMM do, yyyy')}</h3>
-            <p className="text-muted-foreground mb-4">Get started by creating your first production run</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">
+              No production runs for {format(date, "MMMM do, yyyy")}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              Get started by creating your first production run
+            </p>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
@@ -404,12 +498,9 @@ const ProductionRuns = () => {
             </Dialog>
           </div>
         )}
-
-
-      </div>\r\n    </Layout>
+      </div>{" "}
+    </Layout>
   );
 };
 
 export default ProductionRuns;
-
-
