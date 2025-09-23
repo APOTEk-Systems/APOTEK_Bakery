@@ -1,5 +1,6 @@
-import {useState, useEffect} from "react";
+import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -38,37 +39,22 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   // const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("name");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState<number | null>(null);
   const {toast} = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const categories = ["all"];
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getProducts();
-        setProducts(data || []);
-      } catch (err) {
-        setError("Failed to load products");
-        toast({
-          title: "Error",
-          description: "Failed to load products",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const productsQuery = useQuery({
+    queryKey: ['products'],
+    queryFn: () => getProducts(),
+  });
 
-    fetchProducts();
-  }, [toast]);
+  const products = productsQuery.data || [];
+  const loading = productsQuery.isLoading;
+  const error = productsQuery.error;
 
   const filteredProducts = products
     .filter((product) => {
@@ -105,24 +91,27 @@ const Products = () => {
     setDeleteDialogOpen(true);
   };
 
-  const confirmDelete = async (productId: number) => {
-    try {
-      await deleteProduct(productId);
+  const deleteProductMutation = useMutation({
+    mutationFn: (productId: number) => deleteProduct(productId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ['products']});
       toast({
         title: "Success",
         description: "Product deleted successfully",
       });
-      // Refetch products
-      const data = await getProducts();
-      setProducts(data || []);
-    } catch (err) {
+      setDeleteDialogOpen(false);
+    },
+    onError: (err) => {
       toast({
         title: "Error",
         description: "Failed to delete product",
         variant: "destructive",
       });
-    }
-    setDeleteDialogOpen(false);
+    },
+  });
+
+  const confirmDelete = (productId: number) => {
+    deleteProductMutation.mutate(productId);
   };
 
   return (
@@ -181,12 +170,12 @@ const Products = () => {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin" />
               </div>
-            ) : error ? (
+            ) : productsQuery.error ? (
               <Card>
                 <CardContent className="p-6 text-center">
-                  <p className="text-destructive">{error}</p>
+                  <p className="text-destructive">{productsQuery.error instanceof Error ? productsQuery.error.message : 'Failed to load products'}</p>
                   <Button
-                    onClick={() => window.location.reload()}
+                    onClick={() => productsQuery.refetch()}
                     className="mt-4"
                   >
                     Retry

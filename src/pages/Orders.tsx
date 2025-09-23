@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { 
-  Search, 
-  Plus, 
-  Eye, 
-  Edit, 
+import {
+  Search,
+  Plus,
+  Eye,
+  Edit,
   Clock,
   DollarSign,
   User,
@@ -23,26 +24,16 @@ import { Order, salesService } from "@/services/sales";
 const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        setLoading(true);
-        const ordersData = await salesService.getAllOrders();
-        setOrders(ordersData);
-      } catch (err) {
-        setError("Failed to fetch orders");
-        toast({ title: "Error", description: "Failed to load orders", variant: "destructive" });
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchOrders();
-  }, []);
+  const ordersQuery = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => salesService.getAllOrders(),
+  });
+
+  const orders = ordersQuery.data || [];
+  const loading = ordersQuery.isLoading;
+  const error = ordersQuery.error;
 
   const statuses = ["all", "pending", "preparing", "ready", "completed", "cancelled"];
 
@@ -76,32 +67,37 @@ const Orders = () => {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen bg-background">
-        <Navigation />
-        <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
-            <p>Loading orders...</p>
-          </div>
-        </div>    </Layout>
+      <Layout>
+        <div className="flex min-h-screen bg-background">
+          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+              <p>Loading orders...</p>
+            </div>
+          </main>
+        </div>
+      </Layout>
     );
   }
 
   if (error) {
     return (
-      <Layout>      <div className="p-6">
+      <Layout>
+        <div className="p-6">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6">
-              <p className="text-destructive">{error}</p>
+              <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to fetch orders'}</p>
               <Button onClick={() => window.location.reload()} className="mt-4">Retry</Button>
             </CardContent>
           </Card>
-        </div>    </Layout>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <Layout>      <div className="p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -288,7 +284,8 @@ const Orders = () => {
             </Button>
           </div>
         )}
-      </div>    </Layout>
+      </div>
+    </Layout>
   );
 };
 

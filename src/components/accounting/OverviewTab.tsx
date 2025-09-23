@@ -1,8 +1,8 @@
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   TrendingUp,
   TrendingDown,
   DollarSign,
@@ -15,56 +15,28 @@ import { formatCurrency } from "@/lib/funcs";
 
 // TODO: Define proper types for props
 const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
-  const [recentExpenses, setRecentExpenses] = useState<DailyBreakdown[]>([]);
-  const [loadingRecentExpenses, setLoadingRecentExpenses] = useState(true);
-  const [errorRecentExpenses, setErrorRecentExpenses] = useState<string | null>(null);
-  const [monthlySummary, setMonthlySummary] = useState<MonthlySummary | null>(null);
-  const [loadingMonthlySummary, setLoadingMonthlySummary] = useState(true);
-  const [errorMonthlySummary, setErrorMonthlySummary] = useState<string | null>(null);
+  const recentExpensesQuery = useQuery({
+    queryKey: ['recentExpenses'],
+    queryFn: () => expensesService.getExpenses({}),
+    select: (data) => data.dailyBreakdown.slice(0, 5), // Take top 5 recent expenses
+  });
 
-  useEffect(() => {
-    const fetchRecentExpenses = async () => {
-      setLoadingRecentExpenses(true);
-      setErrorRecentExpenses(null);
-      try {
-        const fetchedExpenses = await expensesService.getExpenses({}); // Fetch all expenses for recent display
-        setRecentExpenses(fetchedExpenses.dailyBreakdown.slice(0, 5)); // Take top 5 recent expenses
-      } catch (err) {
-        console.error("Failed to fetch recent expenses:", err);
-        setErrorRecentExpenses("Failed to load recent expenses.");
-      } finally {
-        setLoadingRecentExpenses(false);
-      }
-    };
+  const monthlySummaryQuery = useQuery({
+    queryKey: ['monthlySummary'],
+    queryFn: () => accountingService.getAccountingSummary(),
+  });
 
-    const fetchMonthlySummary = async () => {
-      setLoadingMonthlySummary(true);
-      setErrorMonthlySummary(null);
-      try {
-        const summary = await accountingService.getAccountingSummary ();
-        setMonthlySummary(summary);
-      } catch (err) {
-        console.error("Failed to fetch monthly summary:", err);
-        setErrorMonthlySummary("Failed to load monthly summary.");
-      } finally {
-        setLoadingMonthlySummary(false);
-      }
-    };
+  const recentExpenses = recentExpensesQuery.data || [];
+  const monthlySummary = monthlySummaryQuery.data;
+  const loading = recentExpensesQuery.isLoading || monthlySummaryQuery.isLoading;
+  const error = recentExpensesQuery.error || monthlySummaryQuery.error;
 
-    fetchRecentExpenses();
-    fetchMonthlySummary();
-  }, []);
-
-  if (loadingMonthlySummary || loadingRecentExpenses) {
+  if (loading) {
     return <div className="text-center py-8">Loading overview...</div>;
   }
 
-  if (errorMonthlySummary) {
-    return <div className="text-center py-8 text-destructive">Error: {errorMonthlySummary}</div>;
-  }
-
-  if (errorRecentExpenses) {
-    return <div className="text-center py-8 text-destructive">Error: {errorRecentExpenses}</div>;
+  if (error) {
+    return <div className="text-center py-8 text-destructive">Error: {error instanceof Error ? error.message : 'Failed to load overview data'}</div>;
   }
 
   return (
@@ -139,10 +111,10 @@ const OverviewTab = ({ getCategoryColor, getStatusColor }: any) => {
           <CardTitle>Recent Expenses</CardTitle>
         </CardHeader>
         <CardContent>
-          {loadingRecentExpenses ? (
+          {recentExpensesQuery.isLoading ? (
             <div className="text-center">Loading recent expenses...</div>
-          ) : errorRecentExpenses ? (
-            <div className="text-center text-destructive">Error: {errorRecentExpenses}</div>
+          ) : recentExpensesQuery.error ? (
+            <div className="text-center text-destructive">Error: {recentExpensesQuery.error instanceof Error ? recentExpensesQuery.error.message : 'Failed to load recent expenses'}</div>
           ) : recentExpenses.length === 0 ? (
             <div className="text-center text-muted-foreground">No recent expenses found.</div>
           ) : (
