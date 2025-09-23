@@ -13,6 +13,7 @@ import { suppliersService } from "@/services/suppliers";
 import { getInventory } from "@/services/inventory";
 import type { InventoryItem } from "@/services/inventory";
 import { formatCurrency } from "@/lib/funcs";
+import { format } from 'date-fns';
 
 const GoodsReceivingView = () => {
   const { id } = useParams<{ id: string }>();
@@ -56,7 +57,7 @@ const GoodsReceivingView = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center">
+        <div className="flex h-screen items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
             <p>Loading purchase order...</p>
@@ -146,7 +147,7 @@ const GoodsReceivingView = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Order Date</p>
-                  <p className="text-xl">{new Date(po.createdAt).toISOString().split('T')[0]}</p>
+                  <p className="text-xl">{format(new Date(po.createdAt), 'dd-MM-yyyy')}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Total Quantity</p>

@@ -545,7 +545,6 @@ export default function PurchaseOrdersTab() {
                           placeholder="Price"
                           className="w-full"
                           min="0"
-                          step="1000"
                         />
                       </div>
                       <Button

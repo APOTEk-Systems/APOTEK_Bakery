@@ -26,6 +26,7 @@ import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/funcs';
+import { format } from 'date-fns';
 
 interface SalesTableProps {
   sales: Sale[];
@@ -135,7 +136,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
             {salesToRender.map((sale, index) => (
               <TableRow key={sale.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                 {/* <TableCell>{sale.id}</TableCell> */}
-                <TableCell className="py-1">{new Date(sale.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="py-1">{format(new Date(sale.createdAt), 'dd-MM-yyyy')}</TableCell>
                 <TableCell className='font-medium py-1'>{sale.customer?.name || 'Cash'}</TableCell>
                 <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
                 <TableCell className="py-1">

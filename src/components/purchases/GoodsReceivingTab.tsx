@@ -101,7 +101,7 @@ export default function GoodsReceivingTab() {
                 <TableRow key={gr.id}>
                   <TableCell>{gr.id}</TableCell>
                   <TableCell>{gr.purchaseOrderId}</TableCell>
-                  <TableCell>{new Date(gr.receivedDate).toLocaleDateString()}</TableCell>
+                  <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusVariant(gr.status)}>
                       {capitalizeStatus(gr.status)}
@@ -147,7 +147,7 @@ export default function GoodsReceivingTab() {
               </div>
               <div>
                 <Label>Date Received</Label>
-                <p>{new Date(selectedGR.receivedDate).toLocaleString()}</p>
+                <p>{format(new Date(selectedGR.receivedDate), 'dd-MM-yyyy')}</p>
               </div>
               <div>
                 <Label>Status</Label>

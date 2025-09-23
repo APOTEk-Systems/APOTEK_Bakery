@@ -1,4 +1,4 @@
-import { useState } from "react";
+ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,7 @@ export default function SuppliersTab() {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
   const [editingSupplierId, setEditingSupplierId] = useState<number | null>(null);
-  const [newSupplier, setNewSupplier] = useState<{ id?: number; name: string; contactInfo: string }>({ name: "", contactInfo: "" });
+  const [newSupplier, setNewSupplier] = useState<{ id?: number; name: string; contactInfo: string; email: string; address: string }>({ name: "", contactInfo: "", email: "", address: "" });
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -31,7 +31,9 @@ export default function SuppliersTab() {
 
   const filteredSuppliers = suppliers.filter(sup =>
     sup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (sup.contactInfo || '').toLowerCase().includes(searchTerm.toLowerCase())
+    (sup.contactInfo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (sup.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (sup.address || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const updateSupplierMutation = useMutation({
@@ -43,7 +45,7 @@ export default function SuppliersTab() {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast({ title: editingSupplierId ? "Supplier Updated" : "Supplier Added" });
       setIsSupplierDialogOpen(false);
-      setNewSupplier({ name: "", contactInfo: "" });
+      setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
       setEditingSupplierId(null);
     },
     onError: (err) => {
@@ -67,8 +69,7 @@ export default function SuppliersTab() {
   const handleUpdateSupplier = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newSupplier.name) return;
-    const contactInfo = newSupplier.contactInfo || '';
-    const data = { name: newSupplier.name, contactInfo };
+    const data = { name: newSupplier.name, contactInfo: newSupplier.contactInfo, email: newSupplier.email, address: newSupplier.address };
     updateSupplierMutation.mutate(data);
   };
 
@@ -77,7 +78,9 @@ export default function SuppliersTab() {
     setNewSupplier({
       id: supplier.id,
       name: supplier.name,
-      contactInfo: supplier.contactInfo || ''
+      contactInfo: supplier.contactInfo || '',
+      email: supplier.email || '',
+      address: supplier.address || ''
     });
     setIsSupplierDialogOpen(true);
   };
@@ -97,14 +100,14 @@ export default function SuppliersTab() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <Input
-          placeholder="Search by name or contact info..."
+          placeholder="Search by name, phone, email, or address..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
         />
         <Button onClick={() => {
           setEditingSupplierId(null);
-          setNewSupplier({ name: "", contactInfo: "" });
+          setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
           setIsSupplierDialogOpen(true);
         }}>
           <Plus className="h-4 w-4 mr-2" />
@@ -117,7 +120,9 @@ export default function SuppliersTab() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Contact Info</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Address</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -126,6 +131,8 @@ export default function SuppliersTab() {
                 <TableRow key={sup.id}>
                   <TableCell>{sup.name}</TableCell>
                   <TableCell>{sup.contactInfo || '-'}</TableCell>
+                  <TableCell>{sup.email || '-'}</TableCell>
+                  <TableCell>{sup.address || '-'}</TableCell>
                   <TableCell>
                     <Button variant="ghost" size="sm" onClick={() => handleEditSupplier(sup)}>
                       <Edit className="h-4 w-4 mr-1" />
@@ -140,7 +147,7 @@ export default function SuppliersTab() {
               ))}
               {filteredSuppliers.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center">
                     No suppliers found.
                   </TableCell>
                 </TableRow>
@@ -167,18 +174,37 @@ export default function SuppliersTab() {
               />
             </div>
             <div>
-              <Label htmlFor="contactInfo">Contact Info</Label>
-              <Textarea
+              <Label htmlFor="contactInfo">Phone</Label>
+              <Input
                 id="contactInfo"
                 value={newSupplier.contactInfo}
                 onChange={(e) => setNewSupplier(prev => ({ ...prev, contactInfo: e.target.value }))}
-                placeholder="Phone, email, address..."
+                placeholder="+1234567890"
+              />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={newSupplier.email}
+                onChange={(e) => setNewSupplier(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="supplier@example.com"
+              />
+            </div>
+            <div>
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                value={newSupplier.address}
+                onChange={(e) => setNewSupplier(prev => ({ ...prev, address: e.target.value }))}
+                placeholder="Supplier address..."
               />
             </div>
             <DialogFooter>
               <Button type="button" onClick={() => {
                 setIsSupplierDialogOpen(false);
-                setNewSupplier({ name: "", contactInfo: "" });
+                setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
                 setEditingSupplierId(null);
               }} variant="outline">
                 Cancel

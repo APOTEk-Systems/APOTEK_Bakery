@@ -16,7 +16,8 @@ import {
 
 const Sales: React.FC = () => {
   return (
-    <Layout>\r\n      <div className="p-6">
+    <Layout>
+      <div className="p-6">
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
@@ -43,7 +44,8 @@ const Sales: React.FC = () => {
             <UnpaidSales />
           </TabsContent>
         </Tabs>
-      </div>\r\n    </Layout>
+      </div>
+      </Layout>
   );
 };
 

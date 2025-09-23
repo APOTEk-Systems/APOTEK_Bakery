@@ -15,6 +15,7 @@ import { purchasesService, type PurchaseOrder } from "@/services/purchases";
 import { suppliersService } from "@/services/suppliers";
 import { getInventory, type InventoryItem } from "@/services/inventory";
 import { formatCurrency } from "@/lib/funcs";
+import { format } from 'date-fns';
 
 type Status = PurchaseOrder['status'];
 
@@ -96,9 +97,9 @@ const PurchaseOrderView = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="p-8 flex items-center justify-center">
+        <div className="p-8 h-screen flex items-center justify-center">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
             <p>Loading purchase order...</p>
           </div>
         </div>
@@ -156,11 +157,7 @@ const PurchaseOrderView = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Order Date</p>
-                  <p className="text-xl">{new Date(po.createdAt).toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground mb-1">Total Quantity</p>
-                  <p className="text-xl font-semibold">{totalQty} {unit}</p>
+                  <p className="text-xl">{format(new Date(po.createdAt), 'dd-MM-yyyy')}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground mb-1">Total Cost</p>

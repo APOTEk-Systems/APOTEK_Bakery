@@ -329,9 +329,9 @@ const ReceiptPreview = ({ format, sale, cart, customer, paymentMethod, creditDue
   if (loading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center">
+        <div className="flex h-screen items-center justify-center">
           <div className="text-center">
-            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-primary" />
             <p>Loading...</p>
           </div>
         </div>
