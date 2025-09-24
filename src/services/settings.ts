@@ -1,0 +1,49 @@
+import { api } from '@/lib/api';
+
+export interface BusinessHour {
+  day: string;
+  open: string | null;
+  close: string | null;
+  isOpen: boolean;
+}
+
+export interface SettingsData {
+  information: {
+    email: string;
+    phone: string;
+    address: string;
+    website: string;
+    bakeryName: string;
+    description: string;
+  };
+  businessHours: {data:BusinessHour[]};
+  notifications: {
+    dailySalesSummary: boolean;
+    lowInventoryAlerts: boolean;
+    newOrderNotifications: boolean;
+    customerBirthdayReminders: boolean;
+  };
+  vatAndTax: {
+    taxRate: number;
+    acceptCash: boolean;
+    acceptCards: boolean;
+  };
+}
+
+export interface UpdateSettingsRequest {
+  key: 'information' | 'businessHours' | 'notifications' | 'vatAndTax';
+  data?: BusinessHour[];
+  [key: string]: any;
+}
+
+export const settingsService = {
+  getAll: async (): Promise<SettingsData> => {
+    const response = await api.get('/settings');
+    return response.data.data;
+  },
+
+  update: async (data: UpdateSettingsRequest): Promise<any> => {
+    const response = await api.put('/settings', data);
+    return response.data.data;
+  },
+};

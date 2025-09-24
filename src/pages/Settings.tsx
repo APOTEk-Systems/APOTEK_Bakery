@@ -21,7 +21,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import {useToast} from "@/hooks/use-toast";
+import { usersService, CreateUserData } from "@/services/users";
+import { settingsService, SettingsData, BusinessHour } from "@/services/settings";
+import { User } from "@/services/auth";
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Save,
   Store,
@@ -32,16 +47,323 @@ import {
   Mail,
   Smartphone,
   Shield,
+  Plus,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 const Settings = () => {
   const {toast} = useToast();
+  const queryClient = useQueryClient();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<CreateUserData>({
+    name: "",
+    email: "",
+    password: "",
+    role: "cashier",
+    permissions: [],
+  });
+
+  // Local state for settings forms
+  const [informationData, setInformationData] = useState({
+    bakeryName: "",
+    phone: "",
+    address: "",
+    email: "",
+    website: "",
+    description: "",
+  });
+
+  const [businessHoursData, setBusinessHoursData] = useState<BusinessHour[]>([]);
+
+  const [notificationsData, setNotificationsData] = useState({
+    dailySalesSummary: false,
+    lowInventoryAlerts: true,
+    newOrderNotifications: true,
+    customerBirthdayReminders: true,
+  });
+
+  const [vatAndTaxData, setVatAndTaxData] = useState({
+    taxRate: 18,
+    acceptCash: true,
+    acceptCards: true,
+  });
+
+  const allPermissions = [
+    "read:sales",
+    "write:sales",
+    "read:customers",
+    "write:customers",
+    "read:products",
+    "read:inventory",
+    "read:purchases",
+    "write:purchases",
+    "read:production",
+    "write:production"
+  ];
+
+  // Fetch users with React Query
+  const { data: users = [], isLoading: loading, error: usersError } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: () => usersService.getAll(),
+  });
+
+  // Fetch settings with React Query
+  const { data: settings, isLoading: settingsLoading, error: settingsError } = useQuery<SettingsData>({
+    queryKey: ['settings'],
+    queryFn: () => settingsService.getAll(),
+  });
+
+  // Update settings mutation
+  const updateSettingsMutation = useMutation({
+    mutationFn: (data: any) => settingsService.update(data),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Settings updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['settings'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update settings.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Populate local state when settings data is loaded
+  React.useEffect(() => {
+    if (settings) {
+      setInformationData(settings.information);
+      setBusinessHoursData(settings.businessHours.data);
+      setNotificationsData(settings.notifications);
+      setVatAndTaxData(settings.vatAndTax);
+    }
+  }, [settings]);
+
+  // Show error toasts
+  React.useEffect(() => {
+    if (usersError) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch users.",
+        variant: "destructive",
+      });
+    }
+    if (settingsError) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch settings.",
+        variant: "destructive",
+      });
+    }
+  }, [usersError, settingsError, toast]);
+
+  const handleRoleChange = (role: "admin" | "cashier") => {
+    setFormData(prev => ({
+      ...prev,
+      role,
+      permissions: role === "admin" ? allPermissions : [],
+    }));
+  };
+
+  const handlePermissionChange = (permission: string, checked: boolean) => {
+    // Only allow manual permission changes for cashier role
+    if (formData.role === "cashier") {
+      setFormData(prev => ({
+        ...prev,
+        permissions: checked
+          ? [...prev.permissions, permission]
+          : prev.permissions.filter(p => p !== permission),
+      }));
+    }
+  };
+
+  const getFinalPermissions = (role: "admin" | "cashier", permissions: string[]) => {
+    return role === "admin" ? ["all"] : permissions;
+  };
+
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: (userData: CreateUserData) => usersService.create(userData),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "User created successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setDialogOpen(false);
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "cashier",
+        permissions: [],
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update user mutation
+  const updateUserMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateUserData> }) =>
+      usersService.update(id, data),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "User updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      setDialogOpen(false);
+      setEditingUser(null);
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        role: "cashier",
+        permissions: [],
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update user role mutation (for inline toggle)
+  const updateRoleMutation = useMutation({
+    mutationFn: ({ id, role }: { id: number; role: "admin" | "cashier" }) =>
+      usersService.update(id, { role }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update user role.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: (userId: number) => usersService.delete(userId),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "User deleted successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete user.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateUser = () => {
+    const finalData = {
+      ...formData,
+      permissions: getFinalPermissions(formData.role, formData.permissions),
+    };
+    createUserMutation.mutate(finalData);
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    const userPermissions = user.permissions || [];
+    // For admin users, show all permissions as checked in UI
+    const displayPermissions = user.role === "admin" ? allPermissions : userPermissions;
+
+    setFormData({
+      name: user.name || "",
+      email: user.email,
+      password: "", // Don't prefill password for security
+      role: user.role as "admin" | "cashier",
+      permissions: displayPermissions,
+    });
+    setDialogOpen(true);
+  };
+
+  const handleUpdateUser = () => {
+    if (!editingUser) return;
+    const finalData = {
+      ...formData,
+      permissions: getFinalPermissions(formData.role, formData.permissions),
+    };
+    updateUserMutation.mutate({ id: editingUser.id, data: finalData });
+  };
+
+  const handleUpdateRole = (userId: number, newRole: "admin" | "cashier") => {
+    updateRoleMutation.mutate({ id: userId, role: newRole });
+  };
+
+  const handleDeleteUser = (userId: number) => {
+    if (!confirm("Are you sure you want to delete this user?")) return;
+    deleteUserMutation.mutate(userId);
+  };
+
+  const openCreateDialog = () => {
+    setEditingUser(null);
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      role: "cashier",
+      permissions: [],
+    });
+    setDialogOpen(true);
+  };
 
   const handleSave = (section: string) => {
-    toast({
-      title: "Settings Saved",
-      description: `${section} settings have been updated successfully.`,
-    });
+    let updateData: any = {};
+
+    switch (section) {
+      case "Bakery Information":
+        updateData = {
+          key: "information",
+          ...informationData,
+        };
+        break;
+      case "Business Hours":
+        updateData = {
+          key: "businessHours",
+          data: businessHoursData,
+        };
+        break;
+      case "Notifications":
+        updateData = {
+          key: "notifications",
+          ...notificationsData,
+        };
+        break;
+      case "Payment & Tax":
+        updateData = {
+          key: "vatAndTax",
+          ...vatAndTaxData,
+        };
+        break;
+      default:
+        return;
+    }
+
+    updateSettingsMutation.mutate(updateData);
   };
 
   return (
@@ -97,12 +419,19 @@ const Settings = () => {
                       <Label htmlFor="bakeryName">Bakery Name</Label>
                       <Input
                         id="bakeryName"
-                        defaultValue="Golden Crust Bakery"
+                        value={informationData.bakeryName}
+                        onChange={(e) => setInformationData(prev => ({ ...prev, bakeryName: e.target.value }))}
+                        disabled={settingsLoading}
                       />
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input id="phone" defaultValue="(555) 123-BAKE" />
+                      <Input
+                        id="phone"
+                        value={informationData.phone}
+                        onChange={(e) => setInformationData(prev => ({ ...prev, phone: e.target.value }))}
+                        disabled={settingsLoading}
+                      />
                     </div>
                   </div>
 
@@ -110,8 +439,10 @@ const Settings = () => {
                     <Label htmlFor="address">Address</Label>
                     <Textarea
                       id="address"
-                      defaultValue="123 Baker Street, Pastry City, PC 12345"
+                      value={informationData.address}
+                      onChange={(e) => setInformationData(prev => ({ ...prev, address: e.target.value }))}
                       rows={2}
+                      disabled={settingsLoading}
                     />
                   </div>
 
@@ -121,14 +452,18 @@ const Settings = () => {
                       <Input
                         id="email"
                         type="email"
-                        defaultValue="info@goldencrustbakery.com"
+                        value={informationData.email}
+                        onChange={(e) => setInformationData(prev => ({ ...prev, email: e.target.value }))}
+                        disabled={settingsLoading}
                       />
                     </div>
                     <div>
                       <Label htmlFor="website">Website</Label>
                       <Input
                         id="website"
-                        defaultValue="www.goldencrustbakery.com"
+                        value={informationData.website}
+                        onChange={(e) => setInformationData(prev => ({ ...prev, website: e.target.value }))}
+                        disabled={settingsLoading}
                       />
                     </div>
                   </div>
@@ -137,17 +472,20 @@ const Settings = () => {
                     <Label htmlFor="description">Description</Label>
                     <Textarea
                       id="description"
-                      defaultValue="Artisanal bakery serving fresh bread and pastries since 1995"
+                      value={informationData.description}
+                      onChange={(e) => setInformationData(prev => ({ ...prev, description: e.target.value }))}
                       rows={3}
+                      disabled={settingsLoading}
                     />
                   </div>
 
                   <Button
                     onClick={() => handleSave("Bakery Information")}
                     className="w-full md:w-auto"
+                    disabled={updateSettingsMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Save Bakery Info
+                    {updateSettingsMutation.isPending ? "Saving..." : "Save Bakery Info"}
                   </Button>
                 </CardContent>
               </Card>
@@ -161,33 +499,43 @@ const Settings = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {[
-                    "Monday",
-                    "Tuesday",
-                    "Wednesday",
-                    "Thursday",
-                    "Friday",
-                    "Saturday",
-                    "Sunday",
-                  ].map((day, index) => (
-                    <div key={day} className="flex items-center gap-4">
+                  {businessHoursData.map((hour, index) => (
+                    <div key={hour.day} className="flex items-center gap-4">
                       <div className="w-20">
-                        <Label>{day}</Label>
+                        <Label>{hour.day}</Label>
                       </div>
-                      <Switch defaultChecked={index < 6} />
+                      <Switch
+                        checked={hour.isOpen}
+                        onCheckedChange={(checked) => {
+                          const updatedHours = [...businessHoursData];
+                          updatedHours[index] = { ...hour, isOpen: checked };
+                          setBusinessHoursData(updatedHours);
+                        }}
+                        disabled={settingsLoading}
+                      />
                       <div className="flex items-center gap-2">
                         <Input
                           type="time"
-                          defaultValue="07:00"
+                          value={hour.open || ""}
+                          onChange={(e) => {
+                            const updatedHours = [...businessHoursData];
+                            updatedHours[index] = { ...hour, open: e.target.value };
+                            setBusinessHoursData(updatedHours);
+                          }}
                           className="w-24"
-                          disabled={index === 6}
+                          disabled={!hour.isOpen || settingsLoading}
                         />
                         <span className="text-muted-foreground">to</span>
                         <Input
                           type="time"
-                          defaultValue={index === 5 ? "20:00" : "18:00"}
+                          value={hour.close || ""}
+                          onChange={(e) => {
+                            const updatedHours = [...businessHoursData];
+                            updatedHours[index] = { ...hour, close: e.target.value };
+                            setBusinessHoursData(updatedHours);
+                          }}
                           className="w-24"
-                          disabled={index === 6}
+                          disabled={!hour.isOpen || settingsLoading}
                         />
                       </div>
                     </div>
@@ -196,9 +544,10 @@ const Settings = () => {
                   <Button
                     onClick={() => handleSave("Business Hours")}
                     className="w-full md:w-auto"
+                    disabled={updateSettingsMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Save Hours
+                    {updateSettingsMutation.isPending ? "Saving..." : "Save Hours"}
                   </Button>
                 </CardContent>
               </Card>
@@ -216,10 +565,126 @@ const Settings = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-semibold">Manage System Users</h3>
-                  <Button onClick={() => handleSave("Users")}>
-                    <Save className="h-4 w-4 mr-2" />
-                    Add New User
-                  </Button>
+                  <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button onClick={openCreateDialog}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New User
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>
+                          {editingUser ? "Edit User" : "Create New User"}
+                        </DialogTitle>
+                        <DialogDescription>
+                          {editingUser
+                            ? "Update user information and permissions."
+                            : "Add a new user to the system with appropriate role and permissions."}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="name" className="text-right">
+                            Name
+                          </Label>
+                          <Input
+                            id="name"
+                            value={formData.name}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, name: e.target.value }))
+                            }
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="email" className="text-right">
+                            Email
+                          </Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            value={formData.email}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, email: e.target.value }))
+                            }
+                            className="col-span-3"
+                          />
+                        </div>
+                        {!editingUser && (
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="password" className="text-right">
+                              Password
+                            </Label>
+                            <Input
+                              id="password"
+                              type="password"
+                              value={formData.password}
+                              onChange={(e) =>
+                                setFormData((prev) => ({ ...prev, password: e.target.value }))
+                              }
+                              className="col-span-3"
+                            />
+                          </div>
+                        )}
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="role" className="text-right">
+                            Role
+                          </Label>
+                          <Select
+                            value={formData.role}
+                            onValueChange={handleRoleChange}
+                          >
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="cashier">Cashier</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-start gap-4">
+                          <Label className="text-right pt-2">Permissions</Label>
+                          <div className="col-span-3 space-y-2">
+                            <div className="text-sm text-muted-foreground mb-2">
+                              {formData.role === "admin"
+                                ? "Admin users automatically have all permissions."
+                                : "Select the specific permissions for this cashier user:"}
+                            </div>
+                            <div className="grid grid-cols-2 gap-2">
+                              {allPermissions.map((permission) => (
+                                <div key={permission} className="flex items-center space-x-2">
+                                  <Checkbox
+                                    id={permission}
+                                    checked={formData.permissions.includes(permission)}
+                                    disabled={formData.role === "admin"}
+                                    onCheckedChange={(checked) =>
+                                      handlePermissionChange(permission, checked as boolean)
+                                    }
+                                  />
+                                  <Label
+                                    htmlFor={permission}
+                                    className={`text-sm font-normal ${formData.role === "admin" ? "cursor-not-allowed opacity-60" : "cursor-pointer"}`}
+                                  >
+                                    {permission.replace(":", " ").replace(/^./, str => str.toUpperCase())}
+                                  </Label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          onClick={editingUser ? handleUpdateUser : handleCreateUser}
+                        >
+                          {editingUser ? "Update User" : "Create User"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <div className="rounded-md border">
                   <Table>
@@ -233,34 +698,72 @@ const Settings = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      <TableRow>
-                        <TableCell>John Doe</TableCell>
-                        <TableCell>john@example.com</TableCell>
-                        <TableCell>Admin</TableCell>
-                        <TableCell>Active</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" className="mr-2">
-                            Edit
-                          </Button>
-                          <Button variant="destructive" size="sm">
-                            Deactivate
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>Jane Smith</TableCell>
-                        <TableCell>jane@example.com</TableCell>
-                        <TableCell>Manager</TableCell>
-                        <TableCell>Active</TableCell>
-                        <TableCell>
-                          <Button variant="outline" size="sm" className="mr-2">
-                            Edit
-                          </Button>
-                          <Button variant="destructive" size="sm">
-                            Deactivate
-                          </Button>
-                        </TableCell>
-                      </TableRow>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center">
+                            Loading users...
+                          </TableCell>
+                        </TableRow>
+                      ) : users.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center">
+                            No users found.
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        users.map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell>{user.name || "N/A"}</TableCell>
+                            <TableCell>{user.email}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={user.role}
+                                onValueChange={(value: "admin" | "cashier") =>
+                                  handleUpdateRole(user.id, value)
+                                }
+                                disabled={updateRoleMutation.isPending}
+                              >
+                                <SelectTrigger className="w-24 h-8">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                  <SelectItem value="cashier">Cashier</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs ${
+                                  user.status === "active"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {user.status || "active"}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="mr-2"
+                                onClick={() => handleEditUser(user)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteUser(user.id)}
+                                disabled={deleteUserMutation.isPending}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
@@ -285,7 +788,13 @@ const Settings = () => {
                       Get notified when items are running low
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={notificationsData.lowInventoryAlerts}
+                    onCheckedChange={(checked) =>
+                      setNotificationsData(prev => ({ ...prev, lowInventoryAlerts: checked }))
+                    }
+                    disabled={settingsLoading}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -295,7 +804,13 @@ const Settings = () => {
                       Instant alerts for new orders
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={notificationsData.newOrderNotifications}
+                    onCheckedChange={(checked) =>
+                      setNotificationsData(prev => ({ ...prev, newOrderNotifications: checked }))
+                    }
+                    disabled={settingsLoading}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -305,7 +820,13 @@ const Settings = () => {
                       Email summary at end of day
                     </p>
                   </div>
-                  <Switch />
+                  <Switch
+                    checked={notificationsData.dailySalesSummary}
+                    onCheckedChange={(checked) =>
+                      setNotificationsData(prev => ({ ...prev, dailySalesSummary: checked }))
+                    }
+                    disabled={settingsLoading}
+                  />
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -315,15 +836,22 @@ const Settings = () => {
                       Reminder to send birthday offers
                     </p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch
+                    checked={notificationsData.customerBirthdayReminders}
+                    onCheckedChange={(checked) =>
+                      setNotificationsData(prev => ({ ...prev, customerBirthdayReminders: checked }))
+                    }
+                    disabled={settingsLoading}
+                  />
                 </div>
 
                 <Button
                   onClick={() => handleSave("Notifications")}
                   className="w-full"
+                  disabled={updateSettingsMutation.isPending}
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Save Notifications
+                  {updateSettingsMutation.isPending ? "Saving..." : "Save Notifications"}
                 </Button>
               </CardContent>
             </Card>
@@ -346,7 +874,9 @@ const Settings = () => {
                       id="taxRate"
                       type="number"
                       step="1"
-                      defaultValue="18"
+                      value={vatAndTaxData.taxRate}
+                      onChange={(e) => setVatAndTaxData(prev => ({ ...prev, taxRate: parseInt(e.target.value) || 0 }))}
+                      disabled={settingsLoading}
                     />
                   </div>
                   <div className="flex items-center justify-between">
@@ -356,7 +886,13 @@ const Settings = () => {
                         Allow cash payments
                       </p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch
+                      checked={vatAndTaxData.acceptCash}
+                      onCheckedChange={(checked) =>
+                        setVatAndTaxData(prev => ({ ...prev, acceptCash: checked }))
+                      }
+                      disabled={settingsLoading}
+                    />
                   </div>
 
                   <div className="flex items-center justify-between">
@@ -366,15 +902,22 @@ const Settings = () => {
                         Accept credit/debit cards
                       </p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch
+                      checked={vatAndTaxData.acceptCards}
+                      onCheckedChange={(checked) =>
+                        setVatAndTaxData(prev => ({ ...prev, acceptCards: checked }))
+                      }
+                      disabled={settingsLoading}
+                    />
                   </div>
 
                   <Button
                     onClick={() => handleSave("Payment & Tax")}
                     className="w-full"
+                    disabled={updateSettingsMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
-                    Save Payment Settings
+                    {updateSettingsMutation.isPending ? "Saving..." : "Save Payment Settings"}
                   </Button>
                 </CardContent>
               </Card>
