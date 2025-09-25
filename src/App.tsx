@@ -32,6 +32,7 @@ const Purchases = lazy(() => import("./pages/Purchases"));
 const PurchaseOrderView = lazy(() => import("./pages/PurchaseOrderView"));
 const GoodsReceivingView = lazy(() => import("./pages/GoodsReceivingView"));
 const Accounting = lazy(() => import("./pages/Accounting"));
+const Reports = lazy(() => import("./pages/Reports"));
 const Settings = lazy(() => import("./pages/Settings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -181,6 +182,11 @@ const App = () => (
               <Route path="/accounting" element={
                 <ProtectedRoute>
                   <Accounting />
+                </ProtectedRoute>
+              } />
+              <Route path="/reports" element={
+                <ProtectedRoute>
+                  <Reports />
                 </ProtectedRoute>
               } />
               <Route path="/settings" element={

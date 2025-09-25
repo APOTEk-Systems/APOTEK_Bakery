@@ -17,7 +17,8 @@ import {
   BarChart2,
   Menu,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -52,6 +53,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
     { icon: Package, label: "Inventory", path: "/inventory" },
     { icon: Factory, label: "Production", path: "/production-runs" },
     { icon: Calculator, label: "Accounting", path: "/accounting" },
+    { icon: FileText, label: "Reports", path: "/reports" },
     { icon: Settings, label: "Settings", path: "/settings" }
   ];
 
