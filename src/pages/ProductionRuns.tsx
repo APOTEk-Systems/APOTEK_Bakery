@@ -464,7 +464,9 @@ const ProductionRuns = () => {
                               >
                                 <Link to={`/production-runs/${run.id}`}>
                                   <Eye className="h-3 w-3" />
+                                    View
                                 </Link>
+                              
                               </Button>
                               <Button
                                 variant="destructive"
@@ -473,6 +475,7 @@ const ProductionRuns = () => {
                                 disabled={deleteMutation.isPending}
                               >
                                 <Trash2 className="h-3 w-3" />
+                                Delete
                               </Button>
                             </div>
                           </TableCell>
