@@ -195,7 +195,7 @@ const ProductionRuns = () => {
     return (
       <Layout>
         <div className="flex min-h-screen bg-background">
-          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+          <main className="p-6 flex items-center w-full justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </main>
         </div>
@@ -426,14 +426,17 @@ const ProductionRuns = () => {
                       <TableHead>Quantity</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead>Cost</TableHead>
+                      <TableHead>Profit Margin</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredRuns.map((run) => {
-                      const productName =
-                        products.find((p) => p.id === Number(run.productId))
-                          ?.name || "Unknown";
+                      const product = products.find((p) => p.id === Number(run.productId));
+                      const productName = product?.name || "Unknown";
+                      const costPerProduct = Number(run.cost) / run.quantityProduced;
+                      const sellingPrice = product?.price || 0;
+                      const profitMargin = sellingPrice > 0 ? ((sellingPrice - costPerProduct) / sellingPrice) * 100 : 0;
                       return (
                         <TableRow key={run.id}>
                           <TableCell className="font-medium">
@@ -445,6 +448,11 @@ const ProductionRuns = () => {
                           </TableCell>
                           <TableCell>
                             {formatCurrency(Number(run.cost))}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={profitMargin >= 0 ? "default" : "destructive"}>
+                              {profitMargin.toFixed(1)}%
+                            </Badge>
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">

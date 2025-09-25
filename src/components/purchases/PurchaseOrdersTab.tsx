@@ -106,6 +106,9 @@ export default function PurchaseOrdersTab() {
   const purchaseOrders = purchaseOrdersQuery.data || [];
   const inventoryItems: InventoryItem[] = inventoryQuery.data || [];
 
+  const isLoading = suppliersQuery.isLoading || purchaseOrdersQuery.isLoading || inventoryQuery.isLoading;
+  const hasError = suppliersQuery.error || purchaseOrdersQuery.error || inventoryQuery.error;
+
   const supplierMap = suppliers.reduce((acc, s) => {
     acc[s.id] = s.name;
     return acc;
@@ -357,7 +360,7 @@ export default function PurchaseOrdersTab() {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setIsCreatePODialogOpen(true)}>
+        <Button onClick={() => setIsCreatePODialogOpen(true)} disabled={isLoading}>
           <Plus className="mr-2 h-4 w-4" />
           New Purchase Order
         </Button>
@@ -376,56 +379,98 @@ export default function PurchaseOrdersTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredPOs.map((po) => (
-                <TableRow key={po.id} className="py-0">
-                  <TableCell>{po.id}</TableCell>
-                  <TableCell>
-                    {supplierMap[po.supplierId] || "Unknown"}
-                  </TableCell>
-                  <TableCell>{po.items.length}</TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(po.totalCost) || "0.00"}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(po.status)}>
-                      {capitalizeStatus(po.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="space-x-2">
-                    <Button asChild variant="outline">
-                      <Link
-                        to={`/purchases/${po.id}`}
-                        className="flex items-center"
-                      >
-                        <Eye className="h-4 w-4 mr-1" />
-                        View
-                      </Link>
-                    </Button>
-                    {po.status === "approved" && (
-                      <Button
-                        variant="default"
-                        onClick={() => handleReceiveGoods(po)}
-                        disabled={receiveMutation.isPending}
-                      >
-                        {receiveMutation.isPending ? (
-                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                        ) : (
-                          <Truck className="h-4 w-4 mr-1" />
-                        )}
-                        Receive
-                      </Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredPOs.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center">
-                    No purchase orders found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
+               {isLoading ? (
+                 // Loading state
+                 <TableRow>
+                   <TableCell colSpan={6} className="h-24 text-center">
+                     <div className="flex items-center justify-center">
+                       <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                       Loading purchase orders...
+                     </div>
+                   </TableCell>
+                 </TableRow>
+               ) : hasError ? (
+                 // Error state
+                 <TableRow>
+                   <TableCell colSpan={6} className="h-24 text-center">
+                     <div className="flex flex-col items-center justify-center">
+                       <p className="text-destructive mb-2">Failed to load purchase orders</p>
+                       <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                         Retry
+                       </Button>
+                     </div>
+                   </TableCell>
+                 </TableRow>
+               ) : filteredPOs.length === 0 ? (
+                 // Empty state
+                 <TableRow>
+                   <TableCell colSpan={6} className="h-24 text-center">
+                     <div className="flex flex-col items-center justify-center">
+                       <Truck className="h-12 w-12 text-muted-foreground mb-4" />
+                       <h3 className="text-lg font-semibold text-foreground mb-2">
+                         No purchase orders found
+                       </h3>
+                       <p className="text-muted-foreground mb-4">
+                         {filterStatus !== "all" || searchTerm
+                           ? "Try adjusting your filters or search terms"
+                           : "Get started by creating your first purchase order"
+                         }
+                       </p>
+                       {!searchTerm && filterStatus === "all" && (
+                         <Button onClick={() => setIsCreatePODialogOpen(true)}>
+                           <Plus className="h-4 w-4 mr-2" />
+                           New Purchase Order
+                         </Button>
+                       )}
+                     </div>
+                   </TableCell>
+                 </TableRow>
+               ) : (
+                 // Data rows
+                 filteredPOs.map((po) => (
+                   <TableRow key={po.id} className="py-0">
+                     <TableCell>{po.id}</TableCell>
+                     <TableCell>
+                       {supplierMap[po.supplierId] || "Unknown"}
+                     </TableCell>
+                     <TableCell>{po.items.length}</TableCell>
+                     <TableCell className="text-right">
+                       {formatCurrency(po.totalCost).replace("TSH", "") || "0.00"}
+                     </TableCell>
+                     <TableCell>
+                       <Badge variant={getStatusVariant(po.status)}>
+                         {capitalizeStatus(po.status)}
+                       </Badge>
+                     </TableCell>
+                     <TableCell className="space-x-2">
+                       <Button asChild variant="outline" size="sm">
+                         <Link
+                           to={`/purchases/${po.id}`}
+                           className="flex items-center"
+                         >
+                           <Eye className="h-4 w-4 mr-1" />
+                           View
+                         </Link>
+                       </Button>
+                       {po.status === "approved" && (
+                         <Button
+                           variant="default"
+                           onClick={() => handleReceiveGoods(po)}
+                           disabled={receiveMutation.isPending}
+                         >
+                           {receiveMutation.isPending ? (
+                             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                           ) : (
+                             <Truck className="h-4 w-4 mr-1" />
+                           )}
+                           Receive
+                         </Button>
+                       )}
+                     </TableCell>
+                   </TableRow>
+                 ))
+               )}
+             </TableBody>
           </Table>
         </CardContent>
       </Card>

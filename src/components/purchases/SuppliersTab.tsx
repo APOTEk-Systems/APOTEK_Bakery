@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash, Save, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash, Save, Loader2, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { suppliersService, type Supplier } from "@/services/suppliers";
 
@@ -29,6 +29,8 @@ export default function SuppliersTab() {
   });
 
   const suppliers = suppliersQuery.data || [];
+  const isLoading = suppliersQuery.isLoading;
+  const hasError = suppliersQuery.error;
 
   const filteredSuppliers = suppliers.filter(sup =>
     sup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -173,7 +175,7 @@ export default function SuppliersTab() {
           setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
           setValidationErrors({});
           setIsSupplierDialogOpen(true);
-        }}>
+        }} disabled={isLoading}>
           <Plus className="h-4 w-4 mr-2" />
           Add Supplier
         </Button>
@@ -191,30 +193,77 @@ export default function SuppliersTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSuppliers.map(sup => (
-                <TableRow key={sup.id}>
-                  <TableCell>{sup.name}</TableCell>
-                  <TableCell>{sup.contactInfo || '-'}</TableCell>
-                  <TableCell>{sup.email || '-'}</TableCell>
-                  <TableCell>{sup.address || '-'}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => handleEditSupplier(sup)}>
-                      <Edit className="h-4 w-4 mr-1" />
-                      Edit
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDeleteSupplier(sup.id)} className="ml-2 text-destructive">
-                      <Trash className="h-4 w-4 mr-1" />
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredSuppliers.length === 0 && (
+              {isLoading ? (
+                // Loading state
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
-                    No suppliers found.
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      Loading suppliers...
+                    </div>
                   </TableCell>
                 </TableRow>
+              ) : hasError ? (
+                // Error state
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <p className="text-destructive mb-2">Failed to load suppliers</p>
+                      <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                        Retry
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredSuppliers.length === 0 ? (
+                // Empty state
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <User className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No suppliers found
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        {searchTerm
+                          ? "Try adjusting your search terms"
+                          : "Get started by adding your first supplier"
+                        }
+                      </p>
+                      {!searchTerm && (
+                        <Button onClick={() => {
+                          setEditingSupplierId(null);
+                          setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
+                          setValidationErrors({});
+                          setIsSupplierDialogOpen(true);
+                        }}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add Supplier
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                // Data rows
+                filteredSuppliers.map(sup => (
+                  <TableRow key={sup.id}>
+                    <TableCell>{sup.name}</TableCell>
+                    <TableCell>{sup.contactInfo || '-'}</TableCell>
+                    <TableCell>{sup.email || '-'}</TableCell>
+                    <TableCell>{sup.address || '-'}</TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" onClick={() => handleEditSupplier(sup)}>
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteSupplier(sup.id)} className="ml-2">
+                        <Trash className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>
@@ -249,7 +298,7 @@ export default function SuppliersTab() {
                     setValidationErrors(prev => ({ ...prev, contactInfo: undefined }));
                   }
                 }}
-                placeholder="07XXXXXXXX or 06XXXXXXXX or +255XXXXXXXXXX"
+                placeholder="07XXXXXXXX"
                 className={validationErrors.contactInfo ? "border-destructive" : ""}
               />
               {validationErrors.contactInfo && (

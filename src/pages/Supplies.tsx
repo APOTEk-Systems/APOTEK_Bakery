@@ -1,8 +1,5 @@
-import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
 import SuppliesListTab from "../components/supplies/SuppliesListTab";
 import SuppliesAdjustmentsTab from "../components/supplies/SuppliesAdjustmentsTab";
 
@@ -11,17 +8,9 @@ const Supplies = () => {
     <Layout>
       <div className="p-6">
         <div className="mb-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Supplies</h1>
-              <p className="text-muted-foreground">Track your bakery's supplies</p>
-            </div>
-            <Button asChild className="shadow-warm">
-              <Link to="/supplies/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Supply
-              </Link>
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Supplies</h1>
+            <p className="text-muted-foreground">Track your bakery's supplies</p>
           </div>
         </div>
 

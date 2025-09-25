@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Calendar as CalendarIcon } from "lucide-react";
+import { Eye, Calendar as CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -27,6 +27,8 @@ export default function GoodsReceivingTab() {
   });
 
   const goodsReceiving = goodsReceiptsQuery.data || [];
+  const isLoading = goodsReceiptsQuery.isLoading;
+  const hasError = goodsReceiptsQuery.error;
 
   const filteredGR = goodsReceiving.filter(gr => {
     const dateKey = date ? new Date(date.setHours(0, 0, 0, 0)).toISOString().split('T')[0] : null;
@@ -97,29 +99,65 @@ export default function GoodsReceivingTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredGR.map(gr => (
-                <TableRow key={gr.id}>
-                  <TableCell>{gr.purchaseOrderId}</TableCell>
-                  <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(gr.status)}>
-                      {capitalizeStatus(gr.status)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="sm">
-                      <Link to={`/purchases/${gr.id}/receive`} className="flex justify-between items-center"><Eye className="h-4 w-4 mr-1" />
-                      View</Link>
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {filteredGR.length === 0 && (
+              {isLoading ? (
+                // Loading state
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
-                    No goods receipts found.
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      Loading goods receipts...
+                    </div>
                   </TableCell>
                 </TableRow>
+              ) : hasError ? (
+                // Error state
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <p className="text-destructive mb-2">Failed to load goods receipts</p>
+                      <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+                        Retry
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredGR.length === 0 ? (
+                // Empty state
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <Eye className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No goods receipts found
+                      </h3>
+                      <p className="text-muted-foreground">
+                        {searchTerm || date
+                          ? "Try adjusting your filters or search terms"
+                          : "Goods receipts will appear here when purchase orders are received"
+                        }
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                // Data rows
+                filteredGR.map(gr => (
+                  <TableRow key={gr.id}>
+                    <TableCell>{gr.purchaseOrderId}</TableCell>
+                    <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(gr.status)}>
+                        {capitalizeStatus(gr.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="outline" size="sm" >
+                        <Link to={`/purchases/${gr.id}/receive`} className="flex justify-between items-center"><Eye className="h-4 w-4 mr-1" />
+                        View</Link>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
               )}
             </TableBody>
           </Table>

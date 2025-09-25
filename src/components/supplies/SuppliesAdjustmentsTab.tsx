@@ -10,8 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Loader2, Calendar } from "lucide-react";
+import { Search, Plus, Loader2, CalendarDays } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -39,7 +45,8 @@ import { format } from 'date-fns';
 type AdjustmentAction = 'add' | 'minus';
 
 const SuppliesAdjustmentsTab = () => {
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [adjustments, setAdjustments] = useState([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +79,7 @@ const SuppliesAdjustmentsTab = () => {
   const fetchAdjustments = async () => {
     try {
       setLoading(true);
-      const params = date ? { date, type: "supplies" } : { type: "supplies" };
+      const params = date ? { date: date.toISOString().split('T')[0], type: "supplies" } : { type: "supplies" };
       const data = await getAdjustments(params);
       setAdjustments(data);
     } catch (err) {
@@ -131,14 +138,29 @@ const SuppliesAdjustmentsTab = () => {
     <div className="space-y-6">
       {/* Date Filter */}
       <div className="flex gap-4">
-        <div className="flex-1 relative">
-          <Input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className="pl-10"
-          />
-          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <div className="flex-1">
+          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full justify-start text-left font-normal"
+              >
+                <CalendarDays className="mr-2 h-4 w-4" />
+                {date ? format(date, "PPP") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(selectedDate) => {
+                  setDate(selectedDate);
+                  setDatePopoverOpen(false);
+                }}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <Button onClick={fetchAdjustments}>Filter</Button>
       </div>
@@ -193,7 +215,7 @@ const SuppliesAdjustmentsTab = () => {
               </h3>
               <p className="text-muted-foreground mb-4">
                 {date
-                  ? "No supplies for selected date"
+                  ? `No supplies for ${format(date, "PPP")}`
                   : "Get started issuing supplies"}
               </p>
               <Button onClick={() => setDialogOpen(true)}>

@@ -93,6 +93,23 @@ const ProductionRunDetail = () => {
                   <p className="font-medium">{formatCurrency(Number(run.cost))}</p>
                 </div>
                 <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Cost per Product</Label>
+                  <p className="font-medium">{formatCurrency(Number(run.cost) / run.quantityProduced)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Profit Margin</Label>
+                  {(() => {
+                    const costPerProduct = Number(run.cost) / run.quantityProduced;
+                    const sellingPrice = (run as any).product?.price || 0;
+                    const profitMargin = sellingPrice > 0 ? ((sellingPrice - costPerProduct) / sellingPrice) * 100 : 0;
+                    return (
+                      <p className={`font-medium ${profitMargin >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {profitMargin.toFixed(1)}%
+                      </p>
+                    );
+                  })()}
+                </div>
+                <div>
                   <Label className="text-sm font-medium text-muted-foreground">Notes</Label>
                   <p className="font-medium">{run.notes || 'N/A'}</p>
                 </div>

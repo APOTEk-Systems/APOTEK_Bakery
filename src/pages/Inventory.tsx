@@ -1,8 +1,5 @@
-import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
 import InventoryListTab from "../components/inventory/InventoryListTab";
 import InventoryAdjustmentsTab from "../components/inventory/InventoryAdjustmentsTab";
 
@@ -11,17 +8,9 @@ const Inventory = () => {
     <Layout>
       <div className="p-6">
         <div className="mb-6">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">Raw Materials</h1>
-              <p className="text-muted-foreground">Track your bakery's raw materials</p>
-            </div>
-            <Button asChild className="shadow-warm">
-              <Link to="/inventory/new">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Raw Material
-              </Link>
-            </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Raw Materials</h1>
+            <p className="text-muted-foreground">Track your bakery's raw materials</p>
           </div>
         </div>
 

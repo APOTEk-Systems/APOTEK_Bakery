@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import {Link, useParams, useNavigate} from "react-router-dom";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -22,6 +23,7 @@ const CustomerForm = () => {
   const {id} = useParams();
   const navigate = useNavigate();
   const {toast} = useToast();
+  const queryClient = useQueryClient();
   const isEdit = Boolean(id);
 
   const [formData, setFormData] = useState<
@@ -33,6 +35,7 @@ const CustomerForm = () => {
       | "lastOrder"
       | "favoriteItems"
       | "recentOrders"
+      | "loyaltyPoints"
     >
   >({
     name: "",
@@ -40,61 +43,128 @@ const CustomerForm = () => {
     phone: "",
     address: "",
     status: "active",
-    loyaltyPoints: 0,
-    notes: "",
-    isCredit: false,
-    birthday: "",
     creditLimit: 0,
+    notes: "",
+    isCredit: true,
+    // birthday: "",
     currentCredit: 0,
   });
-  const [loading, setLoading] = useState(false);
-  const [fetchLoading, setFetchLoading] = useState(false);
 
-  useEffect(() => {
-    if (isEdit && id) {
-      const fetchCustomer = async () => {
-        try {
-          setFetchLoading(true);
-          const customer = await customersService.getById(parseInt(id));
-          setFormData({
-            name: customer.name,
-            email: customer.email || "",
-            phone: customer.phone || "",
-            address: customer.address || "",
-            status: customer.status,
-            isCredit: customer.isCredit,
-            loyaltyPoints: customer.loyaltyPoints,
-            notes: customer.notes || "",
-            birthday: customer.birthday || "",
-            creditLimit: customer.creditLimit,
-            currentCredit: customer.currentCredit,
-          });
-        } catch (err) {
-          toast({
-            title: "Error",
-            description: "Failed to load customer data",
-            variant: "destructive",
-          });
-        } finally {
-          setFetchLoading(false);
-        }
-      };
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+    phone?: string;
+  }>({});
 
-      fetchCustomer();
+  // Validation functions
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) return undefined; // Optional field
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
     }
-  }, [id, isEdit, toast]);
+    return undefined;
+  };
+
+  const validatePhone = (phone: string): string | undefined => {
+    if (!phone.trim()) return undefined; // Optional field
+
+    // Remove any spaces or hyphens
+    const cleanPhone = phone.replace(/[\s\-]/g, '');
+
+    // Check for +255 prefix (13 digits total including +)
+    if (cleanPhone.startsWith('+255')) {
+      if (cleanPhone.length !== 13) {
+        return "Phone number with +255 must be 13 characters (including +)";
+      }
+      return undefined;
+    }
+
+    // Check for 07 or 06 prefix (10 digits total)
+    if (cleanPhone.startsWith('07') || cleanPhone.startsWith('06')) {
+      if (cleanPhone.length !== 10) {
+        return "Phone number with 07/06 must be 10 digits";
+      }
+      return undefined;
+    }
+
+    return "Phone number must start with 07, 06, or +255";
+  };
+
+  // React Query for fetching customer data
+  const customerQuery = useQuery({
+    queryKey: ["customer", id],
+    queryFn: () => customersService.getById(parseInt(id!)),
+    enabled: isEdit && !!id,
+  });
+
+  // React Query mutation for creating/updating customers
+  const customerMutation = useMutation({
+    mutationFn: (data: {customer: any; isEdit: boolean}) =>
+      data.isEdit
+        ? customersService.update(parseInt(id!), data.customer)
+        : customersService.create(data.customer),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["customers"]});
+      setValidationErrors({}); // Clear validation errors on success
+      toast({
+        title: isEdit ? "Customer Updated" : "Customer Created",
+        description: `${formData.name} has been ${
+          isEdit ? "updated" : "added"
+        } successfully.`,
+      });
+      navigate("/customers");
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: isEdit
+          ? "Failed to update customer"
+          : "Failed to create customer",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Set form data when customer data is loaded
+  useEffect(() => {
+    if (customerQuery.data) {
+      const customer = customerQuery.data;
+      setFormData({
+        name: customer.name,
+        email: customer.email || "",
+        phone: customer.phone || "",
+        address: customer.address || "",
+        status: customer.status,
+        isCredit: customer.isCredit,
+        creditLimit: customer.creditLimit,
+        notes: customer.notes || "",
+        // birthday: customer.birthday || "",
+        currentCredit: customer.currentCredit,
+      });
+    }
+  }, [customerQuery.data]);
 
   const handleInputChange = (field: string, value: any) => {
-    if (field === "loyaltyPoints") {
-      setFormData((prev) => ({...prev, [field]: parseInt(value) || 0}));
+    if (field === "creditLimit") {
+      setFormData((prev) => ({...prev, [field]: parseFloat(value) || 0}));
     } else {
       setFormData((prev) => ({...prev, [field]: value}));
     }
+
+    // Clear validation errors when user starts typing
+    if (field === "email" && validationErrors.email) {
+      setValidationErrors(prev => ({ ...prev, email: undefined }));
+    }
+    if (field === "phone" && validationErrors.phone) {
+      setValidationErrors(prev => ({ ...prev, phone: undefined }));
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+
+    // Clear previous validation errors
+    setValidationErrors({});
 
     if (!formData.name.trim()) {
       toast({
@@ -102,7 +172,6 @@ const CustomerForm = () => {
         description: "Customer name is required",
         variant: "destructive",
       });
-      setLoading(false);
       return;
     }
 
@@ -112,48 +181,38 @@ const CustomerForm = () => {
         description: "Either email or phone is required",
         variant: "destructive",
       });
-      setLoading(false);
       return;
     }
 
-    // Email validation
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      setLoading(false);
-      return;
-    }
-
-    try {
-      if (isEdit && id) {
-        await customersService.update(parseInt(id), formData);
+    // Validate email if provided
+    if (formData.email.trim()) {
+      const emailError = validateEmail(formData.email);
+      if (emailError) {
+        setValidationErrors(prev => ({ ...prev, email: emailError }));
         toast({
-          title: "Customer Updated",
-          description: `${formData.name} has been updated successfully.`,
+          title: "Error",
+          description: emailError,
+          variant: "destructive",
         });
-      } else {
-        await customersService.create(formData);
-        toast({
-          title: "Customer Created",
-          description: `${formData.name} has been added successfully.`,
-        });
+        return;
       }
-      navigate("/customers");
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: isEdit
-          ? "Failed to update customer"
-          : "Failed to create customer",
-        variant: "destructive",
-      });
-      console.error(err);
-    } finally {
-      setLoading(false);
     }
+
+    // Validate phone if provided
+    if (formData.phone.trim()) {
+      const phoneError = validatePhone(formData.phone);
+      if (phoneError) {
+        setValidationErrors(prev => ({ ...prev, phone: phoneError }));
+        toast({
+          title: "Error",
+          description: phoneError,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    customerMutation.mutate({customer: formData, isEdit});
   };
 
   return (
@@ -181,9 +240,10 @@ const CustomerForm = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="max-w-6xl mx-auto">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Cards side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Basic Information */}
               <Card className="shadow-warm">
                 <CardHeader>
@@ -210,11 +270,19 @@ const CustomerForm = () => {
                         id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) =>
-                          handleInputChange("email", e.target.value)
-                        }
+                        onChange={(e) => {
+                          handleInputChange("email", e.target.value);
+                        }}
+                        onBlur={(e) => {
+                          const error = validateEmail(e.target.value);
+                          setValidationErrors(prev => ({ ...prev, email: error }));
+                        }}
                         placeholder="customer@email.com"
+                        className={validationErrors.email ? "border-destructive" : ""}
                       />
+                      {validationErrors.email && (
+                        <p className="text-sm text-destructive mt-1">{validationErrors.email}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
@@ -222,11 +290,19 @@ const CustomerForm = () => {
                         id="phone"
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) =>
-                          handleInputChange("phone", e.target.value)
-                        }
-                        placeholder="(555) 123-4567"
+                        onChange={(e) => {
+                          handleInputChange("phone", e.target.value);
+                        }}
+                        onBlur={(e) => {
+                          const error = validatePhone(e.target.value);
+                          setValidationErrors(prev => ({ ...prev, phone: error }));
+                        }}
+                        placeholder="07XXXXXXXX"
+                        className={validationErrors.phone ? "border-destructive" : ""}
                       />
+                      {validationErrors.phone && (
+                        <p className="text-sm text-destructive mt-1">{validationErrors.phone}</p>
+                      )}
                     </div>
                   </div>
 
@@ -240,18 +316,6 @@ const CustomerForm = () => {
                       }
                       placeholder="Enter customer's address"
                       rows={3}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="birthday">Birthday (Optional)</Label>
-                    <Input
-                      id="birthday"
-                      type="date"
-                      value={formData.birthday}
-                      onChange={(e) =>
-                        handleInputChange("birthday", e.target.value)
-                      }
                     />
                   </div>
                 </CardContent>
@@ -282,16 +346,28 @@ const CustomerForm = () => {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="loyaltyPoints">Loyalty Points</Label>
+                      <Label htmlFor="creditLimit">Credit Limit</Label>
                       <Input
-                        id="loyaltyPoints"
-                        type="number"
-                        min="0"
-                        value={formData.loyaltyPoints}
-                        onChange={(e) =>
-                          handleInputChange("loyaltyPoints", e.target.value)
+                        id="creditLimit"
+                        type="text" // 👈 use text to allow formatted values
+                        inputMode="numeric"
+                        value={
+                          formData.creditLimit !== null &&
+                          formData.creditLimit !== undefined
+                            ? Number(formData.creditLimit).toLocaleString(
+                                "en-US",
+                              )
+                            : ""
                         }
-                        placeholder="0"
+                        onChange={(e) => {
+                          // Strip commas before saving
+                          const raw = e.target.value.replace(/,/g, "");
+                          handleInputChange(
+                            "creditLimit",
+                            raw === "" ? 0 : parseInt(raw)
+                          );
+                        }}
+                        placeholder="1,000.00"
                       />
                     </div>
                   </div>
@@ -310,119 +386,38 @@ const CustomerForm = () => {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Form Actions */}
-              <Card className="shadow-warm">
-                <CardContent className="pt-6">
-                  <div className="flex gap-3">
-                    <Button
-                      type="submit"
-                      className="flex-1"
-                      disabled={loading || fetchLoading}
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          {isEdit ? "Updating..." : "Creating..."}
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4 mr-2" />
-                          {isEdit ? "Update Customer" : "Create Customer"}
-                        </>
-                      )}
-                    </Button>
-                    <Button type="button" variant="outline" asChild>
-                      <Link to="/customers">Cancel</Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </form>
-          </div>
-
-          {/* Preview Card */}
-          {fetchLoading ? (
-            <div className="space-y-6">
-              <div className="flex justify-center py-8">
-                <PastryProSpinner />
-              </div>
             </div>
-          ) : (
-            <div className="space-y-6">
-              <Card className="shadow-warm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <User className="h-5 w-5" />
-                    Customer Preview
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <User className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="font-semibold text-foreground">
-                        {formData.name || "Customer Name"}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {formData.status === "active"
-                          ? "Active Customer"
-                          : "Inactive Customer"}
-                      </p>
-                    </div>
 
-                    <div className="space-y-2 text-sm">
-                      {formData.email && (
-                        <p className="text-foreground">📧 {formData.email}</p>
-                      )}
-                      {formData.phone && (
-                        <p className="text-foreground">📞 {formData.phone}</p>
-                      )}
-                      {formData.address && (
-                        <p className="text-foreground">📍 {formData.address}</p>
-                      )}
-                    </div>
-
-                    <div className="flex justify-between items-center pt-3 border-t">
-                      <span className="text-sm text-muted-foreground">
-                        Loyalty Points
-                      </span>
-                      <span className="font-medium text-foreground">
-                        {formData.loyaltyPoints || 0}
-                      </span>
-                    </div>
-
-                    {formData.notes && (
-                      <div className="pt-3 border-t">
-                        <p className="text-sm text-muted-foreground mb-1">
-                          Notes
-                        </p>
-                        <p className="text-sm text-foreground italic">
-                          "{formData.notes}"
-                        </p>
-                      </div>
+            {/* Form Actions */}
+            <Card className="shadow-warm">
+              <CardContent className="pt-6">
+                <div className="flex gap-3">
+                  <Button
+                    type="submit"
+                    className="flex-1"
+                    disabled={
+                      customerMutation.isPending || customerQuery.isLoading
+                    }
+                  >
+                    {customerMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {isEdit ? "Updating..." : "Creating..."}
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        {isEdit ? "Update Customer" : "Create Customer"}
+                      </>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Guidelines */}
-              <Card className="shadow-warm">
-                <CardHeader>
-                  <CardTitle>Guidelines</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground space-y-2">
-                  <p>• Either email or phone number is required</p>
-                  <p>• Use notes to track customer preferences</p>
-                  <p>• Loyalty points can be manually adjusted</p>
-                  <p>• Birthday helps with promotional campaigns</p>
-                  <p>• Inactive customers won't receive marketing emails</p>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                  </Button>
+                  <Button type="button" variant="outline" asChild>
+                    <Link to="/customers">Cancel</Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </form>
         </div>
       </div>{" "}
     </Layout>
@@ -430,3 +425,4 @@ const CustomerForm = () => {
 };
 
 export default CustomerForm;
+
