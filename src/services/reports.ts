@@ -2,6 +2,7 @@ import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { settingsService, SettingsData } from './settings';
 
 // Types for report data
 export interface SalesReport {
@@ -104,6 +105,91 @@ export interface FinancialReport {
 }
 
 export const reportsService = {
+  // Helper function to add company header to PDFs
+  addCompanyHeader: (doc: jsPDF, reportTitle: string, startDate?: string, endDate?: string): number => {
+    let yPos = 20;
+
+    // Default company info (fallback)
+    const defaultCompanyInfo = {
+      bakeryName: 'Golden Crust Bakery',
+      address: '123 Baker Street, Pastry City, PC 12345',
+      phone: '(555) 123-BAKE',
+      email: 'info@goldencrustbakery.com',
+      website: 'www.goldencrustbakery.com'
+    };
+
+    let companyInfo = defaultCompanyInfo;
+
+    // Try to get company settings synchronously (this might not work in all environments)
+    try {
+      // For now, use default info since settings API is async
+      // In a real implementation, you might want to cache settings or make PDF generation async
+      console.log('Using default company info for PDF header');
+    } catch (error) {
+      console.warn('Using default company info for PDF header');
+    }
+
+    // Company name (centered, bold, larger)
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const companyNameWidth = doc.getTextWidth(companyInfo.bakeryName);
+    doc.text(companyInfo.bakeryName, (pageWidth - companyNameWidth) / 2, yPos);
+    yPos += 10;
+
+    // Company details (centered, smaller)
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+
+    if (companyInfo.address) {
+      const addressWidth = doc.getTextWidth(companyInfo.address);
+      doc.text(companyInfo.address, (pageWidth - addressWidth) / 2, yPos);
+      yPos += 6;
+    }
+
+    // Contact info on same line
+    let contactInfo = '';
+    if (companyInfo.phone) contactInfo += `Phone: ${companyInfo.phone}`;
+    if (companyInfo.email) {
+      if (contactInfo) contactInfo += ' | ';
+      contactInfo += `Email: ${companyInfo.email}`;
+    }
+    if (contactInfo) {
+      const contactWidth = doc.getTextWidth(contactInfo);
+      doc.text(contactInfo, (pageWidth - contactWidth) / 2, yPos);
+      yPos += 6;
+    }
+
+    if (companyInfo.website) {
+      const websiteWidth = doc.getTextWidth(companyInfo.website);
+      doc.text(companyInfo.website, (pageWidth - websiteWidth) / 2, yPos);
+      yPos += 10;
+    }
+
+    // Report title
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    const titleWidth = doc.getTextWidth(reportTitle);
+    doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPos);
+    yPos += 10;
+
+    // Date range
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    const dateRange = startDate && endDate ? `From ${startDate} to ${endDate}` : 'All Time';
+    const dateRangeWidth = doc.getTextWidth(`Date Range: ${dateRange}`);
+    doc.text(`Date Range: ${dateRange}`, (pageWidth - dateRangeWidth) / 2, yPos);
+    yPos += 6;
+
+    // Generated date
+    const generatedText = `Generated: ${new Date().toLocaleDateString()}`;
+    const generatedWidth = doc.getTextWidth(generatedText);
+    doc.text(generatedText, (pageWidth - generatedWidth) / 2, yPos);
+    yPos += 15;
+
+    return yPos; // Return the Y position after the header
+  },
+
   // Test function to check if PDF generation works
   testPDFGeneration(): Blob {
     console.log('🧪 Testing basic PDF generation...');
@@ -259,26 +345,11 @@ export const reportsService = {
   // PDF generation functions
   generateSalesPDF: (data: SalesReport, startDate?: string, endDate?: string): Blob => {
     console.log('🎨 Generating sales PDF...', { salesCount: data.data.sales.length });
-    console.log('📚 jsPDF version check:', jsPDF.version);
     const doc = new jsPDF();
-    console.log('📄 jsPDF document created');
 
     try {
-      // Header
-      doc.setFontSize(20);
-      doc.text('Sales Report', 20, 20);
-
-      doc.setFontSize(12);
-      const dateRange = startDate && endDate ? `From ${startDate} to ${endDate}` : 'All Time';
-      doc.text(`Date Range: ${dateRange}`, 20, 35);
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
-
-      // Summary
-      doc.setFontSize(14);
-      doc.text('Summary', 20, 65);
-      doc.setFontSize(12);
-      doc.text(`Total Sales: TZS ${data.data.totalSales.toLocaleString()}`, 20, 80);
-      doc.text(`Credit Outstanding: TZS ${data.data.creditOutstanding.toLocaleString()}`, 20, 90);
+      // Add company header
+      let yPos = reportsService.addCompanyHeader(doc, 'Sales Report', startDate, endDate);
 
       // Sales table
       const tableData = data.data.sales.map(sale => [
@@ -295,11 +366,26 @@ export const reportsService = {
       autoTable(doc, {
         head: [['ID', 'Customer', 'Date', 'Total', 'Status', 'Credit']],
         body: tableData,
-        startY: 105,
+        startY: yPos,
         theme: 'grid',
         styles: { fontSize: 8 },
         headStyles: { fillColor: [41, 128, 185] }
       });
+
+      // Summary (after table)
+      const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+      yPos = finalY + 15;
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Summary', 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total Sales: TZS ${data.data.totalSales.toLocaleString()}`, 20, yPos);
+      yPos += 8;
+      doc.text(`Credit Outstanding: TZS ${data.data.creditOutstanding.toLocaleString()}`, 20, yPos);
 
       const blob = doc.output('blob');
       console.log('✅ Sales PDF blob created, size:', blob.size, 'bytes');
@@ -313,20 +399,8 @@ export const reportsService = {
   generatePurchasesPDF: (data: PurchasesReport, startDate?: string, endDate?: string): Blob => {
     const doc = new jsPDF();
 
-    // Header
-    doc.setFontSize(20);
-    doc.text('Purchases Report', 20, 20);
-
-    doc.setFontSize(12);
-    const dateRange = startDate && endDate ? `From ${startDate} to ${endDate}` : 'All Time';
-    doc.text(`Date Range: ${dateRange}`, 20, 35);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
-
-    // Summary
-    doc.setFontSize(14);
-    doc.text('Summary', 20, 65);
-    doc.setFontSize(12);
-    doc.text(`Total Purchases: TZS ${data.data.totalPurchases.toLocaleString()}`, 20, 80);
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(doc, 'Purchases Report', startDate, endDate);
 
     // Purchases table
     const tableData = data.data.purchaseOrders.map(order => [
@@ -340,11 +414,24 @@ export const reportsService = {
     autoTable(doc, {
       head: [['ID', 'Supplier', 'Date', 'Total Cost', 'Status']],
       body: tableData,
-      startY: 95,
+      startY: yPos,
       theme: 'grid',
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] }
     });
+
+    // Summary (after table)
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    yPos = finalY + 15;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 20, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Purchases: TZS ${data.data.totalPurchases.toLocaleString()}`, 20, yPos);
 
     return doc.output('blob');
   },
@@ -352,21 +439,8 @@ export const reportsService = {
   generateProductionPDF: (data: ProductionReport, startDate?: string, endDate?: string): Blob => {
     const doc = new jsPDF();
 
-    // Header
-    doc.setFontSize(20);
-    doc.text('Production Report', 20, 20);
-
-    doc.setFontSize(12);
-    const dateRange = startDate && endDate ? `From ${startDate} to ${endDate}` : 'All Time';
-    doc.text(`Date Range: ${dateRange}`, 20, 35);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
-
-    // Summary
-    doc.setFontSize(14);
-    doc.text('Summary', 20, 65);
-    doc.setFontSize(12);
-    doc.text(`Total Produced: ${data.data.totalProduced} units`, 20, 80);
-    doc.text(`Total Cost: TZS ${data.data.totalCost.toLocaleString()}`, 20, 90);
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(doc, 'Production Report', startDate, endDate);
 
     // Production table
     const tableData = data.data.production.map(prod => [
@@ -380,11 +454,26 @@ export const reportsService = {
     autoTable(doc, {
       head: [['ID', 'Product', 'Quantity', 'Date', 'Cost']],
       body: tableData,
-      startY: 105,
+      startY: yPos,
       theme: 'grid',
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] }
     });
+
+    // Summary (after table)
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    yPos = finalY + 15;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 20, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Produced: ${data.data.totalProduced} units`, 20, yPos);
+    yPos += 8;
+    doc.text(`Total Cost: TZS ${data.data.totalCost.toLocaleString()}`, 20, yPos);
 
     return doc.output('blob');
   },
@@ -392,19 +481,8 @@ export const reportsService = {
   generateInventoryPDF: (data: InventoryReport): Blob => {
     const doc = new jsPDF();
 
-    // Header
-    doc.setFontSize(20);
-    doc.text('Inventory Report', 20, 20);
-
-    doc.setFontSize(12);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 35);
-
-    // Summary
-    doc.setFontSize(14);
-    doc.text('Summary', 20, 55);
-    doc.setFontSize(12);
-    doc.text(`Total Value: TZS ${data.data.totalValue.toLocaleString()}`, 20, 70);
-    doc.text(`Low Stock Items: ${data.data.lowStockItems}`, 20, 80);
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(doc, 'Inventory Report');
 
     // Inventory table
     const tableData = data.data.inventory.map(item => [
@@ -419,11 +497,26 @@ export const reportsService = {
     autoTable(doc, {
       head: [['Name', 'Unit', 'Current Qty', 'Min Level', 'Cost', 'Type']],
       body: tableData,
-      startY: 95,
+      startY: yPos,
       theme: 'grid',
       styles: { fontSize: 8 },
       headStyles: { fillColor: [41, 128, 185] }
     });
+
+    // Summary (after table)
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    yPos = finalY + 15;
+
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Summary', 20, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Total Value: TZS ${data.data.totalValue.toLocaleString()}`, 20, yPos);
+    yPos += 8;
+    doc.text(`Low Stock Items: ${data.data.lowStockItems}`, 20, yPos);
 
     return doc.output('blob');
   },
@@ -431,21 +524,20 @@ export const reportsService = {
   generateFinancialPDF: (data: FinancialReport, startDate?: string, endDate?: string): Blob => {
     const doc = new jsPDF();
 
-    // Header
-    doc.setFontSize(20);
-    doc.text('Financial Report', 20, 20);
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(doc, 'Financial Report', startDate, endDate);
 
-    doc.setFontSize(12);
-    const dateRange = startDate && endDate ? `From ${startDate} to ${endDate}` : 'All Time';
-    doc.text(`Date Range: ${dateRange}`, 20, 35);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, 20, 45);
+    // Add some spacing before financial summary
+    yPos += 10;
 
     // Financial summary
     doc.setFontSize(14);
-    doc.text('Financial Summary', 20, 65);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Financial Summary', 20, yPos);
+    yPos += 15;
 
     doc.setFontSize(12);
-    let yPos = 80;
+    doc.setFont('helvetica', 'normal');
     doc.text(`Revenue: TZS ${data.data.revenue.toLocaleString()}`, 20, yPos);
     yPos += 10;
     doc.text(`Expenses: TZS ${data.data.expenses.toLocaleString()}`, 20, yPos);
