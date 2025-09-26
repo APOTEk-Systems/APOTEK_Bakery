@@ -65,6 +65,7 @@ const ConfirmSaleDialog = ({
 }: ConfirmSaleDialogProps) => {
 
    const {user} = useAuth()
+   console.log(user)
   const handlePrintReceipt = () => {
     const customer = selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null;
     const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
@@ -80,7 +81,7 @@ const ConfirmSaleDialog = ({
           <title>Receipt</title>
           <style>
             body {
-              font-family: 'Courier New', monospace;
+              font-family: monospace;
               font-size: 10px;
               line-height: 1.2;
               margin: 10px 0;

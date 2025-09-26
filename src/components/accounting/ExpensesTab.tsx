@@ -19,6 +19,7 @@ import {
 import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface ExpensesTabProps {
   getCategoryColor: (category: string) => string;
@@ -175,13 +176,13 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                 <TableBody>
                   {expenses.map((expense) => (
                     <TableRow key={expense.id}>
-                      <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+                      <TableCell>{format(expense.date, "dd-MM-yyyy")}</TableCell>
                       <TableCell>
                         <Badge className={getCategoryColor(expense.expenseCategory?.name.toLowerCase() || 'other')} variant="outline">
                           {expense.expenseCategory?.name || 'Unknown'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatCurrency(expense?.amount)}</TableCell>
+                      <TableCell>{formatCurrency(expense?.amount).replace("Tsh", "")}</TableCell>
                       <TableCell>{expense.notes}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
