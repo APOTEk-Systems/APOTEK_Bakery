@@ -224,13 +224,6 @@ const Reports = () => {
                 Generate and export detailed reports
               </p>
             </div>
-            <Button
-              onClick={handleTestPDF}
-              variant="outline"
-              className="shadow-warm"
-            >
-              Test PDF Generation
-            </Button>
           </div>
 
           {/* Date Range Filters - Only show for date-filtered reports */}

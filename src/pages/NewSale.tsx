@@ -1,49 +1,19 @@
 import {useState} from "react";
-import {Link} from "react-router-dom";
 import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
 import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {Separator} from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import {Card, CardContent} from "@/components/ui/card";
 import {useToast} from "@/hooks/use-toast";
-import {
-  ArrowLeft,
-  Plus,
-  Minus,
-  Search,
-  CreditCard,
-  Banknote,
-  Receipt,
-  Trash2,
-  UserPlus,
-  Loader2,
-  ShoppingCart,
-  ChevronRight,
-  ChevronLeft,
-} from "lucide-react";
-
+import {Loader2} from "lucide-react";
 import {getProducts, type Product} from "@/services/products";
 import {customersService, type Customer} from "@/services/customers";
 import {salesService, type SaleItem} from "@/services/sales";
-import { formatCurrency } from "@/lib/funcs";
-import { format } from 'date-fns';
+import {settingsService, type SettingsData} from "@/services/settings";
+import ProductsList from "../components/sales/ProductsList";
+import Cart from "../components/sales/Cart";
+import Checkout from "../components/sales/Checkout";
+import ConfirmSaleDialog from "../components/sales/ConfirmSaleDialog";
+import NewCustomerDialog from "../components/sales/NewCustomerDialog";
 
 interface CartItem extends Product {
   quantity: number;
@@ -77,52 +47,6 @@ const NewSale = () => {
   const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
 
   const {toast} = useToast();
-const ReceiptPreview = ({ format, sale, cart, customer, paymentMethod, creditDueDate, total, subtotal, tax }) => {
-  const isA5 = format === 'a5';
-  const className = isA5 ? 'w-full max-w-2xl mx-auto' : 'w-full max-w-sm mx-auto';
-  return (
-    <div className={`${className} p-4 border bg-white text-sm`}>
-      <div className="text-center mb-4">
-        <h2 className="text-lg font-bold">Pastry Pros Receipt</h2>
-        <p>Sale ID: {sale?.id}</p>
-        <p>Date: {new Date().toLocaleString()}</p>
-      </div>
-      <div className="mb-4">
-        <h3 className="font-semibold mb-2">Items:</h3>
-        {cart.map(item => (
-          <div key={item.id} className="flex justify-between">
-            <span>{item.name} x{item.quantity}</span>
-            <span>{formatCurrency(item.price * item.quantity)}</span>
-          </div>
-        ))}
-      </div>
-      <div className="border-b"></div>
-       <p className="my-2">Payment: {paymentMethod === 'credit' ? 'Credit' : 'Cash'}</p>
-        {paymentMethod === 'credit' && creditDueDate && <p>Due: {format(new Date(creditDueDate), 'dd-MM-yyyy')}</p>}
-        {customer && <p>Customer: {customer.name}</p>}
-
-      <div className="border-t py-2 space-y-1">
-        <div className="flex justify-between">
-          <span>Subtotal:</span>
-          <span>{formatCurrency(subtotal)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>VAT:</span>
-          <span>{formatCurrency(tax)}</span>
-        </div>
-        <div className="flex justify-between font-semibold">
-          <span>Total:</span>
-          <span>{formatCurrency(total)}</span>
-        </div>
-
-      </div>
-      <div className="text-center mt-4 text-xs">
-        Thank you for shopping with us<br />
-        Enjoy!
-      </div>
-    </div>
-  );
-};
 
   const queryClient = useQueryClient();
 
@@ -136,11 +60,17 @@ const ReceiptPreview = ({ format, sale, cart, customer, paymentMethod, creditDue
     queryFn: () => customersService.getAll(),
   });
 
-  const loading = productsQuery.isLoading || customersQuery.isLoading;
-  const error = productsQuery.error || customersQuery.error;
+  const settingsQuery = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsService.getAll(),
+  });
+
+  const loading = productsQuery.isLoading || customersQuery.isLoading || settingsQuery.isLoading;
+  const error = productsQuery.error || customersQuery.error || settingsQuery.error;
 
   const products = productsQuery.data || [];
   const customers = customersQuery.data || [];
+  const settings = settingsQuery.data;
 
   const createCustomerMutation = useMutation({
     mutationFn: (data: any) => customersService.create(data),
@@ -374,555 +304,72 @@ const ReceiptPreview = ({ format, sale, cart, customer, paymentMethod, creditDue
           </div>
 
           {currentStep === 1 ? (
-            /* Step 1: Products + Cart */
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Products list */}
-              <div className="lg:col-span-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Search className="h-4 w-4" />
-                      Products
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="relative mb-4">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search products..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {filteredProducts.length === 0 ? (
-                        <div className="col-span-full text-center py-8 text-muted-foreground">
-                          No products found. Try adjusting your search.
-                        </div>
-                      ) : (
-                        filteredProducts.map((product) => (
-                          <Card
-                            key={product.id}
-                            className="p-4 hover:shadow-md transition-shadow"
-                          >
-                            <div className="text-center space-y-2">
-                              <h3 className="font-medium text-sm">
-                                {product.name}
-                              </h3>
-                              <p className="text-xl font-bold text-primary">
-                                {formatCurrency(product.price)}
-                              </p>
-                              <p className="text-gray-500 text-sm">
-                                Stock: {product.quantity}{" "}
-                              </p>
-                              <Button
-                                onClick={() => addToCart(product)}
-                                disabled={product.quantity === 0}
-                                className="w-full"
-                                size="sm"
-                              >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add
-                              </Button>
-                            </div>
-                          </Card>
-                        ))
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Cart */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ShoppingCart className="h-5 w-5" />
-                      Cart ({cart.reduce((s, i) => s + i.quantity, 0)} items)
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 max-h-64 overflow-y-auto">
-                      {cart.length === 0 ? (
-                        <p className="text-muted-foreground text-center py-8">
-                          Cart is empty
-                        </p>
-                      ) : (
-                        cart.map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-2 border rounded"
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">{item.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {formatCurrency(item.price)} each
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  updateQuantity(item.id, item.quantity - 1);
-                                }}
-                                className="h-6 w-6 p-0"
-                              >
-                                <Minus className="h-3 w-3" />
-                              </Button>
-
-                              <span className="text-sm font-medium w-8 text-center">
-                                {item.quantity}
-                              </span>
-
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  updateQuantity(item.id, item.quantity + 1);
-                                }}
-                                className="h-6 w-6 p-0"
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeFromCart(item.id);
-                                }}
-                                className="h-6 w-6 p-0 ml-1"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {cart.length > 0 && (
-                      <div className="pt-4 border-t">
-                        <Button
-                          onClick={() => setCurrentStep(2)}
-                          className="w-full"
-                          size="lg"
-                        >
-                          Proceed to Checkout
-                          <ChevronRight className="h-4 w-4 ml-2" />
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
+              <ProductsList
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                filteredProducts={filteredProducts}
+                addToCart={addToCart}
+              />
+              <Cart
+                cart={cart}
+                updateQuantity={updateQuantity}
+                removeFromCart={removeFromCart}
+                setCurrentStep={setCurrentStep}
+              />
             </div>
           ) : (
-            /* Step 2: Checkout only */
-            <div className="mx-auto">
-              {/* Back Button */}
-              <Button
-                variant="ghost"
-                onClick={() => setCurrentStep(1)}
-                className="mb-6"
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" />
-                Back to Cart
-              </Button>
-
-              <div className="space-y-6">
-                {/* Customer and Payment Method side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Customer */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Customer</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4 space-y-4">
-                      <div>
-                        <Label
-                          htmlFor="selectedCustomer"
-                          className="text-sm font-medium"
-                        >
-                          Select Customer (optional)
-                        </Label>
-                        <Select
-                          value={selectedCustomer}
-                          onValueChange={setSelectedCustomer}
-                        >
-                          <SelectTrigger id="selectedCustomer" defaultValue={`Cash`}>
-                            <SelectValue placeholder="Cash" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {customers.map((c) => (
-                              <SelectItem key={c.id} value={c.id.toString()}>
-                                {c.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-
-                        <div className="mt-3">
-                          <Label
-                            htmlFor="customerName"
-                            className="text-sm font-medium"
-                          >
-                            Or enter name for walk-in
-                          </Label>
-                          <Input
-                            id="customerName"
-                            placeholder="Enter customer name"
-                            value={customerName}
-                            onChange={(e) => setCustomerName(e.target.value)}
-                          />
-                        </div>
-
-                        <div className="mt-3">
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="p-0 h-auto"
-                            onClick={() => setIsNewCustomerOpen(true)}
-                          >
-                            <UserPlus className="h-4 w-4 mr-1" />
-                            Add New Customer
-                          </Button>
-                        </div>
-
-                        {/* If credit is selected, show due date */}
-                        {paymentMethod === "credit" && (
-                          <div className="space-y-2 mt-3">
-                            <Label
-                              htmlFor="creditDueDate"
-                              className="text-sm font-medium"
-                            >
-                              Credit Due Date (optional)
-                            </Label>
-                            <Input
-                              id="creditDueDate"
-                              type="date"
-                              value={creditDueDate}
-                              onChange={(e) => setCreditDueDate(e.target.value)}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Payment Method */}
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Payment Method</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="space-y-2">
-                        <Button
-                          variant={paymentMethod === "cash" ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setPaymentMethod("cash")}
-                          className="w-full justify-start"
-                        >
-                          <Banknote className="h-4 w-4 mr-2" />
-                          Cash
-                        </Button>
-
-                        <Button
-                          variant={
-                            paymentMethod === "credit" ? "default" : "outline"
-                          }
-                          size="sm"
-                          onClick={() => setPaymentMethod("credit")}
-                          className="w-full justify-start"
-                        >
-                          <CreditCard className="h-4 w-4 mr-2" />
-                          Credit
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                {/* Totals - Full width below */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Totals</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 space-y-3">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Subtotal:</span>
-                        <span>{formatCurrency(subtotal)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Vat:</span>
-                        <span>{formatCurrency(tax)}</span>
-                      </div>
-                      <Separator />
-                      <div className="flex justify-between font-semibold text-lg">
-                        <span>Total:</span>
-                        <span>{formatCurrency(total)}</span>
-                      </div>
-                    </div>
-
-                    <Button
-                      onClick={handleConfirmSale}
-                      disabled={cart.length === 0 || createSaleMutation.isPending}
-                      className="w-full"
-                      size="lg"
-                    >
-                      {createSaleMutation.isPending ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <Receipt className="h-4 w-4 mr-2" />
-                      )}
-                      {createSaleMutation.isPending
-                        ? "Processing..."
-                        : `Complete Sale ${formatCurrency(total)}`}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            <Checkout
+              setCurrentStep={setCurrentStep}
+              selectedCustomer={selectedCustomer}
+              setSelectedCustomer={setSelectedCustomer}
+              customers={customers}
+              paymentMethod={paymentMethod}
+              setPaymentMethod={setPaymentMethod}
+              creditDueDate={creditDueDate}
+              setCreditDueDate={setCreditDueDate}
+              isNewCustomerOpen={isNewCustomerOpen}
+              setIsNewCustomerOpen={setIsNewCustomerOpen}
+              newCustomerForm={newCustomerForm}
+              setNewCustomerForm={setNewCustomerForm}
+              handleConfirmSale={handleConfirmSale}
+              subtotal={subtotal}
+              tax={tax}
+              total={total}
+              cart={cart}
+              createSaleMutation={createSaleMutation}
+            />
           )}
         </div>
       </Layout>
 
-      {/* Confirm Sale Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
-          <DialogHeader>
-            <DialogTitle>
-              {saleCompleted ? (previewFormat ? `Receipt Preview (${previewFormat.toUpperCase()})` : "Sale Completed") : "Confirm Sale"}
-            </DialogTitle>
-            <DialogDescription>
-              {saleCompleted ? (previewFormat ? "Review the receipt before printing." : "Sale created successfully. Choose a receipt format to preview.") : "Are you sure you want to complete this sale?"}
-            </DialogDescription>
-          </DialogHeader>
+      <ConfirmSaleDialog
+        showConfirmDialog={showConfirmDialog}
+        setShowConfirmDialog={setShowConfirmDialog}
+        saleCompleted={saleCompleted}
+        previewFormat={previewFormat}
+        setPreviewFormat={setPreviewFormat}
+        total={total}
+        paymentMethod={paymentMethod}
+        creditDueDate={creditDueDate}
+        selectedCustomer={selectedCustomer}
+        customers={customers}
+        customerName={customerName}
+        soldCart={soldCart}
+        newSale={newSale}
+        handleCompleteSale={handleCompleteSale}
+        createSaleMutation={createSaleMutation}
+        businessInfo={settings?.information}
+      />
 
-          {!saleCompleted ? (
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Total Amount:</span>
-                <span className="font-semibold">{formatCurrency(total)}</span>
-              </div>
-
-              <div className="flex justify-between">
-                <span>Payment Method:</span>
-                <span className="font-semibold">
-                  {paymentMethod === "credit" ? "Credit" : "Cash"}
-                </span>
-              </div>
-
-              {paymentMethod === "credit" && (
-                <div className="flex justify-between">
-                  <span>Credit Due Date:</span>
-                  <span className="font-semibold">
-                    {creditDueDate
-                      ? format(new Date(creditDueDate), 'dd-MM-yyyy')
-                      : "Not set"}
-                  </span>
-                </div>
-              )}
-
-              {selectedCustomer && (
-                <div className="text-sm text-muted-foreground">
-                  For:{" "}
-                  {customers.find((c) => c.id.toString() === selectedCustomer)
-                    ?.name ?? "Selected customer"}
-                </div>
-              )}
-
-              {!selectedCustomer && customerName && (
-                <div className="text-sm text-muted-foreground">
-                  Walk-in name: {customerName}
-                </div>
-              )}
-
-              {paymentMethod === "credit" && (
-                <div className="text-sm text-muted-foreground">
-                  This sale will be recorded as credit
-                  {selectedCustomer
-                    ? ` for ${
-                        customers.find(
-                          (c) => c.id.toString() === selectedCustomer
-                        )?.name
-                      }`
-                    : ""}
-                  .
-                </div>
-              )}
-
-              {/* ❌ Error when trying credit without a customer */}
-              {paymentMethod === "credit" &&
-                !customers.some((c) => c.id.toString() === selectedCustomer) && (
-                  <p className="text-sm text-red-500 font-medium">
-                    Error: Credit sales must be linked to a valid customer.
-                  </p>
-                )}
-            </div>
-          ) : previewFormat ? (
-            <ReceiptPreview
-              format={previewFormat}
-              sale={newSale}
-              cart={soldCart}
-              customer={selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null}
-              paymentMethod={paymentMethod}
-              creditDueDate={creditDueDate}
-              total={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) + (soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0)}
-              subtotal={soldCart.reduce((s, it) => s + it.price * it.quantity, 0)}
-              tax={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0}
-            />
-          ) : (
-            <div className="text-center space-y-4">
-              <p className="text-lg font-semibold">Choose Receipt Format</p>
-              <div className="flex gap-4 justify-center">
-                <Button onClick={() => setPreviewFormat('a5')} variant="outline">
-                  A5 Paper
-                </Button>
-                <Button onClick={() => setPreviewFormat('thermal')} variant="outline">
-                  Thermal Paper
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2">
-            {!saleCompleted ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowConfirmDialog(false)}
-                  disabled={createSaleMutation.isPending}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCompleteSale}
-                  disabled={
-                    createSaleMutation.isPending ||
-                    (paymentMethod === "credit" && !selectedCustomer)
-                  }
-                >
-                  {createSaleMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Receipt className="h-4 w-4 mr-2" />
-                  )}
-                  {createSaleMutation.isPending ? "Processing..." : "Confirm Sale"}
-                </Button>
-              </>
-            ) : previewFormat ? (
-              <>
-                <Button
-                  variant="outline"
-                  onClick={() => setPreviewFormat(null)}
-                >
-                  Back
-                </Button>
-                <Button onClick={() => window.print()}>
-                  Print Receipt
-                </Button>
-              </>
-            ) : (
-              <Button
-                onClick={() => setShowConfirmDialog(false)}
-              >
-                Close
-              </Button>
-            )}
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* New Customer Dialog */}
-      <Dialog open={isNewCustomerOpen} onOpenChange={setIsNewCustomerOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Customer</DialogTitle>
-            <DialogDescription>
-              Enter customer details for quick addition.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="newCustomerName">Name *</Label>
-              <Input
-                id="newCustomerName"
-                placeholder="Customer name"
-                value={newCustomerForm.name}
-                onChange={(e) =>
-                  setNewCustomerForm({...newCustomerForm, name: e.target.value})
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="newCustomerEmail">Email (optional)</Label>
-              <Input
-                id="newCustomerEmail"
-                type="email"
-                placeholder="customer@example.com"
-                value={newCustomerForm.email}
-                onChange={(e) =>
-                  setNewCustomerForm({
-                    ...newCustomerForm,
-                    email: e.target.value,
-                  })
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="newCustomerPhone">Phone (optional)</Label>
-              <Input
-                id="newCustomerPhone"
-                placeholder="Phone number"
-                value={newCustomerForm.phone}
-                onChange={(e) =>
-                  setNewCustomerForm({
-                    ...newCustomerForm,
-                    phone: e.target.value,
-                  })
-                }
-              />
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsNewCustomerOpen(false);
-                setNewCustomerForm({name: "", email: "", phone: ""});
-              }}
-              disabled={createCustomerMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddNewCustomer}
-              disabled={createCustomerMutation.isPending || !newCustomerForm.name.trim()}
-            >
-              {createCustomerMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <UserPlus className="mr-2 h-4 w-4" />
-              )}
-              Add Customer
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <NewCustomerDialog
+        isNewCustomerOpen={isNewCustomerOpen}
+        setIsNewCustomerOpen={setIsNewCustomerOpen}
+        newCustomerForm={newCustomerForm}
+        setNewCustomerForm={setNewCustomerForm}
+        handleAddNewCustomer={handleAddNewCustomer}
+        createCustomerMutation={createCustomerMutation}
+      />
     </>
   );
 };

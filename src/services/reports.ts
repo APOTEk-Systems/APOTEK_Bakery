@@ -2,7 +2,7 @@ import { api } from '@/lib/api';
 import { format } from 'date-fns';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { settingsService, SettingsData } from './settings';
+
 
 // Types for report data
 export interface SalesReport {

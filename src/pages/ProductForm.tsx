@@ -522,7 +522,7 @@ const ProductForm = () => {
                         </Select>
                       </div>
                       <div>
-                        <Label>Amount</Label>
+                        <Label>Quantity</Label>
                         <Input
                           type="number"
                           step="0.01"
@@ -530,7 +530,7 @@ const ProductForm = () => {
                           onChange={(e) =>
                             handleRecipeChange(index, "amount", e.target.value)
                           }
-                          placeholder="0.00"
+                          placeholder="100"
                         />
                       </div>
                       <div>
