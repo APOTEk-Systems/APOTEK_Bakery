@@ -182,7 +182,7 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                           {expense.expenseCategory?.name || 'Unknown'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{formatCurrency(expense?.amount).replace("Tsh", "")}</TableCell>
+                      <TableCell>{formatCurrency(expense?.amount).replace("TSH", "")}</TableCell>
                       <TableCell>{expense.notes}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
