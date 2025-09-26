@@ -64,3 +64,10 @@ export const denormalizeCost = (cost: number, unit: string) => {
       return cost;
   }
 };
+
+export function toSentenceCase(str:string) {
+  if (!str) return "";
+  return str
+    .toLowerCase()                // make entire string lowercase
+    .replace(/(^\s*\w|[.!?]\s*\w)/g, c => c.toUpperCase()); 
+}

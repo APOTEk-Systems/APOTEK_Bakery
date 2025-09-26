@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  Plus, 
+import {
+  Plus,
   FileText,
 } from "lucide-react";
-import OverviewTab from "../components/accounting/OverviewTab";
 import ExpensesTab from "../components/accounting/ExpensesTab";
 import CategoriesTab from "../components/accounting/CategoriesTab";
-import ReportsTab from "../components/accounting/ReportsTab";
+// import OverviewTab from "../components/accounting/OverviewTab";
+// import ReportsTab from "../components/accounting/ReportsTab";
 import AddExpenseModal from "../components/accounting/AddExpenseModal";
 
 
@@ -30,6 +31,7 @@ const expenseCategories = [
 
 const Accounting = () => {
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -58,8 +60,8 @@ const Accounting = () => {
   };
 
   const handleExpenseAdded = () => {
-    // In a real application, you would re-fetch expenses here
-    // For now, we just close the modal
+    // Invalidate and refetch expenses queries
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
     setIsAddExpenseModalOpen(false);
   };
 
@@ -73,10 +75,6 @@ const Accounting = () => {
               <p className="text-muted-foreground">Track expenses and financial performance</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                Reports
-              </Button>
               <Button className="shadow-warm" onClick={() => setIsAddExpenseModalOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Expense
@@ -85,19 +83,19 @@ const Accounting = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+        <Tabs defaultValue="expenses" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            {/* <TabsTrigger value="overview">Overview</TabsTrigger> */}
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="reports">Financial Reports</TabsTrigger>
+            {/* <TabsTrigger value="reports">Financial Reports</TabsTrigger> */}
           </TabsList>
 
-          <TabsContent value="overview">
+          {/* <TabsContent value="overview">
             <OverviewTab
               getStatusColor={getStatusColor}
             />
-          </TabsContent>
+          </TabsContent> */}
 
           <TabsContent value="expenses">
             <ExpensesTab
@@ -114,9 +112,9 @@ const Accounting = () => {
             />
           </TabsContent>
 
-          <TabsContent value="reports">
+          {/* <TabsContent value="reports">
             <ReportsTab />
-          </TabsContent>
+          </TabsContent> */}
         </Tabs>
       </div>
 

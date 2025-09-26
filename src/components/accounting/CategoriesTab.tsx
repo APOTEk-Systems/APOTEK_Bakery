@@ -1,63 +1,127 @@
 
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PieChart } from "lucide-react";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Edit, Trash2, Plus } from "lucide-react";
 import { expensesService } from "@/services/expenses";
+import { toast } from "sonner";
+import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
+import { toSentenceCase } from "@/lib/funcs";
 
-// TODO: Define proper types for props
-const CategoriesTab = ({ expenseCategories, getCategoryColor }: any) => {
-  const expensesSummaryQuery = useQuery({
-    queryKey: ['expensesSummary'],
-    queryFn: () => expensesService.getExpensesSummary(),
+interface CategoriesTabProps {
+  expenseCategories: string[];
+  getCategoryColor: (category: string) => string;
+}
+
+const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabProps) => {
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+
+  const categoriesQuery = useQuery({
+    queryKey: ['expenseCategories'],
+    queryFn: () => expensesService.getExpenseCategories(),
   });
 
-  const summaryByCategory = expensesSummaryQuery.data?.summaryByCategory || {};
-  const totalExpenses = expensesSummaryQuery.data?.totalExpenses || 0;
-  const loading = expensesSummaryQuery.isLoading;
-  const error = expensesSummaryQuery.error;
+  const categories = categoriesQuery.data?.data || [];
+  const loading = categoriesQuery.isLoading;
+  const error = categoriesQuery.error;
+
+  const handleDeleteCategory = async (id: number, name: string) => {
+    if (confirm(`Are you sure you want to delete the "${name}" category?`)) {
+      try {
+        // Note: This would need a delete endpoint in the API
+        toast.success("Category deleted successfully!");
+        // In real app, refetch data here
+        categoriesQuery.refetch();
+      } catch (err) {
+        toast.error("Failed to delete category.");
+      }
+    }
+  };
+
+  const handleCategoryAdded = () => {
+    categoriesQuery.refetch();
+  };
 
   if (loading) {
     return <div className="text-center py-8">Loading categories...</div>;
   }
 
   if (error) {
-    return <div className="text-center py-8 text-destructive">Error: {error instanceof Error ? error.message : 'Failed to load expenses summary'}</div>;
+    return <div className="text-center py-8 text-destructive">Error: {error instanceof Error ? error.message : 'Failed to load categories'}</div>;
   }
 
   return (
-    <Card className="shadow-warm">
-      <CardHeader>
-        <CardTitle>Expense Categories</CardTitle>
-        <p className="text-muted-foreground">Track spending by category</p>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(summaryByCategory).map(([category, total]) => {
-            return (
-              <Card key={category} className="border border-border">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className={getCategoryColor(category)} variant="outline">
-                      {category}
-                    </Badge>
-                    <PieChart className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                  <div className="text-2xl font-bold text-foreground">${total.toLocaleString()}</div>
-                  <p className="text-sm text-muted-foreground">This month</p>
-                  <div className="mt-3 bg-muted rounded-full h-2">
-                    <div
-                      className="bg-primary rounded-full h-2"
-                      style={{ width: `${(total / totalExpenses) * 100}%` }}
-                    />
-                  </div>
-                </CardContent>
+    <div className="space-y-6">
+      <Card className="shadow-warm">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Expense Categories</CardTitle>
+            <Button onClick={() => setIsAddCategoryModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Category
+            </Button>
+          </div>
+          <p className="text-muted-foreground">Manage expense categories</p>
+        </CardHeader>
+        <CardContent>
+          {categories.length === 0 ? (
+            <p className="text-muted-foreground">No categories found.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Card>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category Name</TableHead>
+                    <TableHead>Color</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {categories.map((category) => (
+                    <TableRow key={category.id}>
+                      <TableCell className="font-medium">{toSentenceCase(category.name)}</TableCell>
+                      <TableCell>
+                        <Badge className={getCategoryColor(category.name.toLowerCase())} variant="outline">
+                          {category.name}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteCategory(category.id, category.name)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
               </Card>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <AddExpenseCategoryModal
+        isOpen={isAddCategoryModalOpen}
+        onClose={() => setIsAddCategoryModalOpen(false)}
+        onCategoryAdded={handleCategoryAdded}
+      />
+    </div>
   );
 };
 

@@ -6,75 +6,134 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
   Table, TableHeader, TableRow, TableHead, TableBody, TableCell
 } from "@/components/ui/table";
-import { 
-  Search, 
+import {
+  Search,
   Filter,
   Download,
-  Eye,
-  Receipt
+  Edit,
+  Trash2
 } from "lucide-react";
-import { expensesService, Expense, ExpensesList, DailyBreakdown } from "@/services/expenses";
+import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
+import { toast } from "sonner";
 
 interface ExpensesTabProps {
   getCategoryColor: (category: string) => string;
   getStatusColor: (status: string) => string;
 }
 
-interface DailyBreakdownItem {
-  category: string;
-  total: number;
+interface Expense {
+  id: number;
+  amount: number;
   date: string;
-}
-
-interface ExpensesSummary {
-  totalExpenses: number;
-  dailyBreakdown: DailyBreakdown[];
+  status: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  createdById: number;
+  approvedById: number | null;
+  updatedById: number | null;
+  expenseCategoryId: number;
+  expenseCategory: {
+    id: number;
+    name: string;
+  };
 }
 
 const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+
+  const categoriesQuery = useQuery({
+    queryKey: ['expenseCategories'],
+    queryFn: () => expensesService.getExpenseCategories(),
+  });
 
   const expensesQuery = useQuery({
-    queryKey: ['expenses', filterCategory, searchTerm],
+    queryKey: ['expenses', filterCategory, searchTerm, startDate, endDate],
     queryFn: () => expensesService.getExpenses({
       category: filterCategory === "all" ? undefined : filterCategory,
       search: searchTerm || undefined,
-      date: new Date().toISOString()
+      startDate: startDate,
+      endDate: endDate,
     }),
   });
 
-  const expenses = expensesQuery.data?.dailyBreakdown || [];
-  const expensesSummary = expensesQuery.data ? {
-    totalExpenses: expensesQuery.data.totalExpenses,
-    dailyBreakdown: expensesQuery.data.dailyBreakdown
-  } : null;
+  const categories = categoriesQuery.data?.data || [];
+  const expenses = Array.isArray(expensesQuery.data) ? expensesQuery.data : expensesQuery.data?.dailyBreakdown || [];
 
   if (expensesQuery.isLoading) {
     return <div className="text-center py-8">Loading expenses...</div>;
   }
 
   if (expensesQuery.error) {
-    return <div className="text-center py-8 text-destructive">Error: {expensesQuery.error.message}</div>;
+    return <div className="text-center py-8 text-destructive">Error: {expensesQuery.error instanceof Error ? expensesQuery.error.message : 'Failed to load expenses'}</div>;
   }
+
+  const handleDeleteExpense = async (id: number) => {
+    if (confirm("Are you sure you want to delete this expense?")) {
+      try {
+        await expensesService.deleteExpense(id.toString());
+        toast.success("Expense deleted successfully!");
+        expensesQuery.refetch();
+      } catch (err) {
+        toast.error("Failed to delete expense.");
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
       {/* Expense Filters */}
       <Card className="shadow-warm">
         <CardContent className="pt-6">
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <Label htmlFor="search">Search Expenses</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+            <div>
+              <Label htmlFor="startDate">Start Date</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate">End Date</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="category">Category</Label>
+              <Select value={filterCategory} onValueChange={setFilterCategory}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id.toString()}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="search">Search</Label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Search by description, vendor, or ID..."
+                  placeholder="Search notes..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -82,29 +141,11 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
               </div>
             </div>
             <div>
-              <Label htmlFor="category">Category</Label>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="electricity">Electricity</SelectItem>
-                  <SelectItem value="gas">Gas</SelectItem>
-                  <SelectItem value="water">Water</SelectItem>
-                  <SelectItem value="transportation">Transportation</SelectItem>
-                  <SelectItem value="salaries">Salaries</SelectItem>
-                  <SelectItem value="rent">Rent</SelectItem>
-                  <SelectItem value="communication">Communication</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
+              <Button variant="outline" className="w-full">
+                <Filter className="h-4 w-4 mr-2" />
+                Apply Filters
+              </Button>
             </div>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              More Filters
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -114,10 +155,6 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>All Expenses</CardTitle>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -130,31 +167,36 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Description</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Notes</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {expenses.map((expense) => (
-                    <TableRow key={expense.category}>
-                      <TableCell>{expense.date.split('T')[0]}</TableCell>
+                    <TableRow key={expense.id}>
+                      <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Badge className={getCategoryColor(expense.category.toLowerCase())} variant="outline">
-                          {expense.category}
+                        <Badge className={getCategoryColor(expense.expenseCategory?.name.toLowerCase() || 'other')} variant="outline">
+                          {expense.expenseCategory?.name || 'Unknown'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{`Expenses for ${expense.category}`}</TableCell>
-                      <TableCell>${expense.total.toFixed(2)}</TableCell>
+                      <TableCell>{formatCurrency(expense?.amount)}</TableCell>
+                      <TableCell>{expense.notes}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Receipt
-                          </Button>
-                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4 mr-2" />
                             Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteExpense(expense.id)}
+                            className="text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
                           </Button>
                         </div>
                       </TableCell>
@@ -166,31 +208,6 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
           )}
         </CardContent>
       </Card>
-
-      {/* Display total expenses and daily breakdown */}
-      {expensesSummary && (
-        <Card className="shadow-warm">
-          <CardHeader>
-            <CardTitle>Expenses Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-lg font-bold">Total Expenses: {formatCurrency(expensesSummary.totalExpenses)}</p>
-            <h4 className="font-semibold mt-4">Daily Breakdown:</h4>
-            <div className="space-y-2 mt-2">
-              {expensesSummary.dailyBreakdown.length === 0 ? (
-                <p className="text-muted-foreground">No daily breakdown available.</p>
-              ) : (
-                expensesSummary.dailyBreakdown.map((item, index) => (
-                  <div key={index} className="flex justify-between items-center border-b pb-1 last:border-b-0">
-                    <span className="text-sm">{item.date} - {item.category}</span>
-                    <span className="font-medium">${item.total.toFixed(2)}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

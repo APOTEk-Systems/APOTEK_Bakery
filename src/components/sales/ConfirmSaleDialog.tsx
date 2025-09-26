@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { formatCurrency } from "@/lib/funcs";
 import { type Customer } from "@/services/customers";
 import ReceiptPreview from "./ReceiptPreview";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CartItem {
   id: number;
@@ -62,6 +63,186 @@ const ConfirmSaleDialog = ({
   createSaleMutation,
   businessInfo,
 }: ConfirmSaleDialogProps) => {
+
+   const {user} = useAuth()
+  const handlePrintReceipt = () => {
+    const customer = selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null;
+    const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
+    const tax = 0; // Assuming no tax for now
+    const total = subtotal + tax;
+   
+
+    // Generate clean HTML for printing
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Receipt</title>
+          <style>
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 10px;
+              line-height: 1.2;
+              margin: 10px 0;
+              max-width: ${previewFormat === 'a5' ? '210mm' : '48mm'};
+              padding: 0;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 10px;
+            }
+            .header h1 {
+              font-size: 14px;
+              font-weight: bold;
+              margin: 0 0 5px 0;
+            }
+            .header p {
+              margin: 2px 0;
+              font-size: 10px;
+            }
+            .info {
+              margin-bottom: 10px;
+            }
+            .info p {
+              margin: 2px 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
+            th, td {
+              text-align: left;
+              padding: 2px 0;
+            }
+            .qty, .amount {
+              text-align: right;
+            }
+            .thermal-header {
+              border-bottom: 1px solid #000;
+              margin-bottom: 5px;
+            }
+            .separator {
+              border-bottom: 1px solid #000;
+              margin: 5px 0;
+            }
+            .totals {
+              margin-bottom: 10px;
+            }
+            .totals div {
+              display: flex;
+              justify-content: space-between;
+              margin: 2px 0;
+            }
+            .footer {
+              text-align: center;
+              border-top: 1px solid #000;
+              padding-top: 5px;
+              margin-top: 10px;
+            }
+            .footer p {
+              margin: 2px 0;
+              font-size: 10px;
+            }
+            @media print {
+              body { margin: 20px 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${businessInfo?.bakeryName || 'Pastry Pros'}</h1>
+            ${businessInfo?.address ? `<p>${businessInfo.address}</p>` : ''}
+            ${businessInfo?.phone ? `<p>Tel: ${businessInfo.phone}</p>` : ''}
+            ${businessInfo?.email ? `<p>${businessInfo.email}</p>` : ''}
+          </div>
+
+          <div class="info">
+            <p>Sale ID: ${newSale?.id || 'N/A'}</p>
+            <p>Customer: ${customer?.name || customerName || 'Cash'}</p>
+            <p>Issued By: ${user.name} </p>
+            <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>
+          </div>
+
+          ${previewFormat === 'a5' ?
+            `<table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th class="qty">Qty</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${soldCart.map(item => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td class="qty">${item.quantity}</td>
+                    <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>` :
+            `<table>
+              <thead>
+                <tr class="thermal-header">
+                  <th>Item</th>
+                  <th class="qty">Qty</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${soldCart.map(item => `
+                  <tr>
+                    <td>${item.name}</td>
+                    <td class="qty">${item.quantity}</td>
+                    <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>`
+          }
+
+          <div class="separator"></div>
+
+          <div class="totals">
+            <div>
+              <span>Subtotal:</span>
+              <span>${formatCurrency(subtotal)}</span>
+            </div>
+            <div>
+              <span>VAT:</span>
+              <span>${formatCurrency(tax)}</span>
+            </div>
+            <div style="font-weight: bold;">
+              <span>Total:</span>
+              <span>${formatCurrency(total)}</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <p>Payment: ${paymentMethod === 'credit' ? 'Credit' : 'Cash'}</p>
+            ${paymentMethod === 'credit' && creditDueDate ? `<p>Due: ${format(new Date(creditDueDate), 'dd-MM-yyyy')}</p>` : ''}
+          </div>
+
+          <div class="footer">
+            <p>Thank you for shopping with us!</p>
+            <p>Enjoy!</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Open print window and write the HTML
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printHTML);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  };
   return (
     <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
       <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
@@ -194,7 +375,7 @@ const ConfirmSaleDialog = ({
               >
                 Back
               </Button>
-              <Button onClick={() => window.print()}>
+              <Button onClick={() => handlePrintReceipt()}>
                 Print Receipt
               </Button>
             </>
