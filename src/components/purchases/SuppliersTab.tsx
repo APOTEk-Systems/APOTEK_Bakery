@@ -118,7 +118,7 @@ export default function SuppliersTab() {
     mutationFn: (id: number) => suppliersService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast({ title: "Supplier Deleted", description: `Supplier deleted.`, variant: "destructive" });
+      toast({ title: "Supplier Deleted", description: `Supplier deleted.`, variant: "default" });
       setIsDeleteConfirmOpen(false);
       setDeleteItemId(null);
     },

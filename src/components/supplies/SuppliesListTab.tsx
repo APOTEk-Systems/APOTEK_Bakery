@@ -8,10 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   Search,
   Edit,
-  AlertTriangle,
   Package,
-  TrendingDown,
-  TrendingUp,
   Trash2,
   Loader2,
   Plus as PlusIcon
@@ -204,6 +201,7 @@ const SuppliesListTab = () => {
                           <Button variant="outline" size="sm" asChild>
                             <Link to={`/supplies/${item.id}/edit`}>
                               <Edit className="h-3 w-3" />
+                              Edit
                             </Link>
                           </Button>
                           <Button
@@ -213,14 +211,7 @@ const SuppliesListTab = () => {
                             disabled={deleteMutation.isPending}
                           >
                             <Trash2 className="h-3 w-3" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openAdjustDialog(item)}
-                            disabled={adjustMutation.isPending}
-                          >
-                            <PlusIcon className="h-3 w-3" />
+                            Delete
                           </Button>
                         </div>
                       </TableCell>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,16 +10,16 @@ import {
   Table, TableHeader, TableRow, TableHead, TableBody, TableCell
 } from "@/components/ui/table";
 import {
-  Search,
-  Filter,
   Download,
   Edit,
-  Trash2
+  Trash2,
+  Plus
 } from "lucide-react";
 import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import AddExpenseModal from "./AddExpenseModal";
 
 interface ExpensesTabProps {
   getCategoryColor: (category: string) => string;
@@ -45,10 +45,11 @@ interface Expense {
 }
 
 const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const categoriesQuery = useQuery({
     queryKey: ['expenseCategories'],
@@ -56,10 +57,9 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   });
 
   const expensesQuery = useQuery({
-    queryKey: ['expenses', filterCategory, searchTerm, startDate, endDate],
+    queryKey: ['expenses', filterCategory, startDate, endDate],
     queryFn: () => expensesService.getExpenses({
-      category: filterCategory === "all" ? undefined : filterCategory,
-      search: searchTerm || undefined,
+      categoryId: filterCategory === "all" ? undefined : filterCategory,
       startDate: startDate,
       endDate: endDate,
     }),
@@ -88,12 +88,16 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
     }
   };
 
+  const handleExpenseAdded = () => {
+    // Invalidate and refetch expenses queries
+    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    setIsAddExpenseModalOpen(false);
+  };
+
   return (
     <div className="space-y-6">
       {/* Expense Filters */}
-      <Card className="shadow-warm">
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <div>
               <Label htmlFor="startDate">Start Date</Label>
               <Input
@@ -128,34 +132,17 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="search">Search</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="search"
-                  placeholder="Search notes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div>
-              <Button variant="outline" className="w-full">
-                <Filter className="h-4 w-4 mr-2" />
-                Apply Filters
-              </Button>
-            </div>
           </div>
-        </CardContent>
-      </Card>
 
       {/* Expenses List */}
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>All Expenses</CardTitle>
+            <Button className="shadow-warm" onClick={() => setIsAddExpenseModalOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Expense
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -209,6 +196,12 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
           )}
         </CardContent>
       </Card>
+
+      <AddExpenseModal
+        isOpen={isAddExpenseModalOpen}
+        onClose={() => setIsAddExpenseModalOpen(false)}
+        onExpenseAdded={handleExpenseAdded}
+      />
     </div>
   );
 };

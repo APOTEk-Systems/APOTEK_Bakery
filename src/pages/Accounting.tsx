@@ -1,17 +1,9 @@
-import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Plus,
-  FileText,
-} from "lucide-react";
 import ExpensesTab from "../components/accounting/ExpensesTab";
 import CategoriesTab from "../components/accounting/CategoriesTab";
 // import OverviewTab from "../components/accounting/OverviewTab";
 // import ReportsTab from "../components/accounting/ReportsTab";
-import AddExpenseModal from "../components/accounting/AddExpenseModal";
 
 
 
@@ -30,8 +22,6 @@ const expenseCategories = [
 ];
 
 const Accounting = () => {
-  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -59,12 +49,6 @@ const Accounting = () => {
     return colors[category as keyof typeof colors] || colors["Other"];
   };
 
-  const handleExpenseAdded = () => {
-    // Invalidate and refetch expenses queries
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    setIsAddExpenseModalOpen(false);
-  };
-
   return (
     <Layout>
       <div className="p-6">
@@ -73,12 +57,6 @@ const Accounting = () => {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Accounting</h1>
               <p className="text-muted-foreground">Track expenses and financial performance</p>
-            </div>
-            <div className="flex gap-2">
-              <Button className="shadow-warm" onClick={() => setIsAddExpenseModalOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Expense
-              </Button>
             </div>
           </div>
         </div>
@@ -117,12 +95,6 @@ const Accounting = () => {
           </TabsContent> */}
         </Tabs>
       </div>
-
-      <AddExpenseModal
-        isOpen={isAddExpenseModalOpen}
-        onClose={() => setIsAddExpenseModalOpen(false)}
-        onExpenseAdded={handleExpenseAdded}
-      />
     </Layout>
   );
 };

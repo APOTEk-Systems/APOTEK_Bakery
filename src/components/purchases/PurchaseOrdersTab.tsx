@@ -61,6 +61,7 @@ import {formatCurrency} from "@/lib/funcs";
 import {Link} from "react-router-dom";
 
 import type {GoodsReceiptItem} from "@/services/purchases";
+import {format} from "date-fns";
 
 interface POItem {
   inventoryItemId: string;
@@ -71,6 +72,8 @@ interface POItem {
 export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [isCreatePODialogOpen, setIsCreatePODialogOpen] = useState(false);
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
   const [selectedPOForReceive, setSelectedPOForReceive] =
@@ -106,8 +109,12 @@ export default function PurchaseOrdersTab() {
   const purchaseOrders = purchaseOrdersQuery.data || [];
   const inventoryItems: InventoryItem[] = inventoryQuery.data || [];
 
-  const isLoading = suppliersQuery.isLoading || purchaseOrdersQuery.isLoading || inventoryQuery.isLoading;
-  const hasError = suppliersQuery.error || purchaseOrdersQuery.error || inventoryQuery.error;
+  const isLoading =
+    suppliersQuery.isLoading ||
+    purchaseOrdersQuery.isLoading ||
+    inventoryQuery.isLoading;
+  const hasError =
+    suppliersQuery.error || purchaseOrdersQuery.error || inventoryQuery.error;
 
   const supplierMap = suppliers.reduce((acc, s) => {
     acc[s.id] = s.name;
@@ -131,7 +138,13 @@ export default function PurchaseOrdersTab() {
         .includes(searchTerm.toLowerCase()) ||
       po.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === "all" || po.status === filterStatus;
-    return matchesSearch && matchesStatus;
+
+    // Date filtering
+    const poDate = new Date(po.createdAt).toISOString().split("T")[0];
+    const matchesStartDate = !startDate || poDate >= startDate;
+    const matchesEndDate = !endDate || poDate <= endDate;
+
+    return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
   });
 
   const getStatusVariant = (status: string) => {
@@ -339,16 +352,26 @@ export default function PurchaseOrdersTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex justify-end w-full">
+        <Button
+          onClick={() => setIsCreatePODialogOpen(true)}
+          disabled={isLoading}
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          New Purchase Order
+        </Button>
+      </div>
+      <div className="flex flex-col sm:flex-row justify-end items-center gap-4 w-full">
+        {/* Search + Status */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Input
-            placeholder="Search by item, supplier, or ID..."
+            placeholder="Search by supplier or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="max-w-sm lg:mt-4"
           />
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] lg: mt-4">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -360,17 +383,43 @@ export default function PurchaseOrdersTab() {
             </SelectContent>
           </Select>
         </div>
-        <Button onClick={() => setIsCreatePODialogOpen(true)} disabled={isLoading}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Purchase Order
-        </Button>
+
+        {/* Dates */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col">
+            <Label htmlFor="startDate" className="text-xs">
+              Start Date
+            </Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+              className="w-[140px]"
+            />
+          </div>
+          <div className="flex flex-col">
+            <Label htmlFor="endDate" className="text-xs">
+              End Date
+            </Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+              className="w-[140px]"
+            />
+          </div>
+        </div>
       </div>
+
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Order ID</TableHead>
+                <TableHead>Date</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Items</TableHead>
                 <TableHead className="text-right">Total</TableHead>
@@ -379,98 +428,105 @@ export default function PurchaseOrdersTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-               {isLoading ? (
-                 // Loading state
-                 <TableRow>
-                   <TableCell colSpan={6} className="h-24 text-center">
-                     <div className="flex items-center justify-center">
-                       <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                       Loading purchase orders...
-                     </div>
-                   </TableCell>
-                 </TableRow>
-               ) : hasError ? (
-                 // Error state
-                 <TableRow>
-                   <TableCell colSpan={6} className="h-24 text-center">
-                     <div className="flex flex-col items-center justify-center">
-                       <p className="text-destructive mb-2">Failed to load purchase orders</p>
-                       <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-                         Retry
-                       </Button>
-                     </div>
-                   </TableCell>
-                 </TableRow>
-               ) : filteredPOs.length === 0 ? (
-                 // Empty state
-                 <TableRow>
-                   <TableCell colSpan={6} className="h-24 text-center">
-                     <div className="flex flex-col items-center justify-center">
-                       <Truck className="h-12 w-12 text-muted-foreground mb-4" />
-                       <h3 className="text-lg font-semibold text-foreground mb-2">
-                         No purchase orders found
-                       </h3>
-                       <p className="text-muted-foreground mb-4">
-                         {filterStatus !== "all" || searchTerm
-                           ? "Try adjusting your filters or search terms"
-                           : "Get started by creating your first purchase order"
-                         }
-                       </p>
-                       {!searchTerm && filterStatus === "all" && (
-                         <Button onClick={() => setIsCreatePODialogOpen(true)}>
-                           <Plus className="h-4 w-4 mr-2" />
-                           New Purchase Order
-                         </Button>
-                       )}
-                     </div>
-                   </TableCell>
-                 </TableRow>
-               ) : (
-                 // Data rows
-                 filteredPOs.map((po) => (
-                   <TableRow key={po.id} className="py-0">
-                     <TableCell>{po.id}</TableCell>
-                     <TableCell>
-                       {supplierMap[po.supplierId] || "Unknown"}
-                     </TableCell>
-                     <TableCell>{po.items.length}</TableCell>
-                     <TableCell className="text-right">
-                       {formatCurrency(po.totalCost).replace("TSH", "") || "0.00"}
-                     </TableCell>
-                     <TableCell>
-                       <Badge variant={getStatusVariant(po.status)}>
-                         {capitalizeStatus(po.status)}
-                       </Badge>
-                     </TableCell>
-                     <TableCell className="space-x-2">
-                       <Button asChild variant="outline" size="sm">
-                         <Link
-                           to={`/purchases/${po.id}`}
-                           className="flex items-center"
-                         >
-                           <Eye className="h-4 w-4 mr-1" />
-                           View
-                         </Link>
-                       </Button>
-                       {po.status === "approved" && (
-                         <Button
-                           variant="default"
-                           onClick={() => handleReceiveGoods(po)}
-                           disabled={receiveMutation.isPending}
-                         >
-                           {receiveMutation.isPending ? (
-                             <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                           ) : (
-                             <Truck className="h-4 w-4 mr-1" />
-                           )}
-                           Receive
-                         </Button>
-                       )}
-                     </TableCell>
-                   </TableRow>
-                 ))
-               )}
-             </TableBody>
+              {isLoading ? (
+                // Loading state
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      Loading purchase orders...
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : hasError ? (
+                // Error state
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <p className="text-destructive mb-2">
+                        Failed to load purchase orders
+                      </p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.location.reload()}
+                      >
+                        Retry
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredPOs.length === 0 ? (
+                // Empty state
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <Truck className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        No purchase orders found
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        {filterStatus !== "all" || searchTerm
+                          ? "Try adjusting your filters or search terms"
+                          : "Get started by creating your first purchase order"}
+                      </p>
+                      {!searchTerm && filterStatus === "all" && (
+                        <Button onClick={() => setIsCreatePODialogOpen(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          New Purchase Order
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                // Data rows
+                filteredPOs.map((po) => (
+                  <TableRow key={po.id} className="py-0">
+                    <TableCell>{po.id}</TableCell>
+                    <TableCell>{format(po.createdAt, "dd-MM-yyyy")} </TableCell>
+                    <TableCell>
+                      {supplierMap[po.supplierId] || "Unknown"}
+                    </TableCell>
+                    <TableCell>{po.items.length}</TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(po.totalCost).replace("TSH", "") ||
+                        "0.00"}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={getStatusVariant(po.status)}>
+                        {capitalizeStatus(po.status)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="space-x-2">
+                      <Button asChild variant="outline" size="sm">
+                        <Link
+                          to={`/purchases/${po.id}`}
+                          className="flex items-center"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Link>
+                      </Button>
+                      {po.status === "approved" && (
+                        <Button
+                          variant="default"
+                          onClick={() => handleReceiveGoods(po)}
+                          disabled={receiveMutation.isPending}
+                        >
+                          {receiveMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                          ) : (
+                            <Truck className="h-4 w-4 mr-1" />
+                          )}
+                          Receive
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
           </Table>
         </CardContent>
       </Card>

@@ -228,6 +228,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
                           <Button variant="outline" size="sm" asChild>
                             <Link to={`/${type === 'raw_material' ? 'inventory' : 'supplies'}/${item.id}/edit`}>
                               <Edit className="h-3 w-3" />
+                              Edit
                             </Link>
                           </Button>
                           <Button
@@ -237,15 +238,9 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
                             disabled={deleteMutation.isPending}
                           >
                             <Trash2 className="h-3 w-3" />
+                            Delete 
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openAdjustDialog(item)}
-                            disabled={adjustMutation.isPending}
-                          >
-                            <PlusIcon className="h-3 w-3" />
-                          </Button>
+
                         </div>
                       </TableCell>
                     </TableRow>

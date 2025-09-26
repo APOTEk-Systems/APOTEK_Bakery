@@ -57,7 +57,7 @@ export default function GoodsReceivingTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col items-end justify-end sm:flex-row gap-4">
         <Input
           placeholder="Search by ID or PO ID..."
           value={searchTerm}

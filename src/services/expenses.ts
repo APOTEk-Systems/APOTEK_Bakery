@@ -33,7 +33,7 @@ export interface ExpensesList {
 
 
 export const expensesService = {
-  getExpenses: async (params?: { category?: string; status?: string; search?: string; date?: string; startDate?: string; endDate?: string }): Promise<{ totalExpenses: number; dailyBreakdown: DailyBreakdown[] } | Expense[]> => {
+  getExpenses: async (params?: { categoryId?: string; status?: string; search?: string; date?: string; startDate?: string; endDate?: string }): Promise<{ totalExpenses: number; dailyBreakdown: DailyBreakdown[] } | Expense[]> => {
     const response = await api.get<{ totalExpenses: number; dailyBreakdown: DailyBreakdown[] } | Expense[]>('/accounting/expenses', { params });
     console.log(response.data)
     return response.data;

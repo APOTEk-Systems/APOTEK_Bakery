@@ -228,6 +228,7 @@ const Products = () => {
                               onClick={() => handleEditProduct(product)}
                             >
                               <Edit className="h-3 w-3" />
+                              Edit
                             </Button>
                             <Button
                               variant="destructive"
@@ -235,6 +236,7 @@ const Products = () => {
                               onClick={() => openDeleteDialog(product.id)}
                             >
                               <Trash2 className="h-3 w-3" />
+                              Delete
                             </Button>
                           </div>
                         </TableCell>
