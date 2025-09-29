@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
 import { customersService } from '@/services/customers';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useQuery } from '@tanstack/react-query';
@@ -20,16 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { DateRangePicker, DateRange } from '@/components/ui/DateRange';
 
 const RecentSales: React.FC = () => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const dateKey = date ? format(date, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0];
+  const startDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const endDate = dateRange?.to ? dateRange.to.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
   const { data: sales = [], isPending: loading, error, refetch } = useQuery({
-    queryKey: ['recentSales', dateKey, selectedCustomerId],
-    queryFn: () => salesService.getAllSales({ startDate: dateKey, endDate: dateKey }),
+    queryKey: ['recentSales', startDate, endDate, selectedCustomerId],
+    queryFn: () => salesService.getAllSales({ startDate, endDate }),
   });
 
   const customersQuery = useQuery({
@@ -60,28 +53,10 @@ const RecentSales: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
           <Button onClick={() => refetch()}>Search</Button>
         </div>
         <SalesTable sales={filteredSales} loading={loading} error={error?.message || null} />

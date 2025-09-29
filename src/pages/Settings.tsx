@@ -44,8 +44,6 @@ import {
   Users,
   DollarSign,
   Clock,
-  Mail,
-  Smartphone,
   Shield,
   Plus,
   Edit,
@@ -74,6 +72,20 @@ const Settings = () => {
     website: "",
     description: "",
   });
+
+  const [validationErrors, setValidationErrors] = useState<{
+    email?: string;
+  }>({});
+
+  // Validation functions
+  const validateEmail = (email: string): string | undefined => {
+    if (!email.trim()) return undefined; // Optional field
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return "Please enter a valid email address";
+    }
+    return undefined;
+  };
 
   const [businessHoursData, setBusinessHoursData] = useState<BusinessHour[]>([]);
 
@@ -137,7 +149,10 @@ const Settings = () => {
   // Populate local state when settings data is loaded
   React.useEffect(() => {
     if (settings) {
-      setInformationData(settings.information);
+      setInformationData({
+        ...settings.information,
+        phone: settings.information.phone ? (settings.information.phone.startsWith('+255') ? settings.information.phone.substring(4) : settings.information.phone) : "",
+      });
       setBusinessHoursData(settings.businessHours.data);
       setNotificationsData(settings.notifications);
       setVatAndTaxData(settings.vatAndTax);
@@ -332,13 +347,31 @@ const Settings = () => {
   };
 
   const handleSave = (section: string) => {
+    // Clear previous validation errors
+    setValidationErrors({});
+
     let updateData: any = {};
 
     switch (section) {
       case "Bakery Information":
+        // Validate email if provided
+        if (informationData.email.trim()) {
+          const emailError = validateEmail(informationData.email);
+          if (emailError) {
+            setValidationErrors(prev => ({ ...prev, email: emailError }));
+            toast({
+              title: "Error",
+              description: emailError,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
         updateData = {
           key: "information",
           ...informationData,
+          phone: informationData.phone.trim() ? "+255" + informationData.phone : "",
         };
         break;
       case "Business Hours":
@@ -426,12 +459,17 @@ const Settings = () => {
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        value={informationData.phone}
-                        onChange={(e) => setInformationData(prev => ({ ...prev, phone: e.target.value }))}
-                        disabled={settingsLoading}
-                      />
+                      <div className="flex items-center">
+                        <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">+255</span>
+                        <Input
+                          id="phone"
+                          value={informationData.phone}
+                          onChange={(e) => setInformationData(prev => ({ ...prev, phone: e.target.value }))}
+                          placeholder="enter phone number"
+                          className="rounded-l-none"
+                          disabled={settingsLoading}
+                        />
+                      </div>
                     </div>
                   </div>
 
@@ -453,9 +491,23 @@ const Settings = () => {
                         id="email"
                         type="email"
                         value={informationData.email}
-                        onChange={(e) => setInformationData(prev => ({ ...prev, email: e.target.value }))}
+                        onChange={(e) => {
+                          setInformationData(prev => ({ ...prev, email: e.target.value }));
+                          // Clear validation error when user starts typing
+                          if (validationErrors.email) {
+                            setValidationErrors(prev => ({ ...prev, email: undefined }));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const error = validateEmail(e.target.value);
+                          setValidationErrors(prev => ({ ...prev, email: error }));
+                        }}
+                        className={validationErrors.email ? "border-destructive" : ""}
                         disabled={settingsLoading}
                       />
+                      {validationErrors.email && (
+                        <p className="text-sm text-destructive mt-1">{validationErrors.email}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="website">Website</Label>
@@ -751,6 +803,7 @@ const Settings = () => {
                                 onClick={() => handleEditUser(user)}
                               >
                                 <Edit className="h-4 w-4" />
+                                Edit
                               </Button>
                               <Button
                                 variant="destructive"
@@ -759,6 +812,7 @@ const Settings = () => {
                                 disabled={deleteUserMutation.isPending}
                               >
                                 <Trash2 className="h-4 w-4" />
+                                Delete
                               </Button>
                             </TableCell>
                           </TableRow>

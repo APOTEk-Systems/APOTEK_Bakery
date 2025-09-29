@@ -71,23 +71,17 @@ const CustomerForm = () => {
     // Remove any spaces or hyphens
     const cleanPhone = phone.replace(/[\s\-]/g, '');
 
-    // Check for +255 prefix (13 digits total including +)
-    if (cleanPhone.startsWith('+255')) {
-      if (cleanPhone.length !== 13) {
-        return "Phone number with +255 must be 13 characters (including +)";
-      }
-      return undefined;
-    }
-
     // Check for 07 or 06 prefix (10 digits total)
-    if (cleanPhone.startsWith('07') || cleanPhone.startsWith('06')) {
-      if (cleanPhone.length !== 10) {
-        return "Phone number with 07/06 must be 10 digits";
-      }
+    if (/^(07|06)\d{8}$/.test(cleanPhone)) {
       return undefined;
     }
 
-    return "Phone number must start with 07, 06, or +255";
+    // Allow numbers starting with 7 or 6 (leading zero ignored)
+    if (/^(7|6)\d*$/.test(cleanPhone)) {
+      return undefined;
+    }
+
+    return "Phone number must start with 07, 06, 7, or 6";
   };
 
   // React Query for fetching customer data
@@ -132,7 +126,7 @@ const CustomerForm = () => {
       setFormData({
         name: customer.name,
         email: customer.email || "",
-        phone: customer.phone || "",
+        phone: customer.phone ? (customer.phone.startsWith('+255') ? customer.phone.substring(4) : customer.phone) : "",
         address: customer.address || "",
         status: customer.status,
         isCredit: customer.isCredit,
@@ -212,7 +206,13 @@ const CustomerForm = () => {
       }
     }
 
-    customerMutation.mutate({customer: formData, isEdit});
+    // Normalize phone number
+    const normalizedFormData = {
+      ...formData,
+      phone: formData.phone.trim() ? "+255" + formData.phone : "",
+    };
+
+    customerMutation.mutate({customer: normalizedFormData, isEdit});
   };
 
   return (
@@ -286,20 +286,23 @@ const CustomerForm = () => {
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => {
-                          handleInputChange("phone", e.target.value);
-                        }}
-                        onBlur={(e) => {
-                          const error = validatePhone(e.target.value);
-                          setValidationErrors(prev => ({ ...prev, phone: error }));
-                        }}
-                        placeholder="07XXXXXXXX"
-                        className={validationErrors.phone ? "border-destructive" : ""}
-                      />
+                      <div className="flex items-center">
+                        <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">+255</span>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          value={formData.phone}
+                          onChange={(e) => {
+                            handleInputChange("phone", e.target.value);
+                          }}
+                          onBlur={(e) => {
+                            const error = validatePhone(e.target.value);
+                            setValidationErrors(prev => ({ ...prev, phone: error }));
+                          }}
+                          placeholder="enter phone number"
+                          className={`rounded-l-none ${validationErrors.phone ? "border-destructive" : ""}`}
+                        />
+                      </div>
                       {validationErrors.phone && (
                         <p className="text-sm text-destructive mt-1">{validationErrors.phone}</p>
                       )}

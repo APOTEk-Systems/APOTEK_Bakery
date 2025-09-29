@@ -55,23 +55,17 @@ export default function SuppliersTab() {
     // Remove any spaces or hyphens
     const cleanPhone = phone.replace(/[\s\-]/g, '');
 
-    // Check for +255 prefix (12 digits total including +)
-    if (cleanPhone.startsWith('+255')) {
-      if (cleanPhone.length !== 13) { // +255 + 10 digits = 13
-        return "Phone number with +255 must be 13 characters (including +)";
-      }
-      return undefined;
-    }
-
     // Check for 07 or 06 prefix (10 digits total)
-    if (cleanPhone.startsWith('07') || cleanPhone.startsWith('06')) {
-      if (cleanPhone.length !== 10) {
-        return "Phone number with 07/06 must be 10 digits";
-      }
+    if (/^(07|06)\d{8}$/.test(cleanPhone)) {
       return undefined;
     }
 
-    return "Phone number must start with 07, 06, or +255";
+    // Allow numbers starting with 7 or 6 (leading zero ignored)
+    if (/^(7|6)\d*$/.test(cleanPhone)) {
+      return undefined;
+    }
+
+    return "Phone number must start with 07, 06, 7, or 6";
   };
 
   const validateAddress = (address: string): string | undefined => {
@@ -134,7 +128,7 @@ export default function SuppliersTab() {
     // Validate form
     if (!validateForm()) return;
 
-    const data = { name: newSupplier.name, contactInfo: newSupplier.contactInfo, email: newSupplier.email, address: newSupplier.address };
+    const data = { name: newSupplier.name, contactInfo: newSupplier.contactInfo.trim() ? "+255" + newSupplier.contactInfo : "", email: newSupplier.email, address: newSupplier.address };
     updateSupplierMutation.mutate(data);
   };
 
@@ -143,7 +137,7 @@ export default function SuppliersTab() {
     setNewSupplier({
       id: supplier.id,
       name: supplier.name,
-      contactInfo: supplier.contactInfo || '',
+      contactInfo: supplier.contactInfo ? (supplier.contactInfo.startsWith('+255') ? supplier.contactInfo.substring(4) : supplier.contactInfo) : '',
       email: supplier.email || '',
       address: supplier.address || ''
     });
@@ -288,19 +282,22 @@ export default function SuppliersTab() {
             </div>
             <div>
               <Label htmlFor="contactInfo">Phone *</Label>
-              <Input
-                id="contactInfo"
-                value={newSupplier.contactInfo}
-                onChange={(e) => {
-                  setNewSupplier(prev => ({ ...prev, contactInfo: e.target.value }));
-                  // Clear validation error when user starts typing
-                  if (validationErrors.contactInfo) {
-                    setValidationErrors(prev => ({ ...prev, contactInfo: undefined }));
-                  }
-                }}
-                placeholder="07XXXXXXXX"
-                className={validationErrors.contactInfo ? "border-destructive" : ""}
-              />
+              <div className="flex items-center">
+                <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">+255</span>
+                <Input
+                  id="contactInfo"
+                  value={newSupplier.contactInfo}
+                  onChange={(e) => {
+                    setNewSupplier(prev => ({ ...prev, contactInfo: e.target.value }));
+                    // Clear validation error when user starts typing
+                    if (validationErrors.contactInfo) {
+                      setValidationErrors(prev => ({ ...prev, contactInfo: undefined }));
+                    }
+                  }}
+                  placeholder="enter phone number"
+                  className={`rounded-l-none ${validationErrors.contactInfo ? "border-destructive" : ""}`}
+                />
+              </div>
               {validationErrors.contactInfo && (
                 <p className="text-sm text-destructive mt-1">{validationErrors.contactInfo}</p>
               )}

@@ -52,6 +52,8 @@ import {
   Eye,
   Truck,
 } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {useToast} from "@/hooks/use-toast";
 import {suppliersService, type Supplier} from "@/services/suppliers";
 import {purchasesService, type PurchaseOrder} from "@/services/purchases";
@@ -61,7 +63,6 @@ import {formatCurrency} from "@/lib/funcs";
 import {Link} from "react-router-dom";
 
 import type {GoodsReceiptItem} from "@/services/purchases";
-import {format} from "date-fns";
 
 interface POItem {
   inventoryItemId: string;
@@ -72,8 +73,10 @@ interface POItem {
 export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
+  const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
+  const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
   const [isCreatePODialogOpen, setIsCreatePODialogOpen] = useState(false);
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
   const [selectedPOForReceive, setSelectedPOForReceive] =
@@ -140,7 +143,7 @@ export default function PurchaseOrdersTab() {
     const matchesStatus = filterStatus === "all" || po.status === filterStatus;
 
     // Date filtering
-    const poDate = new Date(po.createdAt).toISOString().split("T")[0];
+    const poDate = new Date(po.createdAt);
     const matchesStartDate = !startDate || poDate >= startDate;
     const matchesEndDate = !endDate || poDate <= endDate;
 
@@ -387,28 +390,58 @@ export default function PurchaseOrdersTab() {
         {/* Dates */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex flex-col">
-            <Label htmlFor="startDate" className="text-xs">
+            <Label className="text-xs">
               Start Date
             </Label>
-            <Input
-              id="startDate"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-[140px]"
-            />
+            <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-[140px] justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? startDate.toLocaleDateString('en-GB') : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={(date) => {
+                    setStartDate(date);
+                    setIsStartCalendarOpen(false);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="flex flex-col">
-            <Label htmlFor="endDate" className="text-xs">
+            <Label className="text-xs">
               End Date
             </Label>
-            <Input
-              id="endDate"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-[140px]"
-            />
+            <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-[140px] justify-start text-left font-normal"
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {endDate ? endDate.toLocaleDateString('en-GB') : "Pick a date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={endDate}
+                  onSelect={(date) => {
+                    setEndDate(date);
+                    setIsEndCalendarOpen(false);
+                  }}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
@@ -484,7 +517,7 @@ export default function PurchaseOrdersTab() {
                 filteredPOs.map((po) => (
                   <TableRow key={po.id} className="py-0">
                     <TableCell>{po.id}</TableCell>
-                    <TableCell>{format(po.createdAt, "dd-MM-yyyy")} </TableCell>
+                    <TableCell>{new Date(po.createdAt).toLocaleDateString('en-GB')}</TableCell>
                     <TableCell>
                       {supplierMap[po.supplierId] || "Unknown"}
                     </TableCell>
