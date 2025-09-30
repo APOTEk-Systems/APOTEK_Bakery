@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import {useState} from "react";
+import {Link} from "react-router-dom";
+import {useQuery} from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Badge} from "@/components/ui/badge";
+import {Input} from "@/components/ui/input";
 import {
   Search,
   Plus,
@@ -17,35 +17,41 @@ import {
   ShoppingBag,
   DollarSign,
   Loader2,
-  
- } from "lucide-react";
-import {Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { PastryProSpinner } from "@/components/ui/PastryProSpinner";
-import { customersService, type Customer } from "../services/customers";
-import { format } from 'date-fns';
-import { formatCurrency } from "@/lib/funcs";
+} from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import {PastryProSpinner} from "@/components/ui/PastryProSpinner";
+import {customersService, type Customer} from "../services/customers";
+import {format} from "date-fns";
+import {formatCurrency} from "@/lib/funcs";
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const customersQuery = useQuery({
-    queryKey: ['customers'],
+    queryKey: ["customers"],
     queryFn: () => customersService.getAll(),
   });
 
   const customers = [
     {
-      id: 'cash',
-      name: 'Cash',
+      id: "cash",
+      name: "Cash",
       email: null,
       phone: null,
       address: null,
       isCredit: false,
       creditLimit: 0,
       currentCredit: 0,
-      status: 'active' as const,
+      status: "active" as const,
       loyaltyPoints: 0,
-      notes: 'Default cash customer for walk-in sales',
+      notes: "Default cash customer for walk-in sales",
       totalOrders: 0,
       totalSpent: 0,
     },
@@ -54,10 +60,11 @@ const Customers = () => {
   const loading = customersQuery.isLoading;
   const error = customersQuery.error;
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (customer.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (customer.phone?.includes(searchTerm))
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      customer.phone?.includes(searchTerm)
   );
 
   const getStatusColor = (status: string) => {
@@ -65,17 +72,22 @@ const Customers = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd-MM-yyyy');
+    return format(new Date(dateString), "dd-MM-yyyy");
   };
 
   // Compute stats from fetched data (only when not loading)
   const totalCustomers = loading ? 0 : customers.length;
-  const activeCustomers = loading ? 0 : customers.filter(c => c.status === 'active').length;
-  const totalOrdersSum = loading ? 0 : customers.reduce((sum, c) => sum + (c.totalOrders || 0), 0);
+  const activeCustomers = loading
+    ? 0
+    : customers.filter((c) => c.status === "active").length;
+  const totalOrdersSum = loading
+    ? 0
+    : customers.reduce((sum, c) => sum + (c.totalOrders || 0), 0);
   const avgOrders = totalCustomers > 0 ? totalOrdersSum / totalCustomers : 0;
-  const totalSpentSum = loading ? 0 : customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
+  const totalSpentSum = loading
+    ? 0
+    : customers.reduce((sum, c) => sum + (c.totalSpent || 0), 0);
   const avgSpent = totalCustomers > 0 ? totalSpentSum / totalCustomers : 0;
-  
 
   if (error) {
     return (
@@ -83,7 +95,11 @@ const Customers = () => {
         <div className="p-6">
           <Card className="max-w-md mx-auto">
             <CardContent className="pt-6">
-              <p className="text-destructive">{error instanceof Error ? error.message : 'Failed to fetch customers'}</p>
+              <p className="text-destructive">
+                {error instanceof Error
+                  ? error.message
+                  : "Failed to fetch customers"}
+              </p>
               <Button onClick={() => window.location.reload()} className="mt-4">
                 Retry
               </Button>
@@ -101,7 +117,9 @@ const Customers = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Customers</h1>
-              <p className="text-muted-foreground">Manage your customer relationships</p>
+              <p className="text-muted-foreground">
+                Manage your customer relationships
+              </p>
             </div>
             <Button asChild className="shadow-warm">
               <Link to="/customers/new">
@@ -127,135 +145,135 @@ const Customers = () => {
 
         {/* Customers List */}
         <Card>
-      <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Customer</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Phone</TableHead>
-          <TableHead className="text-center">Credit Limit</TableHead>
-          {/* <TableHead className="text-center">Total Spent</TableHead> */}
-          {/* <TableHead>Last Order</TableHead> */}
-          <TableHead className="text-right">Actions</TableHead>
-        </TableRow>
-      </TableHeader>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead className="text-center">Credit Limit</TableHead>
+                {/* <TableHead className="text-center">Total Spent</TableHead> */}
+                {/* <TableHead>Last Order</TableHead> */}
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
 
-      <TableBody>
-        {loading ? (
-          // Loading state
-          <TableRow>
-            <TableCell colSpan={6} className="h-24 text-center">
-              <div className="flex items-center justify-center">
-                <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                Loading customers...
-              </div>
-            </TableCell>
-          </TableRow>
-        ) : filteredCustomers.length === 0 ? (
-          // Empty state
-          <TableRow>
-            <TableCell colSpan={6} className="h-24 text-center">
-              <div className="flex flex-col items-center justify-center">
-                <User className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {searchTerm ? "No customers found" : "No customers yet"}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm
-                    ? "Try adjusting your search terms"
-                    : "Get started by adding your first customer"
-                  }
-                </p>
-                {!searchTerm && (
-                  <Button asChild>
-                    <Link to="/customers/new">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Customer
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </TableCell>
-          </TableRow>
-        ) : (
-          // Data rows
-          filteredCustomers.map((customer, index) => (
-            <TableRow key={customer.id} className={`hover:bg-muted/20 transition-colors ${index % 2 === 0 ? "bg-gray-50" : "bg-white"}`}>
-              {/* Customer Info */}
-              <TableCell className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">{customer.name}</span>
+            <TableBody>
+              {loading ? (
+                // Loading state
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                      Loading customers...
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredCustomers.length === 0 ? (
+                // Empty state
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <User className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        {searchTerm ? "No customers found" : "No customers yet"}
+                      </h3>
+                      <p className="text-muted-foreground mb-4">
+                        {searchTerm
+                          ? "Try adjusting your search terms"
+                          : "Get started by adding your first customer"}
+                      </p>
+                      {!searchTerm && (
+                        <Button asChild>
+                          <Link to="/customers/new">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Customer
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                // Data rows
+                filteredCustomers.map((customer, index) => (
+                  <TableRow
+                    key={customer.id}
+                    className={`hover:bg-muted/20 transition-colors ${
+                      index % 2 === 0 ? "bg-gray-50" : "bg-white"
+                    }`}
+                  >
+                    {/* Customer Info */}
+                    <TableCell className="flex items-center gap-3">
+                    
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{customer.name}</span>
+                        </div>
+                      </div>
+                    </TableCell>
 
-                  </div>
+                    {/* Email */}
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        {customer.email || "—"}
+                      </div>
+                    </TableCell>
 
-                </div>
-              </TableCell>
+                    {/* Phone */}
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        {customer.phone || "—"}
+                      </div>
+                    </TableCell>
 
-              <TableCell>
-                <Badge variant={getStatusColor(customer.status)}>{customer.status}</Badge>
-                 </TableCell>
+                    {/* Credit Status */}
+                    <TableCell className="text-center font-bold">
+                      {formatCurrency(customer.creditLimit)}
+                    </TableCell>
 
-              {/* Email */}
-              <TableCell>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Mail className="h-3 w-3" />
-                  {customer.email || "—"}
-                </div>
-              </TableCell>
-
-              {/* Phone */}
-              <TableCell>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Phone className="h-3 w-3" />
-                  {customer.phone || "—"}
-                </div>
-              </TableCell>
-
-              {/* Credit Status */}
-              <TableCell className="text-center font-bold">{formatCurrency(customer.creditLimit)}</TableCell>
-
-              {/* Total Spent */}
-              {/* <TableCell className="text-center font-bold">
+                    {/* Total Spent */}
+                    {/* <TableCell className="text-center font-bold">
                 ${customer.totalSpent?.toFixed(0) ?? 0}
               </TableCell> */}
-
-              {/* Actions */}
-              <TableCell className="text-right">
-                {customer.id === 'cash' ? (
-                  <span className="text-muted-foreground text-sm">Default</span>
-                ) : (
-                  <div className="flex gap-1 justify-end">
-                    <Button variant="outline" size="sm" asChild>
-                      <Link to={`/customers/${customer.id}`}>
-                        <Eye className="h-4 w-4" />
-                        Edit
-                      </Link>
-                    </Button>
-                    <Button variant="destructive" size="sm" asChild>
-                      <Link to={`/customers/${customer.id}/edit`}>
-                        <Edit className="h-4 w-4" />
-                        Delete
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+                    <TableCell>
+                      <Badge variant={getStatusColor(customer.status)}>
+                        {customer.status}
+                      </Badge>
+                    </TableCell>
+                    {/* Actions */}
+                    <TableCell className="text-right">
+                      {customer.id === "cash" ? (
+                        <span className="text-muted-foreground text-sm">
+                          Default
+                        </span>
+                      ) : (
+                        <div className="flex gap-1 justify-end">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/customers/${customer.id}`}>
+                              <Eye className="h-4 w-4" />
+                              Edit
+                            </Link>
+                          </Button>
+                          <Button variant="destructive" size="sm" asChild>
+                            <Link to={`/customers/${customer.id}/edit`}>
+                              <Edit className="h-4 w-4" />
+                              Delete
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </Card>
       </div>
     </Layout>
-    );
-  };
-  
-  export default Customers;
+  );
+};
 
-
+export default Customers;
