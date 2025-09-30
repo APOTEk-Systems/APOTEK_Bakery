@@ -206,7 +206,6 @@ const Customers = () => {
                   >
                     {/* Customer Info */}
                     <TableCell className="flex items-center gap-3">
-                    
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-semibold">{customer.name}</span>

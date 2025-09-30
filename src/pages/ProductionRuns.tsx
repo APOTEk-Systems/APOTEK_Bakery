@@ -213,9 +213,6 @@ const ProductionRuns = () => {
               <h1 className="text-3xl font-bold text-foreground">
                 Production
               </h1>
-              <p className="text-muted-foreground">
-                Production activities for {format(date, "dd-MM-yyyy")}
-              </p>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>

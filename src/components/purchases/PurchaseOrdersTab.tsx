@@ -61,6 +61,7 @@ import {Link} from "react-router-dom";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 
 import type {GoodsReceiptItem} from "@/services/purchases";
+import { format } from "date-fns";
 
 interface POItem {
   inventoryItemId: string;
@@ -467,7 +468,7 @@ export default function PurchaseOrdersTab() {
                 filteredPOs.map((po) => (
                   <TableRow key={po.id} className="py-0">
                     <TableCell>{po.id}</TableCell>
-                    <TableCell>{new Date(po.createdAt).toLocaleDateString('en-GB')}</TableCell>
+                    <TableCell>{format(new Date(po.createdAt), "dd-MM-yyyy")}</TableCell>
                     <TableCell>
                       {supplierMap[po.supplierId] || "Unknown"}
                     </TableCell>

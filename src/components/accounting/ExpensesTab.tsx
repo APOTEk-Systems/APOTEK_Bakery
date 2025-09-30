@@ -18,7 +18,10 @@ import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
 import { toast } from "sonner";
 import AddExpenseModal from "./AddExpenseModal";
+import EditExpenseModal from "./EditExpenseModal";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
+import { format } from "date-fns";
 
 interface ExpensesTabProps {
   getCategoryColor: (category: string) => string;
@@ -47,6 +50,10 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   const [filterCategory, setFilterCategory] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
+  const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
+  const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const queryClient = useQueryClient();
 
   const categoriesQuery = useQuery({
@@ -74,15 +81,22 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
     return <div className="text-center py-8 text-destructive">Error: {expensesQuery.error instanceof Error ? expensesQuery.error.message : 'Failed to load expenses'}</div>;
   }
 
-  const handleDeleteExpense = async (id: number) => {
-    if (confirm("Are you sure you want to delete this expense?")) {
-      try {
-        await expensesService.deleteExpense(id.toString());
-        toast.success("Expense deleted successfully!");
-        expensesQuery.refetch();
-      } catch (err) {
-        toast.error("Failed to delete expense.");
-      }
+  const handleDeleteExpense = (expense: Expense) => {
+    setExpenseToDelete(expense);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteExpense = async () => {
+    if (!expenseToDelete) return;
+    try {
+      await expensesService.deleteExpense(expenseToDelete.id.toString());
+      toast.success("Expense deleted successfully!");
+      expensesQuery.refetch();
+    } catch (err) {
+      toast.error("Failed to delete expense.");
+    } finally {
+      setIsDeleteConfirmOpen(false);
+      setExpenseToDelete(null);
     }
   };
 
@@ -150,7 +164,7 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                 <TableBody>
                   {expenses.map((expense) => (
                     <TableRow key={expense.id}>
-                      <TableCell>{new Date(expense.date).toLocaleDateString('en-GB')}</TableCell>
+                      <TableCell>{format(new Date(expense.date), "dd-MM-yyyy")}</TableCell>
                       <TableCell>
                         <Badge className={getCategoryColor(expense.expenseCategory?.name.toLowerCase() || 'other')} variant="outline">
                           {expense.expenseCategory?.name || 'Unknown'}
@@ -160,14 +174,14 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                       <TableCell>{expense.notes}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => { setSelectedExpense(expense); setIsEditExpenseModalOpen(true); }}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteExpense(expense.id)}
+                            onClick={() => handleDeleteExpense(expense)}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -188,6 +202,21 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
         isOpen={isAddExpenseModalOpen}
         onClose={() => setIsAddExpenseModalOpen(false)}
         onExpenseAdded={handleExpenseAdded}
+      />
+
+      <EditExpenseModal
+        isOpen={isEditExpenseModalOpen}
+        onClose={() => { setIsEditExpenseModalOpen(false); setSelectedExpense(null); }}
+        onExpenseUpdated={handleExpenseAdded}
+        expense={selectedExpense}
+      />
+
+      <ConfirmationDialog
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+        title="Delete Expense"
+        message={`Are you sure you want to delete this expense? This action cannot be undone.`}
+        onConfirm={confirmDeleteExpense}
       />
     </div>
   );
