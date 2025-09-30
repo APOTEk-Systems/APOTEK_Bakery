@@ -48,12 +48,9 @@ import {
   Plus,
   Loader2,
   Trash,
-  Calendar as CalendarIcon,
   Eye,
   Truck,
 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {useToast} from "@/hooks/use-toast";
 import {suppliersService, type Supplier} from "@/services/suppliers";
 import {purchasesService, type PurchaseOrder} from "@/services/purchases";
@@ -61,6 +58,7 @@ import type {InventoryItem} from "@/services/inventory";
 import {getInventory} from "@/services/inventory";
 import {formatCurrency} from "@/lib/funcs";
 import {Link} from "react-router-dom";
+import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 
 import type {GoodsReceiptItem} from "@/services/purchases";
 
@@ -73,10 +71,7 @@ interface POItem {
 export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [startDate, setStartDate] = useState<Date | undefined>();
-  const [endDate, setEndDate] = useState<Date | undefined>();
-  const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
-  const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isCreatePODialogOpen, setIsCreatePODialogOpen] = useState(false);
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
   const [selectedPOForReceive, setSelectedPOForReceive] =
@@ -144,8 +139,8 @@ export default function PurchaseOrdersTab() {
 
     // Date filtering
     const poDate = new Date(po.createdAt);
-    const matchesStartDate = !startDate || poDate >= startDate;
-    const matchesEndDate = !endDate || poDate <= endDate;
+    const matchesStartDate = !dateRange?.from || poDate >= dateRange.from;
+    const matchesEndDate = !dateRange?.to || poDate <= dateRange.to;
 
     return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
   });
@@ -388,60 +383,15 @@ export default function PurchaseOrdersTab() {
         </div>
 
         {/* Dates */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <Label className="text-xs">
-              Start Date
+              Date Range
             </Label>
-            <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-[140px] justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {startDate ? startDate.toLocaleDateString('en-GB') : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={startDate}
-                  onSelect={(date) => {
-                    setStartDate(date);
-                    setIsStartCalendarOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="flex flex-col">
-            <Label className="text-xs">
-              End Date
-            </Label>
-            <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-[140px] justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {endDate ? endDate.toLocaleDateString('en-GB') : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={endDate}
-                  onSelect={(date) => {
-                    setEndDate(date);
-                    setIsEndCalendarOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
           </div>
         </div>
       </div>

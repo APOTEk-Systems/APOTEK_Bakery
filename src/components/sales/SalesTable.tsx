@@ -22,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Loader2 } from 'lucide-react';
+import { Eye, Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/funcs';
@@ -147,6 +147,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                 <TableCell className="py-1">
                   <Button variant="outline" size="sm" asChild className="mr-2">
                     <Link to={`/sales/${sale.id}`}>
+                    <Eye className='w-4 h-4' />
                       View
                     </Link>
                   </Button>

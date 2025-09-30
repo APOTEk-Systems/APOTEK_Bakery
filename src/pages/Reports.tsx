@@ -5,35 +5,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DateRange, DateRangePicker } from "@/components/ui/DateRange";
 import { useToast } from "@/hooks/use-toast";
-import { format } from "date-fns";
 import {
   FileText,
   Download,
-  Calendar as CalendarIcon,
   Loader2,
 } from "lucide-react";
 import { reportsService } from "../services/reports";
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("sales");
-  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
-  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [startDatePopoverOpen, setStartDatePopoverOpen] = useState(false);
-  const [endDatePopoverOpen, setEndDatePopoverOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [selectedSalesReport, setSelectedSalesReport] = useState("sales");
+  const [selectedPurchasesReport, setSelectedPurchasesReport] = useState("purchases");
+  const [selectedInventoryReport, setSelectedInventoryReport] = useState("inventory");
+  const [selectedProductionReport, setSelectedProductionReport] = useState("production");
   const { toast } = useToast();
 
   // Export mutations for each report type
   const exportSalesMutation = useMutation({
     mutationFn: () => reportsService.exportSalesReport(
-      startDate?.toISOString().split('T')[0],
-      endDate?.toISOString().split('T')[0]
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
       downloadBlob(blob, generateFilename('sales'));
@@ -51,10 +46,31 @@ const Reports = () => {
     },
   });
 
+  const exportCustomerSalesMutation = useMutation({
+    mutationFn: () => reportsService.exportCustomerSalesReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('customer-sales'));
+      toast({
+        title: "Success",
+        description: "Customer sales report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export customer sales report",
+        variant: "destructive",
+      });
+    },
+  });
+
   const exportPurchasesMutation = useMutation({
     mutationFn: () => reportsService.exportPurchasesReport(
-      startDate?.toISOString().split('T')[0],
-      endDate?.toISOString().split('T')[0]
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
       downloadBlob(blob, generateFilename('purchases'));
@@ -72,10 +88,94 @@ const Reports = () => {
     },
   });
 
+  const exportSupplierWisePurchasesMutation = useMutation({
+    mutationFn: () => reportsService.exportSupplierWisePurchasesReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('supplier-purchases'));
+      toast({
+        title: "Success",
+        description: "Supplier-wise purchases report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export supplier-wise purchases report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportIngredientPurchaseTrendMutation = useMutation({
+    mutationFn: () => reportsService.exportIngredientPurchaseTrendReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('ingredient-trend'));
+      toast({
+        title: "Success",
+        description: "Ingredient purchase trend report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export ingredient purchase trend report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportFinishedGoodsSummaryMutation = useMutation({
+    mutationFn: () => reportsService.exportFinishedGoodsSummaryReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('finished-goods'));
+      toast({
+        title: "Success",
+        description: "Finished goods summary report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export finished goods summary report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportIngredientUsageMutation = useMutation({
+    mutationFn: () => reportsService.exportIngredientUsageReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('ingredient-usage'));
+      toast({
+        title: "Success",
+        description: "Ingredient usage report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export ingredient usage report",
+        variant: "destructive",
+      });
+    },
+  });
+
   const exportProductionMutation = useMutation({
     mutationFn: () => reportsService.exportProductionReport(
-      startDate?.toISOString().split('T')[0],
-      endDate?.toISOString().split('T')[0]
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
       downloadBlob(blob, generateFilename('production'));
@@ -113,8 +213,8 @@ const Reports = () => {
 
   const exportFinancialMutation = useMutation({
     mutationFn: () => reportsService.exportFinancialReport(
-      startDate?.toISOString().split('T')[0],
-      endDate?.toISOString().split('T')[0]
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
       downloadBlob(blob, generateFilename('financial'));
@@ -163,26 +263,53 @@ const Reports = () => {
   };
 
   const handleExport = (reportType: string) => {
-    const startDateStr = startDate?.toISOString().split('T')[0];
-    const endDateStr = endDate?.toISOString().split('T')[0];
-
     console.log('🚀 Starting export for:', reportType, {
-      startDate: startDateStr,
-      endDate: endDateStr
+      dateRange
     });
 
     switch (reportType) {
       case 'sales':
         exportSalesMutation.mutate();
         break;
+      case 'customer-sales':
+        exportCustomerSalesMutation.mutate();
+        break;
       case 'purchases':
         exportPurchasesMutation.mutate();
+        break;
+      case 'supplier-purchases':
+        exportSupplierWisePurchasesMutation.mutate();
+        break;
+      case 'ingredient-trend':
+        exportIngredientPurchaseTrendMutation.mutate();
         break;
       case 'production':
         exportProductionMutation.mutate();
         break;
+      case 'finished-goods':
+        exportFinishedGoodsSummaryMutation.mutate();
+        break;
+      case 'ingredient-usage':
+        exportIngredientUsageMutation.mutate();
+        break;
       case 'inventory':
         exportInventoryMutation.mutate();
+        break;
+      case 'low-stock':
+        // Placeholder - not implemented yet
+        toast({
+          title: "Not Implemented",
+          description: "Low stock alert report is not yet implemented",
+          variant: "destructive",
+        });
+        break;
+      case 'stock-adjustment':
+        // Placeholder - not implemented yet
+        toast({
+          title: "Not Implemented",
+          description: "Stock adjustment report is not yet implemented",
+          variant: "destructive",
+        });
         break;
       case 'financial':
         exportFinancialMutation.mutate();
@@ -191,8 +318,8 @@ const Reports = () => {
   };
 
   const generateFilename = (reportType: string): string => {
-    const startDateStr = startDate?.toISOString().split('T')[0];
-    const endDateStr = endDate?.toISOString().split('T')[0];
+    const startDateStr = dateRange?.from?.toISOString().split('T')[0];
+    const endDateStr = dateRange?.to?.toISOString().split('T')[0];
 
     const baseName = `${reportType}-report`;
 
@@ -208,10 +335,15 @@ const Reports = () => {
   };
 
   const isExporting = exportSalesMutation.isPending ||
-                     exportPurchasesMutation.isPending ||
-                     exportProductionMutation.isPending ||
-                     exportInventoryMutation.isPending ||
-                     exportFinancialMutation.isPending;
+                      exportCustomerSalesMutation.isPending ||
+                      exportPurchasesMutation.isPending ||
+                      exportSupplierWisePurchasesMutation.isPending ||
+                      exportIngredientPurchaseTrendMutation.isPending ||
+                      exportProductionMutation.isPending ||
+                      exportFinishedGoodsSummaryMutation.isPending ||
+                      exportIngredientUsageMutation.isPending ||
+                      exportInventoryMutation.isPending ||
+                      exportFinancialMutation.isPending;
 
   return (
     <Layout>
@@ -226,62 +358,6 @@ const Reports = () => {
             </div>
           </div>
 
-          {/* Date Range Filters - Only show for date-filtered reports */}
-          {activeTab !== 'inventory' && (
-            <div className="flex gap-4 mb-6">
-              <div className="flex-1">
-                <Label htmlFor="startDate" className="text-sm font-medium">Start Date</Label>
-                <Popover open={startDatePopoverOpen} onOpenChange={setStartDatePopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal mt-1"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {startDate ? format(startDate, "PPP") : "Select start date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={startDate}
-                      onSelect={(selectedDate) => {
-                        setStartDate(selectedDate);
-                        setStartDatePopoverOpen(false);
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="flex-1">
-                <Label htmlFor="endDate" className="text-sm font-medium">End Date</Label>
-                <Popover open={endDatePopoverOpen} onOpenChange={setEndDatePopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start text-left font-normal mt-1"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {endDate ? format(endDate, "PPP") : "Select end date"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={endDate}
-                      onSelect={(selectedDate) => {
-                        setEndDate(selectedDate);
-                        setEndDatePopoverOpen(false);
-                      }}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-          )}
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -298,20 +374,54 @@ const Reports = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Sales Report
+                  Sales Reports
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Generate a comprehensive sales report with transaction details, totals, and credit information.
+                  Select a report type and generate detailed sales analytics.
                 </p>
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Report Type</Label>
+                    <Select value={selectedSalesReport} onValueChange={setSelectedSalesReport}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="sales">Sales Report (by date range)</SelectItem>
+                        <SelectItem value="customer-sales">Customer Sales Report</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Date Range</Label>
+                    <DateRangePicker
+                      dateRange={dateRange}
+                      onDateRangeChange={setDateRange}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
+                <div className="mb-4">
+                  {selectedSalesReport === 'sales' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a comprehensive sales report with transaction details, totals, and credit information.
+                    </p>
+                  )}
+                  {selectedSalesReport === 'customer-sales' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a customer-wise sales report showing total sales, spending, and average spending per customer.
+                    </p>
+                  )}
+                </div>
                 <div className="flex justify-end">
                   <Button
-                    onClick={() => handleExport('sales')}
-                    disabled={isExporting}
+                    onClick={() => handleExport(selectedSalesReport)}
+                    disabled={isExporting || !selectedSalesReport}
                     className="shadow-warm"
                   >
-                    {exportSalesMutation.isPending ? (
+                    {(exportSalesMutation.isPending || exportCustomerSalesMutation.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...
@@ -333,20 +443,60 @@ const Reports = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Purchases Report
+                  Purchases Reports
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Generate a detailed purchases report including supplier information and order totals.
+                  Select a report type and generate detailed purchase analytics.
                 </p>
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Report Type</Label>
+                    <Select value={selectedPurchasesReport} onValueChange={setSelectedPurchasesReport}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="purchases">Purchases Report (by date range)</SelectItem>
+                        <SelectItem value="supplier-purchases">Supplier-wise Purchases</SelectItem>
+                        <SelectItem value="ingredient-trend">Ingredient Purchase Trend</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Date Range</Label>
+                    <DateRangePicker
+                      dateRange={dateRange}
+                      onDateRangeChange={setDateRange}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
+                <div className="mb-4">
+                  {selectedPurchasesReport === 'purchases' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a detailed purchases report including supplier information and order totals.
+                    </p>
+                  )}
+                  {selectedPurchasesReport === 'supplier-purchases' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a supplier-wise purchases report showing total purchases per supplier.
+                    </p>
+                  )}
+                  {selectedPurchasesReport === 'ingredient-trend' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate an ingredient purchase trend report showing quantity and date for each ingredient.
+                    </p>
+                  )}
+                </div>
                 <div className="flex justify-end">
                   <Button
-                    onClick={() => handleExport('purchases')}
-                    disabled={isExporting}
+                    onClick={() => handleExport(selectedPurchasesReport)}
+                    disabled={isExporting || !selectedPurchasesReport}
                     className="shadow-warm"
                   >
-                    {exportPurchasesMutation.isPending ? (
+                    {(exportPurchasesMutation.isPending || exportSupplierWisePurchasesMutation.isPending || exportIngredientPurchaseTrendMutation.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...
@@ -368,17 +518,59 @@ const Reports = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Inventory Report
+                  Inventory Reports
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Generate a current inventory report with stock levels, values, and low stock alerts.
+                  Select a report type and generate detailed inventory analytics.
                 </p>
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Report Type</Label>
+                    <Select value={selectedInventoryReport} onValueChange={setSelectedInventoryReport}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inventory">Current Stock Levels</SelectItem>
+                        <SelectItem value="low-stock">Low Stock Alert Report</SelectItem>
+                        <SelectItem value="stock-adjustment">Stock Adjustment Report</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {(selectedInventoryReport === 'low-stock' || selectedInventoryReport === 'stock-adjustment') && (
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium">Date Range</Label>
+                      <DateRangePicker
+                        dateRange={dateRange}
+                        onDateRangeChange={setDateRange}
+                        className="mt-1"
+                      />
+                    </div>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
+                <div className="mb-4">
+                  {selectedInventoryReport === 'inventory' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a current inventory report with stock levels, values, and low stock alerts.
+                    </p>
+                  )}
+                  {selectedInventoryReport === 'low-stock' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a report showing items with low stock levels that need attention.
+                    </p>
+                  )}
+                  {selectedInventoryReport === 'stock-adjustment' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a report of all stock adjustments with reasons and timestamps.
+                    </p>
+                  )}
+                </div>
                 <div className="flex justify-end">
                   <Button
-                    onClick={() => handleExport('inventory')}
-                    disabled={isExporting}
+                    onClick={() => handleExport(selectedInventoryReport)}
+                    disabled={isExporting || !selectedInventoryReport}
                     className="shadow-warm"
                   >
                     {exportInventoryMutation.isPending ? (
@@ -403,20 +595,60 @@ const Reports = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Production Report
+                  Production Reports
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Generate a production report with batch details, costs, and efficiency metrics.
+                  Select a report type and generate detailed production analytics.
                 </p>
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Report Type</Label>
+                    <Select value={selectedProductionReport} onValueChange={setSelectedProductionReport}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="production">Daily Production Batches Report</SelectItem>
+                        <SelectItem value="finished-goods">Finished Goods Summary</SelectItem>
+                        <SelectItem value="ingredient-usage">Ingredient Usage Report</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Date Range</Label>
+                    <DateRangePicker
+                      dateRange={dateRange}
+                      onDateRangeChange={setDateRange}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
+                <div className="mb-4">
+                  {selectedProductionReport === 'production' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a production report with batch details, costs, and efficiency metrics.
+                    </p>
+                  )}
+                  {selectedProductionReport === 'finished-goods' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a summary of finished goods showing daily production, sales, and remaining stock.
+                    </p>
+                  )}
+                  {selectedProductionReport === 'ingredient-usage' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a report showing ingredient usage amounts and units for production.
+                    </p>
+                  )}
+                </div>
                 <div className="flex justify-end">
                   <Button
-                    onClick={() => handleExport('production')}
-                    disabled={isExporting}
+                    onClick={() => handleExport(selectedProductionReport)}
+                    disabled={isExporting || !selectedProductionReport}
                     className="shadow-warm"
                   >
-                    {exportProductionMutation.isPending ? (
+                    {(exportProductionMutation.isPending || exportFinishedGoodsSummaryMutation.isPending || exportIngredientUsageMutation.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...
@@ -443,6 +675,16 @@ const Reports = () => {
                 <p className="text-sm text-muted-foreground">
                   Generate a comprehensive financial report with revenue, expenses, profit, and outstanding credits.
                 </p>
+                <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Date Range</Label>
+                    <DateRangePicker
+                      dateRange={dateRange}
+                      onDateRangeChange={setDateRange}
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-end">

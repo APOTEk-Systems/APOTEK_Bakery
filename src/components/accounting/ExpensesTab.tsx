@@ -13,14 +13,12 @@ import {
   Edit,
   Trash2,
   Plus,
-  Calendar as CalendarIcon
 } from "lucide-react";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
 import { toast } from "sonner";
 import AddExpenseModal from "./AddExpenseModal";
+import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 
 interface ExpensesTabProps {
   getCategoryColor: (category: string) => string;
@@ -47,10 +45,7 @@ interface Expense {
 
 const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => {
   const [filterCategory, setFilterCategory] = useState("all");
-  const [startDate, setStartDate] = useState<Date>(new Date());
-  const [endDate, setEndDate] = useState<Date>(new Date());
-  const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
-  const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
@@ -60,11 +55,11 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   });
 
   const expensesQuery = useQuery({
-    queryKey: ['expenses', filterCategory, startDate, endDate],
+    queryKey: ['expenses', filterCategory, dateRange],
     queryFn: () => expensesService.getExpenses({
       categoryId: filterCategory === "all" ? undefined : filterCategory,
-      startDate: startDate.toISOString().split('T')[0],
-      endDate: endDate.toISOString().split('T')[0],
+      startDate: dateRange?.from ? dateRange.from.toISOString().split('T')[0] : undefined,
+      endDate: dateRange?.to ? dateRange.to.toISOString().split('T')[0] : undefined,
     }),
   });
 
@@ -100,60 +95,13 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   return (
     <div className="space-y-6">
       {/* Expense Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
             <div>
-              <Label>Start Date</Label>
-              <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? startDate.toLocaleDateString('en-GB') : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={startDate}
-                    onSelect={(date) => {
-                      if (date) {
-                        setStartDate(date);
-                        setIsStartCalendarOpen(false);
-                      }
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div>
-              <Label>End Date</Label>
-              <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? endDate.toLocaleDateString('en-GB') : "Pick a date"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={endDate}
-                    onSelect={(date) => {
-                      if (date) {
-                        setEndDate(date);
-                        setIsEndCalendarOpen(false);
-                      }
-                    }}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+              <Label>Date Range</Label>
+              <DateRangePicker
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+              />
             </div>
             <div>
               <Label htmlFor="category">Category</Label>

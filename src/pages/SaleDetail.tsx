@@ -160,13 +160,13 @@ const SaleDetail = () => {
                     {format(new Date(sale.createdAt), 'dd-MM-yyyy')}
                   </p>
                 </div>
-                <div>
+                <div className="flex flex-col">
                   <Label className="text-sm font-medium text-muted-foreground">
                     Status
                   </Label>
                   <Badge
                     variant={getStatusVariant(sale.status)}
-                    className="ml-2"
+                    className="w-24"
                   >
                     {sale.status.toUpperCase()}
                   </Badge>
@@ -178,14 +178,14 @@ const SaleDetail = () => {
                   <Label className="text-sm font-medium text-muted-foreground">
                     Payment Method
                   </Label>
-                  <p className="font-medium">{sale.paymentMethod || "N/A"}</p>
+                  <p className="font-medium">{sale.isCredit ? "Credit" : "Cash"}</p>
                 </div>
-                <div>
+                {/* <div>
                   <Label className="text-sm font-medium text-muted-foreground">
                     Is Credit
                   </Label>
                   <p className="font-medium">{sale.isCredit ? "Yes" : "No"}</p>
-                </div>
+                </div> */}
               </div>
 
               {sale.customer && (

@@ -10,33 +10,23 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
 import { customersService } from '@/services/customers';
+import { DateRangePicker, DateRange } from '@/components/ui/DateRange';
 
 const UnpaidSales: React.FC = () => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
-  const dateKey = date ? format(date, 'yyyy-MM-dd') : null;
-
   const { data: sales = [], isPending: loading, error, refetch } = useQuery({
-    queryKey: ['unpaidSales', dateKey, selectedCustomerId],
+    queryKey: ['unpaidSales', dateRange, selectedCustomerId],
     queryFn: () => {
       const params: SalesQueryParams = {
         status: 'unpaid',
-        ...(date && { startDate: dateKey, endDate: dateKey }),
+        ...(dateRange?.from && { startDate: dateRange.from.toISOString().split('T')[0] }),
+        ...(dateRange?.to && { endDate: dateRange.to.toISOString().split('T')[0] }),
       };
       return salesService.getAllSales(params);
     },
-    enabled: !!dateKey || true, // Always enabled, but key changes with date
     refetchOnMount: false,
   });
 
@@ -68,28 +58,10 @@ const UnpaidSales: React.FC = () => {
               ))}
             </SelectContent>
           </Select>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : <span>Pick a date</span>}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
           <Button onClick={() => refetch()}>Search</Button>
         </div>
         <SalesTable sales={filteredSales} loading={loading} error={error?.message || null} isUnpaid={true} />

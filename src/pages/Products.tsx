@@ -118,26 +118,22 @@ const Products = () => {
     <Layout>
       {" "}
       <div className="p-6">
-        <div className="mb-6">
-          <div className="flex justify-between items-start mb-4">
+        <div className="mb-1">
+          <div className="flex justify-between items-start mb-2">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Products</h1>
               <p className="text-muted-foreground">
                 Manage your bakery's product catalog
               </p>
             </div>
-            <Button className="shadow-warm" asChild>
-              <Link to="/products/new">
-                <Plus className="h-4 w-4 mr-2" />
-                New Product
-              </Link>
-            </Button>
           </div>
         </div>
 
         {/* Filters - Moved to top */}
-        <Card className="bg-transparent shadow-none border-0 mb-2 py-4">
+        <Card className="bg-transparent shadow-none border-0 py-4">
+          
           <CardContent className="space-y-4 py-0 flex items-center">
+            
             <div className="space-y-2 mr-4 flex-1">
               <Label htmlFor="search">Search</Label>
               <Input
@@ -163,6 +159,12 @@ const Products = () => {
           </CardContent>
         </Card>
 
+      <div className="w-full flex justify-end mb-4">      <Button className="shadow-warm" asChild>
+              <Link to="/products/new">
+                <Plus className="h-4 w-4 mr-2" />
+                New Product
+              </Link>
+            </Button></div>
         <div className="grid grid-cols-1 gap-6">
           {/* Products Table */}
           <div className="space-y-4">
