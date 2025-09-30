@@ -21,14 +21,9 @@ const Sales: React.FC = () => {
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Sales</h1>
+              <h1 className="text-3xl font-bold text-foreground">Sales History</h1>
               <p className="text-muted-foreground">Track daily sales and transactions</p>
             </div>
-            <Link to="/sales/new">
-              <Button className="shadow-warm">
-                <Plus className="h-4 w-4 mr-2" /> New Sale
-              </Button>
-            </Link>
           </div>
         </div>
 

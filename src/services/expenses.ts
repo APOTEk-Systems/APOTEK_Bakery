@@ -73,4 +73,13 @@ export const expensesService = {
     const response = await api.post<{ id: number; name: string }>('/accounting/expense-categories', categoryData);
     return response.data;
   },
+
+  updateExpenseCategory: async (id: number, categoryData: { name: string }): Promise<{ id: number; name: string }> => {
+    const response = await api.put<{ id: number; name: string }>(`/accounting/expense-categories/${id}`, categoryData);
+    return response.data;
+  },
+
+  deleteExpenseCategory: async (id: number): Promise<void> => {
+    await api.delete(`/accounting/expense-categories/${id}`);
+  },
 };

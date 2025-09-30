@@ -30,8 +30,15 @@ const RecentSales: React.FC = () => {
     queryFn: () => customersService.getAll(),
   });
 
+  const customersWithCash = [
+    { id: 'cash', name: 'Cash' },
+    ...(customersQuery.data || []),
+  ];
+
   const filteredSales = selectedCustomerId
-    ? sales.filter(sale => sale.customerId === parseInt(selectedCustomerId))
+    ? selectedCustomerId === 'cash'
+      ? sales.filter(sale => !sale.customer || !sale.customer.name)
+      : sales.filter(sale => sale.customerId === parseInt(selectedCustomerId))
     : sales;
 
   return (
@@ -46,7 +53,7 @@ const RecentSales: React.FC = () => {
               <SelectValue placeholder="Filter by customer" />
             </SelectTrigger>
             <SelectContent>
-              {customersQuery.data?.map(customer => (
+              {customersWithCash.map(customer => (
                 <SelectItem key={customer.id} value={customer.id.toString()}>
                   {customer.name}
                 </SelectItem>

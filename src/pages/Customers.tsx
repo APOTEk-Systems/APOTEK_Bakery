@@ -33,7 +33,24 @@ const Customers = () => {
     queryFn: () => customersService.getAll(),
   });
 
-  const customers = customersQuery.data || [];
+  const customers = [
+    {
+      id: 'cash',
+      name: 'Cash',
+      email: null,
+      phone: null,
+      address: null,
+      isCredit: false,
+      creditLimit: 0,
+      currentCredit: 0,
+      status: 'active' as const,
+      loyaltyPoints: 0,
+      notes: 'Default cash customer for walk-in sales',
+      totalOrders: 0,
+      totalSpent: 0,
+    },
+    ...(customersQuery.data || []),
+  ];
   const loading = customersQuery.isLoading;
   const error = customersQuery.error;
 
@@ -115,7 +132,8 @@ const Customers = () => {
         <TableRow>
           <TableHead>Customer</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Contact</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Phone</TableHead>
           <TableHead className="text-center">Credit Limit</TableHead>
           {/* <TableHead className="text-center">Total Spent</TableHead> */}
           {/* <TableHead>Last Order</TableHead> */}
@@ -182,17 +200,19 @@ const Customers = () => {
                 <Badge variant={getStatusColor(customer.status)}>{customer.status}</Badge>
                  </TableCell>
 
-              {/* Contact */}
+              {/* Email */}
               <TableCell>
-                <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                  <div className="flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    {customer.email || "—"}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Phone className="h-3 w-3" />
-                    {customer.phone || "—"}
-                  </div>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Mail className="h-3 w-3" />
+                  {customer.email || "—"}
+                </div>
+              </TableCell>
+
+              {/* Phone */}
+              <TableCell>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <Phone className="h-3 w-3" />
+                  {customer.phone || "—"}
                 </div>
               </TableCell>
 
@@ -206,20 +226,24 @@ const Customers = () => {
 
               {/* Actions */}
               <TableCell className="text-right">
-                <div className="flex gap-1 justify-end">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/customers/${customer.id}`}>
-                      <Eye className="h-4 w-4" />
-                      Edit 
-                    </Link>
-                  </Button>
-                  <Button variant="destructive" size="sm" asChild>
-                    <Link to={`/customers/${customer.id}/edit`}>
-                      <Edit className="h-4 w-4" />
-                      Delete
-                    </Link>
-                  </Button>
-                </div>
+                {customer.id === 'cash' ? (
+                  <span className="text-muted-foreground text-sm">Default</span>
+                ) : (
+                  <div className="flex gap-1 justify-end">
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/customers/${customer.id}`}>
+                        <Eye className="h-4 w-4" />
+                        Edit
+                      </Link>
+                    </Button>
+                    <Button variant="destructive" size="sm" asChild>
+                      <Link to={`/customers/${customer.id}/edit`}>
+                        <Edit className="h-4 w-4" />
+                        Delete
+                      </Link>
+                    </Button>
+                  </div>
+                )}
               </TableCell>
             </TableRow>
           ))

@@ -9,6 +9,8 @@ import { Edit, Trash2, Plus } from "lucide-react";
 import { expensesService } from "@/services/expenses";
 import { toast } from "sonner";
 import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
+import EditExpenseCategoryModal from "./EditExpenseCategoryModal";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { toSentenceCase } from "@/lib/funcs";
 
 interface CategoriesTabProps {
@@ -18,6 +20,10 @@ interface CategoriesTabProps {
 
 const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabProps) => {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [isEditCategoryModalOpen, setIsEditCategoryModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<{ id: number; name: string } | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<{ id: number; name: string } | null>(null);
 
   const categoriesQuery = useQuery({
     queryKey: ['expenseCategories'],
@@ -28,16 +34,22 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
   const loading = categoriesQuery.isLoading;
   const error = categoriesQuery.error;
 
-  const handleDeleteCategory = async (id: number, name: string) => {
-    if (confirm(`Are you sure you want to delete the "${name}" category?`)) {
-      try {
-        // Note: This would need a delete endpoint in the API
-        toast.success("Category deleted successfully!");
-        // In real app, refetch data here
-        categoriesQuery.refetch();
-      } catch (err) {
-        toast.error("Failed to delete category.");
-      }
+  const handleDeleteCategory = (category: { id: number; name: string }) => {
+    setCategoryToDelete(category);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
+    try {
+      await expensesService.deleteExpenseCategory(categoryToDelete.id);
+      toast.success("Category deleted successfully!");
+      categoriesQuery.refetch();
+    } catch (err) {
+      toast.error("Failed to delete category.");
+    } finally {
+      setIsDeleteConfirmOpen(false);
+      setCategoryToDelete(null);
     }
   };
 
@@ -91,14 +103,14 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => { setSelectedCategory(category); setIsEditCategoryModalOpen(true); }}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleDeleteCategory(category.id, category.name)}
+                            onClick={() => handleDeleteCategory(category)}
                             className="text-destructive hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -120,6 +132,21 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
         isOpen={isAddCategoryModalOpen}
         onClose={() => setIsAddCategoryModalOpen(false)}
         onCategoryAdded={handleCategoryAdded}
+      />
+
+      <EditExpenseCategoryModal
+        isOpen={isEditCategoryModalOpen}
+        onClose={() => { setIsEditCategoryModalOpen(false); setSelectedCategory(null); }}
+        onCategoryUpdated={handleCategoryAdded}
+        category={selectedCategory}
+      />
+
+      <ConfirmationDialog
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+        title="Delete Category"
+        message={`Are you sure you want to delete the "${categoryToDelete?.name}" category? This action cannot be undone.`}
+        onConfirm={confirmDeleteCategory}
       />
     </div>
   );

@@ -366,7 +366,7 @@ const Reports = () => {
             <TabsTrigger value="purchases">Purchases</TabsTrigger>
             <TabsTrigger value="inventory">Inventory</TabsTrigger>
             <TabsTrigger value="production">Production</TabsTrigger>
-            <TabsTrigger value="financial">Financial</TabsTrigger>
+            <TabsTrigger value="financial">Accounting</TabsTrigger>
           </TabsList>
 
           <TabsContent value="sales" className="mt-6">
@@ -376,18 +376,15 @@ const Reports = () => {
                   <FileText className="h-5 w-5" />
                   Sales Reports
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Select a report type and generate detailed sales analytics.
-                </p>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedSalesReport} onValueChange={setSelectedSalesReport}>
-                      <SelectTrigger>
+                      <SelectTrigger className="my-1">
                         <SelectValue placeholder="Select report type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="sales">Sales Report (by date range)</SelectItem>
+                        <SelectItem value="sales">Sales Report</SelectItem>
                         <SelectItem value="customer-sales">Customer Sales Report</SelectItem>
                       </SelectContent>
                     </Select>
@@ -445,18 +442,15 @@ const Reports = () => {
                   <FileText className="h-5 w-5" />
                   Purchases Reports
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Select a report type and generate detailed purchase analytics.
-                </p>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedPurchasesReport} onValueChange={setSelectedPurchasesReport}>
-                      <SelectTrigger>
+                      <SelectTrigger className="my-1">
                         <SelectValue placeholder="Select report type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="purchases">Purchases Report (by date range)</SelectItem>
+                        <SelectItem value="purchases">Purchases Report</SelectItem>
                         <SelectItem value="supplier-purchases">Supplier-wise Purchases</SelectItem>
                         <SelectItem value="ingredient-trend">Ingredient Purchase Trend</SelectItem>
                       </SelectContent>
@@ -520,14 +514,11 @@ const Reports = () => {
                   <FileText className="h-5 w-5" />
                   Inventory Reports
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Select a report type and generate detailed inventory analytics.
-                </p>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedInventoryReport} onValueChange={setSelectedInventoryReport}>
-                      <SelectTrigger>
+                      <SelectTrigger className="my-1">
                         <SelectValue placeholder="Select report type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -597,14 +588,11 @@ const Reports = () => {
                   <FileText className="h-5 w-5" />
                   Production Reports
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Select a report type and generate detailed production analytics.
-                </p>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Report Type</Label>
-                    <Select value={selectedProductionReport} onValueChange={setSelectedProductionReport}>
-                      <SelectTrigger>
+                    <Select value={selectedProductionReport} onValueChange={setSelectedProductionReport} >
+                      <SelectTrigger className="mt-1">
                         <SelectValue placeholder="Select report type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -670,10 +658,10 @@ const Reports = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Financial Report
+                  Accounting Report
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
-                  Generate a comprehensive financial report with revenue, expenses, profit, and outstanding credits.
+                  Generate a comprehensive accounting report with revenue, expenses, profit, and outstanding credits.
                 </p>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">

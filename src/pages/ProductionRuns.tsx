@@ -211,10 +211,10 @@ const ProductionRuns = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                Finished Goods Production
+                Production
               </h1>
               <p className="text-muted-foreground">
-                Production activities for {format(date, "MMMM do, yyyy")}
+                Production activities for {format(date, "dd-MM-yyyy")}
               </p>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -365,7 +365,7 @@ const ProductionRuns = () => {
                       className="w-[240px] justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "PPP") : <span>Pick a date</span>}
+                      {date ? format(date, "dd-MM-yyyy") : <span>Pick a date</span>}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
