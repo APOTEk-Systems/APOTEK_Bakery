@@ -319,19 +319,19 @@ const AccountingSummaryTab = () => {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-lg font-bold">
-              ${summary?.monthlyRevenue?.toFixed(2) ?? "0.00"}
+              {summary?.monthlyRevenue?.toFixed(2) ?? "0.00"}
             </p>
             <p className="text-sm text-muted-foreground">Monthly Income</p>
           </div>
           <div>
             <p className="text-lg font-bold text-red-500">
-              ${summary?.monthlyExpenses?.toFixed(2) ?? "0.00"}
+              {summary?.monthlyExpenses?.toFixed(2) ?? "0.00"}
             </p>
             <p className="text-sm text-muted-foreground">Monthly Expenses</p>
           </div>
         </div>
         <p className="text-sm text-muted-foreground">
-          Net Profit for the month: ${summary?.netProfit?.toFixed(2) ?? "0.00"}
+          Net Profit for the month: {summary?.netProfit?.toFixed(2) ?? "0.00"}
         </p>
       </CardContent>
     </Card>

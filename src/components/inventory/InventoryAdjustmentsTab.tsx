@@ -169,10 +169,10 @@ const InventoryAdjustmentsTab = ({
                 className="w-full justify-start text-left font-normal"
               >
                 <CalendarDays className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Pick a date"}
+                {date ? format(date, "dd-MM-yyyy") : "Pick a date"}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="p-0" align="start">
               <Calendar
                 mode="single"
                 selected={date}
@@ -185,17 +185,14 @@ const InventoryAdjustmentsTab = ({
             </PopoverContent>
           </Popover>
         </div>
-        <Button onClick={fetchAdjustments}>Filter</Button>
+        <Button><Plus className="h-4 w-4 mr-2" />
+              Add Adjustment</Button>
       </div>
 
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>{title} Adjustments</CardTitle>
-            <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Adjustment
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
