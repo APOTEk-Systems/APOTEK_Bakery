@@ -448,7 +448,28 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-             
+              <CardContent>
+          
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleExport(selectedSalesReport)}
+                    disabled={isExporting || !selectedSalesReport}
+                    className="shadow-warm"
+                  >
+                    {(exportSalesMutation.isPending || exportCustomerSalesMutation.isPending) ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -483,7 +504,27 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-             
+              <CardContent>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleExport(selectedPurchasesReport)}
+                    disabled={isExporting || !selectedPurchasesReport}
+                    className="shadow-warm"
+                  >
+                    {(exportPurchasesMutation.isPending || exportSupplierWisePurchasesMutation.isPending || exportIngredientPurchaseTrendMutation.isPending) ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -497,8 +538,8 @@ const Reports = () => {
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Report Type</Label>
-                    <Select value={selectedInventoryReport} onValueChange={setSelectedInventoryReport}>
-                      <SelectTrigger className="my-1">
+                    <Select value={selectedInventoryReport} onValueChange={setSelectedInventoryReport} >
+                      <SelectTrigger className="my-1 w-1/2">
                         <SelectValue placeholder="Select inventory report type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -520,6 +561,27 @@ const Reports = () => {
                   )}
                 </div>
               </CardHeader>
+              <CardContent>
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleExport(selectedInventoryReport)}
+                    disabled={isExporting || !selectedInventoryReport || selectedInventoryReport === 'low-stock' || selectedInventoryReport === 'stock-adjustment'}
+                    className="shadow-warm"
+                  >
+                    {exportInventoryMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -554,7 +616,28 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-              
+              <CardContent>
+           
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleExport(selectedProductionReport)}
+                    disabled={isExporting || !selectedProductionReport}
+                    className="shadow-warm"
+                  >
+                    {(exportProductionMutation.isPending || exportFinishedGoodsSummaryMutation.isPending || exportIngredientUsageMutation.isPending) ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
@@ -589,7 +672,28 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-             
+              <CardContent>
+               
+                <div className="flex justify-end">
+                  <Button
+                    onClick={() => handleExport(selectedAccountingReport)}
+                    disabled={isExporting || !selectedAccountingReport}
+                    className="shadow-warm"
+                  >
+                    {(exportFinancialMutation.isPending || exportProfitAndLossMutation.isPending || exportExpenseBreakdownMutation.isPending) ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Exporting...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="h-4 w-4 mr-2" />
+                        Export PDF
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
