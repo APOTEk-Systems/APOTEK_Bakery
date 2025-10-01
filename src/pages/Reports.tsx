@@ -404,9 +404,6 @@ const Reports = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-              <p className="text-muted-foreground">
-                Generate and export detailed reports
-              </p>
             </div>
           </div>
 
@@ -433,7 +430,7 @@ const Reports = () => {
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedSalesReport} onValueChange={setSelectedSalesReport}>
                       <SelectTrigger className="my-1">
-                        <SelectValue placeholder="Select report type" />
+                        <SelectValue placeholder="Select sales report type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="sales">Sales Report</SelectItem>
@@ -499,7 +496,7 @@ const Reports = () => {
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedPurchasesReport} onValueChange={setSelectedPurchasesReport}>
                       <SelectTrigger className="my-1">
-                        <SelectValue placeholder="Select report type" />
+                        <SelectValue placeholder="Select purchases report type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="purchases">Purchases Report</SelectItem>
@@ -571,7 +568,7 @@ const Reports = () => {
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedInventoryReport} onValueChange={setSelectedInventoryReport}>
                       <SelectTrigger className="my-1">
-                        <SelectValue placeholder="Select report type" />
+                        <SelectValue placeholder="Select inventory report type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="inventory">Current Stock Levels</SelectItem>
@@ -645,7 +642,7 @@ const Reports = () => {
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedProductionReport} onValueChange={setSelectedProductionReport} >
                       <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select report type" />
+                        <SelectValue placeholder="Select production report type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="production">Daily Production Batches Report</SelectItem>
@@ -717,7 +714,7 @@ const Reports = () => {
                     <Label className="text-sm font-medium">Report Type</Label>
                     <Select value={selectedAccountingReport} onValueChange={setSelectedAccountingReport}>
                       <SelectTrigger className="my-1">
-                        <SelectValue placeholder="Select report type" />
+                        <SelectValue placeholder="Select accounting report type" />
                       </SelectTrigger>
                       <SelectContent>
                         {/* <SelectItem value="financial">Financial Summary</SelectItem> */}

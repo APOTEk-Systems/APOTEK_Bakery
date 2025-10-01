@@ -17,9 +17,6 @@ export default function Purchases() {
           {/* Header */}
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Purchases</h1>
-            <p className="text-muted-foreground">
-              Manage purchase orders, goods receiving, and suppliers
-            </p>
           </div>
 
           {/* Tabs */}

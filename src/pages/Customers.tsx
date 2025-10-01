@@ -12,10 +12,6 @@ import {
   Eye,
   Edit,
   User,
-  Phone,
-  Mail,
-  ShoppingBag,
-  DollarSign,
   Loader2,
 } from "lucide-react";
 import {
@@ -26,7 +22,6 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {PastryProSpinner} from "@/components/ui/PastryProSpinner";
 import {customersService, type Customer} from "../services/customers";
 import {format} from "date-fns";
 import {formatCurrency} from "@/lib/funcs";
@@ -117,9 +112,6 @@ const Customers = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Customers</h1>
-              <p className="text-muted-foreground">
-                Manage your customer relationships
-              </p>
             </div>
             <Button asChild className="shadow-warm">
               <Link to="/customers/new">

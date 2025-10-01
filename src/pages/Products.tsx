@@ -122,9 +122,6 @@ const Products = () => {
           <div className="flex justify-between items-start mb-2">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Finished Goods</h1>
-              <p className="text-muted-foreground">
-                Manage your bakery's product catalog
-              </p>
             </div>
           </div>
         </div>

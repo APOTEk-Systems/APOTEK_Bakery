@@ -56,7 +56,6 @@ const Accounting = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Accounting</h1>
-              <p className="text-muted-foreground">Track expenses and financial performance</p>
             </div>
           </div>
         </div>

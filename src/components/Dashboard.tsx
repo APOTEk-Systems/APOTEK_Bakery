@@ -17,7 +17,6 @@ import {inventoryService} from "@/services/inventory";
 import {accountingService} from "@/services/accounting";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
-import {Button} from "@/components/ui/button";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
 import {
   Package,
@@ -25,9 +24,8 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
-  Cookie,
-  Timer,
   Loader2,
+  Banknote,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/funcs";
 
@@ -59,7 +57,7 @@ const SalesSummaryTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Sales This Month</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -73,7 +71,7 @@ const SalesSummaryTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Average Daily Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <Banknote className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -317,10 +315,10 @@ const AccountingSummaryTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
+            <TrendingUp className="h-4 w-4 " />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
+            <div className="text-2xl font-bold ">
               {formatCurrency(currentMonth?.revenue || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -332,10 +330,10 @@ const AccountingSummaryTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Cost of Goods Sold</CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-600" />
+            <TrendingDown className="h-4 w-4 " />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">
+            <div className="text-2xl font-bold ">
               {formatCurrency(currentMonth?.cogs || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -347,10 +345,10 @@ const AccountingSummaryTab = () => {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Operating Expenses</CardTitle>
-            <DollarSign className="h-4 w-4 text-orange-600" />
+            <Banknote className="h-4 w-4 " />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
+            <div className="text-2xl font-bold ">
               {formatCurrency(currentMonth?.operatingExpenses || 0)}
             </div>
             <p className="text-xs text-muted-foreground">
@@ -369,7 +367,7 @@ const AccountingSummaryTab = () => {
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${(currentMonth?.grossProfit || 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              <div className={`text-2xl font-bold ${(currentMonth?.grossProfit || 0) >= 0 ? 'text-blue-600' : ''}`}>
                 {formatCurrency(currentMonth?.grossProfit || 0)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -381,10 +379,10 @@ const AccountingSummaryTab = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-              <DollarSign className="h-4 w-4 text-purple-600" />
+              <Banknote className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${(currentMonth?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`text-2xl font-bold ${(currentMonth?.netProfit || 0) >= 0 ? '' : ''}`}>
                 {formatCurrency(currentMonth?.netProfit || 0)}
               </div>
               <p className="text-xs text-muted-foreground">

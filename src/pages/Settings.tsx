@@ -405,9 +405,6 @@ const Settings = () => {
       <div className="p-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your bakery's configuration and preferences
-          </p>
         </div>
 
         <Tabs defaultValue="information" className="w-full">

@@ -10,7 +10,6 @@ const Inventory = () => {
         <div className="mb-6">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Raw Materials</h1>
-            <p className="text-muted-foreground">Track your bakery's raw materials</p>
           </div>
         </div>
 

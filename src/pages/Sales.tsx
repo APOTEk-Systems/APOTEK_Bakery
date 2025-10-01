@@ -1,6 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { Plus } from 'lucide-react';
 import Layout from "../components/Layout";
 import RecentSales from '@/components/sales/RecentSales';
 import UnpaidSales from '@/components/sales/UnpaidSales';
@@ -10,9 +8,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import {
-  Button,
-} from '@/components/ui/button';
+
 
 const Sales: React.FC = () => {
   return (
@@ -22,7 +18,6 @@ const Sales: React.FC = () => {
           <div className="flex justify-between items-start mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Sales History</h1>
-              <p className="text-muted-foreground">Track daily sales and transactions</p>
             </div>
           </div>
         </div>
