@@ -375,10 +375,7 @@ export default function PurchaseOrdersTab() {
 
         {/* Dates */}
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col">
-            <Label className="text-xs">
-              Date Range
-            </Label>
+          <div className="flex flex-col mt-4">
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}

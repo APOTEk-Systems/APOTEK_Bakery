@@ -18,11 +18,11 @@ import { reportsService } from "../services/reports";
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("sales");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedSalesReport, setSelectedSalesReport] = useState("sales");
-  const [selectedPurchasesReport, setSelectedPurchasesReport] = useState("purchases");
-  const [selectedInventoryReport, setSelectedInventoryReport] = useState("inventory");
-  const [selectedProductionReport, setSelectedProductionReport] = useState("production");
-  const [selectedAccountingReport, setSelectedAccountingReport] = useState("financial");
+  const [selectedSalesReport, setSelectedSalesReport] = useState("");
+  const [selectedPurchasesReport, setSelectedPurchasesReport] = useState("");
+  const [selectedInventoryReport, setSelectedInventoryReport] = useState("");
+  const [selectedProductionReport, setSelectedProductionReport] = useState("");
+  const [selectedAccountingReport, setSelectedAccountingReport] = useState("");
   const { toast } = useToast();
 
   // Export mutations for each report type
@@ -448,39 +448,7 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  {selectedSalesReport === 'sales' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a comprehensive sales report with transaction details, totals, and credit information.
-                    </p>
-                  )}
-                  {selectedSalesReport === 'customer-sales' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a customer-wise sales report showing total sales, spending, and average spending per customer.
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={() => handleExport(selectedSalesReport)}
-                    disabled={isExporting || !selectedSalesReport}
-                    className="shadow-warm"
-                  >
-                    {(exportSalesMutation.isPending || exportCustomerSalesMutation.isPending) ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
+             
             </Card>
           </TabsContent>
 
@@ -515,44 +483,7 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  {selectedPurchasesReport === 'purchases' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a detailed purchases report including supplier information and order totals.
-                    </p>
-                  )}
-                  {selectedPurchasesReport === 'supplier-purchases' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a supplier-wise purchases report showing total purchases per supplier.
-                    </p>
-                  )}
-                  {selectedPurchasesReport === 'ingredient-trend' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate an ingredient purchase trend report showing quantity and date for each ingredient.
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={() => handleExport(selectedPurchasesReport)}
-                    disabled={isExporting || !selectedPurchasesReport}
-                    className="shadow-warm"
-                  >
-                    {(exportPurchasesMutation.isPending || exportSupplierWisePurchasesMutation.isPending || exportIngredientPurchaseTrendMutation.isPending) ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
+             
             </Card>
           </TabsContent>
 
@@ -589,44 +520,6 @@ const Reports = () => {
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  {selectedInventoryReport === 'inventory' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a current inventory report with stock levels, values, and low stock alerts.
-                    </p>
-                  )}
-                  {selectedInventoryReport === 'low-stock' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a report showing items with low stock levels that need attention.
-                    </p>
-                  )}
-                  {selectedInventoryReport === 'stock-adjustment' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a report of all stock adjustments with reasons and timestamps.
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={() => handleExport(selectedInventoryReport)}
-                    disabled={isExporting || !selectedInventoryReport}
-                    className="shadow-warm"
-                  >
-                    {exportInventoryMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
             </Card>
           </TabsContent>
 
@@ -661,44 +554,7 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  {selectedProductionReport === 'production' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a production report with batch details, costs, and efficiency metrics.
-                    </p>
-                  )}
-                  {selectedProductionReport === 'finished-goods' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a summary of finished goods showing daily production, sales, and remaining stock.
-                    </p>
-                  )}
-                  {selectedProductionReport === 'ingredient-usage' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a report showing ingredient usage amounts and units for production.
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={() => handleExport(selectedProductionReport)}
-                    disabled={isExporting || !selectedProductionReport}
-                    className="shadow-warm"
-                  >
-                    {(exportProductionMutation.isPending || exportFinishedGoodsSummaryMutation.isPending || exportIngredientUsageMutation.isPending) ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
+              
             </Card>
           </TabsContent>
 
@@ -733,44 +589,7 @@ const Reports = () => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  {selectedAccountingReport === 'financial' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a comprehensive accounting report with revenue, expenses, profit, and outstanding credits.
-                    </p>
-                  )}
-                  {selectedAccountingReport === 'profit-loss' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a profit and loss statement showing revenue, costs, and net profit.
-                    </p>
-                  )}
-                  {selectedAccountingReport === 'expense-breakdown' && (
-                    <p className="text-sm text-muted-foreground">
-                      Generate a breakdown of expenses by category with totals.
-                    </p>
-                  )}
-                </div>
-                <div className="flex justify-end">
-                  <Button
-                    onClick={() => handleExport(selectedAccountingReport)}
-                    disabled={isExporting}
-                    className="shadow-warm"
-                  >
-                    {(exportFinancialMutation.isPending || exportProfitAndLossMutation.isPending || exportExpenseBreakdownMutation.isPending) ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Exporting...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="h-4 w-4 mr-2" />
-                        Export PDF
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </CardContent>
+             
             </Card>
           </TabsContent>
         </Tabs>
