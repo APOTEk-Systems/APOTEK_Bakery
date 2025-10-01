@@ -17,8 +17,7 @@ import {
 import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
 import { toast } from "sonner";
-import AddExpenseModal from "./AddExpenseModal";
-import EditExpenseModal from "./EditExpenseModal";
+import ExpenseModal from "./ExpenseModal";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 import { format } from "date-fns";
@@ -49,8 +48,8 @@ interface Expense {
 const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [isAddExpenseModalOpen, setIsAddExpenseModalOpen] = useState(false);
-  const [isEditExpenseModalOpen, setIsEditExpenseModalOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseModalMode, setExpenseModalMode] = useState<'add' | 'edit'>('add');
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
@@ -100,10 +99,11 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
     }
   };
 
-  const handleExpenseAdded = () => {
+  const handleExpenseSaved = () => {
     // Invalidate and refetch expenses queries
     queryClient.invalidateQueries({ queryKey: ['expenses'] });
-    setIsAddExpenseModalOpen(false);
+    setIsExpenseModalOpen(false);
+    setSelectedExpense(null);
   };
 
   return (
@@ -140,7 +140,10 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>All Expenses</CardTitle>
-            <Button className="shadow-warm" onClick={() => setIsAddExpenseModalOpen(true)}>
+            <Button className="shadow-warm" onClick={() => {
+              setExpenseModalMode('add');
+              setIsExpenseModalOpen(true);
+            }}>
               <Plus className="h-4 w-4 mr-2" />
               Add Expense
             </Button>
@@ -174,7 +177,11 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                       <TableCell>{expense.notes}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => { setSelectedExpense(expense); setIsEditExpenseModalOpen(true); }}>
+                          <Button variant="outline" size="sm" onClick={() => {
+                            setSelectedExpense(expense);
+                            setExpenseModalMode('edit');
+                            setIsExpenseModalOpen(true);
+                          }}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Button>
@@ -198,17 +205,15 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
         </CardContent>
       </Card>
 
-      <AddExpenseModal
-        isOpen={isAddExpenseModalOpen}
-        onClose={() => setIsAddExpenseModalOpen(false)}
-        onExpenseAdded={handleExpenseAdded}
-      />
-
-      <EditExpenseModal
-        isOpen={isEditExpenseModalOpen}
-        onClose={() => { setIsEditExpenseModalOpen(false); setSelectedExpense(null); }}
-        onExpenseUpdated={handleExpenseAdded}
+      <ExpenseModal
+        isOpen={isExpenseModalOpen}
+        onClose={() => {
+          setIsExpenseModalOpen(false);
+          setSelectedExpense(null);
+        }}
+        onExpenseSaved={handleExpenseSaved}
         expense={selectedExpense}
+        mode={expenseModalMode}
       />
 
       <ConfirmationDialog

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,19 +6,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { expensesService } from "@/services/expenses";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Plus, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import AddExpenseCategoryModal from "./AddExpenseCategoryModal";
 
-interface AddExpenseModalProps {
+interface ExpenseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onExpenseAdded: () => void;
+  onExpenseSaved: () => void;
+  expense?: Expense | null;
+  mode: 'add' | 'edit';
 }
 
-const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalProps) => {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+interface Expense {
+  id: number;
+  amount: number;
+  date: string;
+  status: string;
+  notes: string;
+  createdAt: string;
+  updatedAt: string;
+  createdById: number;
+  approvedById: number | null;
+  updatedById: number | null;
+  expenseCategoryId: number;
+  expenseCategory: {
+    id: number;
+    name: string;
+  };
+}
+
+const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: ExpenseModalProps) => {
+  const [date, setDate] = useState<Date | undefined>(mode === 'add' ? new Date() : undefined);
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
@@ -41,6 +63,20 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
     }
   }, [categories, category]);
 
+  useEffect(() => {
+    if (expense && mode === 'edit' && isOpen) {
+      setDate(new Date(expense.date));
+      setCategory(expense.expenseCategoryId.toString());
+      setAmount(expense.amount.toString());
+      setNotes(expense.notes || "");
+    } else if (mode === 'add' && isOpen) {
+      setDate(new Date());
+      setCategory(categories.length > 0 ? categories[0].id.toString() : "");
+      setAmount("");
+      setNotes("");
+    }
+  }, [expense, mode, isOpen, categories]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -52,27 +88,27 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
       return;
     }
 
-    const newExpense = {
+    const expenseData = {
       amount: parseFloat(amount),
-      date: new Date(date).toISOString(),
+      date: date.toISOString(),
       notes: notes.trim() || null,
       expenseCategoryId: parseInt(category),
     };
 
     try {
-      await expensesService.createExpense(newExpense);
-      toast.success("Expense added successfully!");
-      onExpenseAdded();
+      if (mode === 'add') {
+        await expensesService.createExpense(expenseData);
+        toast.success("Expense added successfully!");
+      } else if (mode === 'edit' && expense) {
+        await expensesService.updateExpense(expense.id.toString(), expenseData);
+        toast.success("Expense updated successfully!");
+      }
+      onExpenseSaved();
       onClose();
-      // Reset form
-      setDate(new Date().toISOString().split('T')[0]);
-      setCategory("");
-      setAmount("");
-      setNotes("");
     } catch (err) {
-      console.error("Failed to add expense:", err);
-      toast.error("Failed to add expense.");
-      setError("Failed to add expense. Please try again.");
+      console.error(`Failed to ${mode} expense:`, err);
+      toast.error(`Failed to ${mode} expense.`);
+      setError(`Failed to ${mode} expense. Please try again.`);
     } finally {
       setLoading(false);
     }
@@ -87,21 +123,33 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Expense</DialogTitle>
+          <DialogTitle>{mode === 'add' ? 'Add New Expense' : 'Edit Expense'}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="date" className="text-right">
+              <Label className="text-right">
                 Date
               </Label>
-              <Input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="col-span-3"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={`col-span-3 justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "dd-MM-yyyy") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="category" className="text-right">
@@ -161,7 +209,7 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
           {error && <p className="text-destructive text-sm mb-4">{error}</p>}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Expense"}
+              {loading ? (mode === 'add' ? "Adding..." : "Updating...") : (mode === 'add' ? "Add Expense" : "Update Expense")}
             </Button>
           </DialogFooter>
         </form>
@@ -176,4 +224,4 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
   );
 };
 
-export default AddExpenseModal;
+export default ExpenseModal;

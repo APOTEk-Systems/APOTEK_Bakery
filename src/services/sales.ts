@@ -10,6 +10,14 @@ export interface SalesQueryParams {
   createdAt?: number;
   startDate?: string;
   endDate?: string;
+  customerId?: number;
+}
+
+export interface PaginatedSalesResponse {
+  sales: Sale[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 export interface SaleItem {
@@ -79,6 +87,11 @@ export interface Order {
 export const salesService = {
   // Sales
   getAllSales: async (params: SalesQueryParams = {}): Promise<Sale[]> => {
+    const response = await api.get('/sales', { params });
+    return response.data;
+  },
+
+  getPaginatedSales: async (params: SalesQueryParams = {}): Promise<PaginatedSalesResponse> => {
     const response = await api.get('/sales', { params });
     return response.data;
   },

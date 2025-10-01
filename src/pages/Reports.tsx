@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +22,7 @@ const Reports = () => {
   const [selectedPurchasesReport, setSelectedPurchasesReport] = useState("purchases");
   const [selectedInventoryReport, setSelectedInventoryReport] = useState("inventory");
   const [selectedProductionReport, setSelectedProductionReport] = useState("production");
+  const [selectedAccountingReport, setSelectedAccountingReport] = useState("financial");
   const { toast } = useToast();
 
   // Export mutations for each report type
@@ -232,6 +233,49 @@ const Reports = () => {
     },
   });
 
+  const exportProfitAndLossMutation = useMutation({
+    mutationFn: () => reportsService.exportProfitAndLossReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('profit-loss'));
+      toast({
+        title: "Success",
+        description: "Profit and Loss report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export profit and loss report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportExpenseBreakdownMutation = useMutation({
+    mutationFn: () => reportsService.exportExpenseBreakdownReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      downloadBlob(blob, generateFilename('expense-breakdown'));
+      toast({
+        title: "Success",
+        description: "Expense breakdown report exported successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export expense breakdown report",
+        variant: "destructive",
+      });
+    },
+  });
+
+
   const downloadBlob = (blob: Blob, filename: string) => {
     console.log('💾 Creating download for blob:', { size: blob.size, type: blob.type, filename });
     try {
@@ -314,6 +358,12 @@ const Reports = () => {
       case 'financial':
         exportFinancialMutation.mutate();
         break;
+      case 'profit-loss':
+        exportProfitAndLossMutation.mutate();
+        break;
+      case 'expense-breakdown':
+        exportExpenseBreakdownMutation.mutate();
+        break;
     }
   };
 
@@ -343,7 +393,9 @@ const Reports = () => {
                       exportFinishedGoodsSummaryMutation.isPending ||
                       exportIngredientUsageMutation.isPending ||
                       exportInventoryMutation.isPending ||
-                      exportFinancialMutation.isPending;
+                      exportFinancialMutation.isPending ||
+                      exportProfitAndLossMutation.isPending ||
+                      exportExpenseBreakdownMutation.isPending;
 
   return (
     <Layout>
@@ -658,12 +710,22 @@ const Reports = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  Accounting Report
+                  Accounting Reports
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Generate a comprehensive accounting report with revenue, expenses, profit, and outstanding credits.
-                </p>
                 <div className="flex gap-4 mt-4">
+                  <div className="flex-1">
+                    <Label className="text-sm font-medium">Report Type</Label>
+                    <Select value={selectedAccountingReport} onValueChange={setSelectedAccountingReport}>
+                      <SelectTrigger className="my-1">
+                        <SelectValue placeholder="Select report type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {/* <SelectItem value="financial">Financial Summary</SelectItem> */}
+                        <SelectItem value="profit-loss">Profit and Loss</SelectItem>
+                        <SelectItem value="expense-breakdown">Expense Category Breakdown</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="flex-1">
                     <Label className="text-sm font-medium">Date Range</Label>
                     <DateRangePicker
@@ -675,13 +737,30 @@ const Reports = () => {
                 </div>
               </CardHeader>
               <CardContent>
+                <div className="mb-4">
+                  {selectedAccountingReport === 'financial' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a comprehensive accounting report with revenue, expenses, profit, and outstanding credits.
+                    </p>
+                  )}
+                  {selectedAccountingReport === 'profit-loss' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a profit and loss statement showing revenue, costs, and net profit.
+                    </p>
+                  )}
+                  {selectedAccountingReport === 'expense-breakdown' && (
+                    <p className="text-sm text-muted-foreground">
+                      Generate a breakdown of expenses by category with totals.
+                    </p>
+                  )}
+                </div>
                 <div className="flex justify-end">
                   <Button
-                    onClick={() => handleExport('financial')}
+                    onClick={() => handleExport(selectedAccountingReport)}
                     disabled={isExporting}
                     className="shadow-warm"
                   >
-                    {exportFinancialMutation.isPending ? (
+                    {(exportFinancialMutation.isPending || exportProfitAndLossMutation.isPending || exportExpenseBreakdownMutation.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...

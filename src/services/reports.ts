@@ -153,6 +153,23 @@ export interface IngredientUsageReport {
   }>;
 }
 
+export interface ProfitAndLossReport {
+  data: {
+    revenue: number;
+    cogs: number;
+    operatingExpenses: number;
+    grossProfit: number;
+    netProfit: number;
+  };
+}
+
+export interface ExpenseBreakdownReport {
+  data: {
+    breakdown: Record<string, number>;
+    totalExpenses: number;
+  };
+}
+
 export const reportsService = {
   // Helper function to add company header to PDFs
   addCompanyHeader: (
@@ -415,6 +432,32 @@ export const reportsService = {
     return response.data;
   },
 
+  // Profit and Loss Report
+  getProfitAndLossReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<ProfitAndLossReport> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const response = await api.get(`/reports/financial?${params.toString()}`);
+    return response.data;
+  },
+
+  // Expense Category Breakdown Report
+  getExpenseBreakdownReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<ExpenseBreakdownReport> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const response = await api.get(`/reports/expense-breakdown?${params.toString()}`);
+    return response.data;
+  },
+
   // Client-side PDF generation methods
   exportSalesReport: async (
     startDate?: string,
@@ -509,6 +552,48 @@ export const reportsService = {
       return pdfBlob;
     } catch (error) {
       console.error("❌ Error exporting financial report:", error);
+      throw error;
+    }
+  },
+
+  exportProfitAndLossReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    console.log("📊 Starting profit and loss report export...", {startDate, endDate});
+    try {
+      const data = await reportsService.getProfitAndLossReport(startDate, endDate);
+      console.log("✅ Profit and loss data fetched successfully:", data);
+      const pdfBlob = reportsService.generateProfitAndLossPDF(
+        data,
+        startDate,
+        endDate
+      );
+      console.log("📄 Profit and loss PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting profit and loss report:", error);
+      throw error;
+    }
+  },
+
+  exportExpenseBreakdownReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    console.log("📊 Starting expense breakdown report export...", {startDate, endDate});
+    try {
+      const data = await reportsService.getExpenseBreakdownReport(startDate, endDate);
+      console.log("✅ Expense breakdown data fetched successfully:", data);
+      const pdfBlob = reportsService.generateExpenseBreakdownPDF(
+        data,
+        startDate,
+        endDate
+      );
+      console.log("📄 Expense breakdown PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting expense breakdown report:", error);
       throw error;
     }
   },
@@ -850,7 +935,7 @@ export const reportsService = {
     //console.log("Inventory Data " , data.data.inventoryItems)
     // Inventory table
 
-    const tableData = data.data.inventoryItems.map((item) => {
+    const tableData = data.data.inventory.map((item) => {
       // Convert current quantity to displayed unit
       const displayQuantity =
         item.type === "raw_material"
@@ -1126,6 +1211,99 @@ export const reportsService = {
       styles: {fontSize: 8},
       headStyles: {fillColor: [41, 128, 185]},
     });
+
+    return doc.output("blob");
+  },
+
+  generateProfitAndLossPDF: (
+    data: ProfitAndLossReport,
+    startDate?: string,
+    endDate?: string
+  ): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Profit and Loss Statement",
+      startDate,
+      endDate
+    );
+
+    // Add some spacing
+    yPos += 10;
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Profit and Loss Statement", 20, yPos);
+    yPos += 15;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    // Revenue
+    doc.text(`Revenue: TZS ${data.data.revenue.toLocaleString()}`, 20, yPos);
+    yPos += 10;
+
+    // Cost of Goods Sold
+    doc.text(`Cost of Goods Sold: TZS ${data.data.cogs.toLocaleString()}`, 20, yPos);
+    yPos += 10;
+
+    // Gross Profit
+    doc.setFont("helvetica", "bold");
+    doc.text(`Gross Profit: TZS ${data.data.grossProfit.toLocaleString()}`, 20, yPos);
+    yPos += 15;
+
+    // Operating Expenses
+    doc.setFont("helvetica", "normal");
+    doc.text(`Operating Expenses: TZS ${data.data.operatingExpenses.toLocaleString()}`, 20, yPos);
+    yPos += 15;
+
+    // Net Profit
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Net Profit: TZS ${data.data.netProfit.toLocaleString()}`, 20, yPos);
+
+    return doc.output("blob");
+  },
+
+  generateExpenseBreakdownPDF: (
+    data: ExpenseBreakdownReport,
+    startDate?: string,
+    endDate?: string
+  ): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Expense Category Breakdown",
+      startDate,
+      endDate
+    );
+
+    // Expense breakdown table
+    const tableData = Object.entries(data.data.breakdown).map(([category, amount]) => [
+      category.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase()),
+      `TZS ${amount.toLocaleString()}`,
+    ]);
+
+    autoTable(doc, {
+      head: [["Category", "Amount"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 10},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    // Add total
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    let totalY = finalY + 15;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Total Expenses: TZS ${data.data.totalExpenses.toLocaleString()}`, 20, totalY);
 
     return doc.output("blob");
   },

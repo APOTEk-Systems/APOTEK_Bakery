@@ -158,7 +158,7 @@ const InventoryForm = () => {
       costPerBaseUnit = totalCost / amount;
     }
 
-    handleInputChange("cost", costPerBaseUnit.toString());
+    handleInputChange("cost", costPerBaseUnit.toFixed(0));
     setCostCalcOpen(false);
     setCalcAmount("");
     setCalcUnit("");

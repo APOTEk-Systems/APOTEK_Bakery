@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,86 +48,64 @@ type AdjustmentAction = 'add' | 'minus';
 const SuppliesAdjustmentsTab = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const [adjustments, setAdjustments] = useState([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [action, setAction] = useState<AdjustmentAction>('add');
-  const [submitLoading, setSubmitLoading] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchInventory();
-    fetchAdjustments();
-  }, [date]);
+  const inventoryQuery = useQuery({
+    queryKey: ['inventory', 'supplies'],
+    queryFn: () => getInventory({ type: "supplies" }),
+  });
 
-  const fetchInventory = async () => {
-    try {
-      const data = await getInventory({ type: "supplies" });
-      setInventory(data);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to load inventory",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const fetchAdjustments = async () => {
-    try {
-      setLoading(true);
+  const adjustmentsQuery = useQuery({
+    queryKey: ['adjustments', 'supplies', date],
+    queryFn: () => {
       const params = date ? { date: date.toISOString().split('T')[0], type: "supplies" } : { type: "supplies" };
-      const data = await getAdjustments(params);
-      setAdjustments(data);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to load adjustments",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return getAdjustments(params);
+    },
+  });
 
-  const handleSubmitAdjustment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedItemId || !amount) return;
-
-    try {
-      setSubmitLoading(true);
-      const adjustmentAmount = action === 'add' ? parseFloat(amount) : -parseFloat(amount);
-      await createAdjustment({
-        inventoryItemId: parseInt(selectedItemId),
-        amount: adjustmentAmount,
-        reason: reason.trim() || undefined,
-      });
+  const createAdjustmentMutation = useMutation({
+    mutationFn: createAdjustment,
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Adjustment created successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ['adjustments'] });
+      // Reset form
       setDialogOpen(false);
       setSelectedItemId("");
       setAmount("");
       setReason("");
       setAction('add');
-      fetchAdjustments();
-    } catch (err) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to create adjustment",
         variant: "destructive",
       });
-    } finally {
-      setSubmitLoading(false);
-    }
+    },
+  });
+
+  const handleSubmitAdjustment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItemId || !amount) return;
+
+    const adjustmentAmount = action === 'add' ? parseFloat(amount) : -parseFloat(amount);
+    createAdjustmentMutation.mutate({
+      inventoryItemId: parseInt(selectedItemId),
+      amount: adjustmentAmount,
+      reason: reason.trim() || undefined,
+    });
   };
 
-  if (loading) {
+  if (adjustmentsQuery.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -162,7 +141,6 @@ const SuppliesAdjustmentsTab = () => {
             </PopoverContent>
           </Popover>
         </div>
-        <Button onClick={fetchAdjustments}>Filter</Button>
       </div>
 
       <Card className="shadow-warm">
@@ -179,18 +157,22 @@ const SuppliesAdjustmentsTab = () => {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Date</TableHead>
                 <TableHead>Item</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Reason</TableHead>
-                <TableHead>Date</TableHead>
+              
               </TableRow>
             </TableHeader>
             <TableBody>
-              {adjustments.map((adjustment) => (
+              {adjustmentsQuery.data?.map((adjustment) => (
                 <TableRow key={adjustment.id}>
+                    <TableCell>
+                    {format(new Date(adjustment.createdAt), 'dd-MM-yyyy')}
+                  </TableCell>
                   <TableCell>
-                    {inventory.find(
-                      (item) => item.id === adjustment.inventoryItemId
+                    {inventoryQuery.data?.find(
+                      (item) => item.id === parseInt(adjustment.inventoryItemId)
                     )?.name || "Unknown"}
                   </TableCell>
                   <TableCell>
@@ -199,15 +181,13 @@ const SuppliesAdjustmentsTab = () => {
                       : adjustment.amount}
                   </TableCell>
                   <TableCell>{adjustment.reason}</TableCell>
-                  <TableCell>
-                    {format(new Date(adjustment.createdAt), 'dd-MM-yyyy')}
-                  </TableCell>
+
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          {adjustments.length === 0 && !loading && (
+          {adjustmentsQuery.data?.length === 0 && !adjustmentsQuery.isLoading && (
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -246,7 +226,7 @@ const SuppliesAdjustmentsTab = () => {
                   <SelectValue placeholder="Select item" />
                 </SelectTrigger>
                 <SelectContent>
-                  {inventory.map((item) => (
+                  {inventoryQuery.data?.map((item) => (
                     <SelectItem key={item.id} value={item.id.toString()}>
                       {item.name}
                     </SelectItem>
@@ -300,9 +280,9 @@ const SuppliesAdjustmentsTab = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={submitLoading || !selectedItemId || !amount}
+                disabled={createAdjustmentMutation.isPending || !selectedItemId || !amount}
               >
-                {submitLoading ? (
+                {createAdjustmentMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Plus className="h-4 w-4 mr-2" />

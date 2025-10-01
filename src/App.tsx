@@ -164,11 +164,6 @@ const App = () => (
                   <SaleDetail />
                 </ProtectedRoute>
               } />
-              <Route path="/sales/stats" element={
-                <ProtectedRoute>
-                  <SalesStats />
-                </ProtectedRoute>
-              } />
               <Route path="/production-runs" element={
                 <ProtectedRoute>
                   <ProductionRuns />

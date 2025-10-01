@@ -307,34 +307,94 @@ const AccountingSummaryTab = () => {
     )
   };
 
+  const currentMonth = summary?.currentMonth;
+  const lastMonth = summary?.lastMonth;
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5" />
-          Accounting Summary
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-lg font-bold">
-              {summary?.monthlyRevenue?.toFixed(2) ?? "0.00"}
+    <div className="space-y-6">
+       {/* First row: 3 cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(currentMonth?.revenue || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last month: {formatCurrency(lastMonth?.revenue || 0)}
             </p>
-            <p className="text-sm text-muted-foreground">Monthly Income</p>
-          </div>
-          <div>
-            <p className="text-lg font-bold text-red-500">
-              {summary?.monthlyExpenses?.toFixed(2) ?? "0.00"}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Cost of Goods Sold</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(currentMonth?.cogs || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last month: {formatCurrency(lastMonth?.cogs || 0)}
             </p>
-            <p className="text-sm text-muted-foreground">Monthly Expenses</p>
-          </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Operating Expenses</CardTitle>
+            <DollarSign className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(currentMonth?.operatingExpenses || 0)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last month: {formatCurrency(lastMonth?.operatingExpenses || 0)}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Second row: 2 centered cards */}
+      <div className="flex justify-center w-full">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-3/4">
+          <Card className="">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Gross Profit</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${(currentMonth?.grossProfit || 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                {formatCurrency(currentMonth?.grossProfit || 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Last month: {formatCurrency(lastMonth?.grossProfit || 0)}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+              <DollarSign className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className={`text-2xl font-bold ${(currentMonth?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(currentMonth?.netProfit || 0)}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Last month: {formatCurrency(lastMonth?.netProfit || 0)}
+              </p>
+            </CardContent>
+          </Card>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Net Profit for the month: {summary?.netProfit?.toFixed(2) ?? "0.00"}
-        </p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

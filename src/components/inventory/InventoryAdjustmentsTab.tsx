@@ -1,4 +1,5 @@
-import {useState, useEffect} from "react";
+import {useState} from "react";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
@@ -11,11 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {Calendar} from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {useToast} from "@/hooks/use-toast";
 import {Search, Plus, Loader2, CalendarDays} from "lucide-react";
 import {
@@ -56,100 +53,75 @@ const InventoryAdjustmentsTab = ({
 }: InventoryAdjustmentsTabProps) => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const [adjustments, setAdjustments] = useState([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [action, setAction] = useState<AdjustmentAction>("add");
   const [unit, setUnit] = useState("kg");
-  const [submitLoading, setSubmitLoading] = useState(false);
   const {toast} = useToast();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchInventory();
-    fetchAdjustments();
-  }, [date]);
+  const inventoryQuery = useQuery({
+    queryKey: ['inventory', type],
+    queryFn: () => getInventory({type}),
+  });
 
-  const fetchInventory = async () => {
-    try {
-      const data = await getInventory({type});
-      setInventory(data);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to load inventory",
-        variant: "destructive",
-      });
-    }
-  };
+  const adjustmentsQuery = useQuery({
+    queryKey: ['adjustments', type, date],
+    queryFn: () => {
+      const params = date
+        ? {date: date.toISOString().split("T")[0], type}
+        : {type};
+      return getAdjustments(params);
+    },
+  });
 
-  const fetchAdjustments = async () => {
-    try {
-      setLoading(true);
-      const params = date ? {date: date.toISOString().split('T')[0], type} : {type};
-      const data = await getAdjustments(params);
-      setAdjustments(data);
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: "Failed to load adjustments",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmitAdjustment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedItemId || !amount) return;
-
-    try {
-      setSubmitLoading(true);
-
-      // Convert amount into base unit
-      const rawAmount = parseFloat(amount);
-      const convertedAmount = toBaseUnits(rawAmount, unit);
-
-      // Apply add/minus action
-      const adjustmentAmount =
-        action === "add" ? convertedAmount : -convertedAmount;
-
-      await createAdjustment({
-        inventoryItemId: parseInt(selectedItemId),
-        amount: adjustmentAmount, // stored in base unit
-        reason: reason.trim() || undefined,
-      });
-
+  const createAdjustmentMutation = useMutation({
+    mutationFn: createAdjustment,
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Adjustment created successfully",
       });
-
-      // Reset
+      queryClient.invalidateQueries({ queryKey: ['adjustments'] });
+      // Reset form
       setDialogOpen(false);
       setSelectedItemId("");
       setAmount("");
       setReason("");
       setAction("add");
       setUnit("kg");
-
-      fetchAdjustments();
-    } catch (err) {
+    },
+    onError: () => {
       toast({
         title: "Error",
         description: "Failed to create adjustment",
         variant: "destructive",
       });
-    } finally {
-      setSubmitLoading(false);
-    }
+    },
+  });
+
+  const handleSubmitAdjustment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedItemId || !amount) return;
+
+    // Convert amount into base unit
+    const rawAmount = parseFloat(amount);
+    const convertedAmount = toBaseUnits(rawAmount, unit);
+
+    // Apply add/minus action
+    const adjustmentAmount =
+      action === "add" ? convertedAmount : -convertedAmount;
+
+    createAdjustmentMutation.mutate({
+      inventoryItemId: parseInt(selectedItemId),
+      amount: adjustmentAmount, // stored in base unit
+      reason: reason.trim() || undefined,
+    });
   };
 
-  if (loading) {
+  if (adjustmentsQuery.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -185,8 +157,10 @@ const InventoryAdjustmentsTab = ({
             </PopoverContent>
           </Popover>
         </div>
-        <Button><Plus className="h-4 w-4 mr-2" />
-              Add Adjustment</Button>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Adjustment
+        </Button>
       </div>
 
       <Card className="shadow-warm">
@@ -199,16 +173,17 @@ const InventoryAdjustmentsTab = ({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Date</TableHead>
                 <TableHead>Item</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Reason</TableHead>
-                <TableHead>Date</TableHead>
+                
               </TableRow>
             </TableHeader>
             <TableBody>
-              {adjustments.map((adjustment) => {
-                const item = inventory.find(
-                  (i) => i.id === adjustment.inventoryItemId
+              {adjustmentsQuery.data?.map((adjustment) => {
+                const item = inventoryQuery.data?.find(
+                  (i) => i.id === parseInt(adjustment.inventoryItemId)
                 );
                 const unit = item?.unit || "g"; // fallback
                 const displayAmount = fromBaseUnits(
@@ -218,22 +193,23 @@ const InventoryAdjustmentsTab = ({
 
                 return (
                   <TableRow key={adjustment.id}>
+                       <TableCell>
+                      {format(new Date(adjustment.createdAt), "dd-MM-yyyy")}
+                    </TableCell>
                     <TableCell>{item?.name || "Unknown"}</TableCell>
                     <TableCell>
                       {adjustment.amount > 0 ? "+" : "-"}
                       {displayAmount} {unit}
                     </TableCell>
                     <TableCell>{adjustment.reason}</TableCell>
-                    <TableCell>
-                      {format(new Date(adjustment.createdAt), "dd-MM-yyyy")}
-                    </TableCell>
+
                   </TableRow>
                 );
               })}
             </TableBody>
           </Table>
 
-          {adjustments.length === 0 && !loading && (
+          {adjustmentsQuery.data?.length === 0 && !adjustmentsQuery.isLoading && (
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -269,7 +245,7 @@ const InventoryAdjustmentsTab = ({
                   <SelectValue placeholder="Select item" />
                 </SelectTrigger>
                 <SelectContent>
-                  {inventory.map((item) => (
+                  {inventoryQuery.data?.map((item) => (
                     <SelectItem key={item.id} value={item.id.toString()}>
                       {item.name}
                     </SelectItem>
@@ -340,9 +316,9 @@ const InventoryAdjustmentsTab = ({
               </Button>
               <Button
                 type="submit"
-                disabled={submitLoading || !selectedItemId || !amount}
+                disabled={createAdjustmentMutation.isPending || !selectedItemId || !amount}
               >
-                {submitLoading ? (
+                {createAdjustmentMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
                   <Plus className="h-4 w-4 mr-2" />

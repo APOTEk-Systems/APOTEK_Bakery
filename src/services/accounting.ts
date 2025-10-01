@@ -1,16 +1,16 @@
 import { api } from '../lib/api';
 
-export interface MonthlySummary {
-  monthlyRevenue: number;
-  monthlyExpenses: number;
+export interface MonthlyData {
+  revenue: number;
+  cogs: number;
+  operatingExpenses: number;
+  grossProfit: number;
   netProfit: number;
-  profitMargin: string;
-  comparison: {
-    lastMonthRevenue: number;
-    lastMonthExpenses: number;
-    lastMonthNetProfit: number;
-    netProfitChange: string;
-  };
+}
+
+export interface MonthlySummary {
+  currentMonth: MonthlyData;
+  lastMonth: MonthlyData;
 }
 
 export const accountingService = {
