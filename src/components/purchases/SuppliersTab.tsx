@@ -128,7 +128,7 @@ export default function SuppliersTab() {
     // Validate form
     if (!validateForm()) return;
 
-    const data = { name: newSupplier.name, contactInfo: newSupplier.contactInfo.trim() ? "+255" + newSupplier.contactInfo : "", email: newSupplier.email, address: newSupplier.address };
+    const data = { name: newSupplier.name, contactInfo: newSupplier.contactInfo.trim() ? "+255" + newSupplier.contactInfo.replace(/^0/, '') : "", email: newSupplier.email, address: newSupplier.address };
     updateSupplierMutation.mutate(data);
   };
 

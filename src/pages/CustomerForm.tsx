@@ -209,7 +209,7 @@ const CustomerForm = () => {
     // Normalize phone number
     const normalizedFormData = {
       ...formData,
-      phone: formData.phone.trim() ? "+255" + formData.phone : "",
+      phone: formData.phone.trim() ? "+255" + formData.phone.replace(/^0/, '') : "",
     };
 
     customerMutation.mutate({customer: normalizedFormData, isEdit});

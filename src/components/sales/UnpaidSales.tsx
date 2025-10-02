@@ -24,7 +24,7 @@ import {
 
 const UnpaidSales: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit] = useState(5);
 
@@ -55,17 +55,26 @@ const UnpaidSales: React.FC = () => {
   };
 
   const { data: paginatedData, isPending: loading, error, refetch } = useQuery<PaginatedSalesResponse>({
-    queryKey: ['unpaidSales', dateRange, selectedCustomerId, page, limit],
+    queryKey: ['unpaidSales', selectedCustomer || dateRange, page, limit],
     queryFn: () => {
-      const params: SalesQueryParams = {
-        status: 'unpaid',
-        page,
-        limit,
-        ...(dateRange?.from && { startDate: dateRange.from.toISOString().split('T')[0] }),
-        ...(dateRange?.to && { endDate: dateRange.to.toISOString().split('T')[0] }),
-        ...(selectedCustomerId && { customerId: parseInt(selectedCustomerId) }),
-      };
-      return salesService.getPaginatedSales(params);
+      if (selectedCustomer) {
+        const params: SalesQueryParams = {
+          status: 'unpaid',
+          customerName: selectedCustomer,
+          page,
+          limit,
+        };
+        return salesService.getPaginatedSales(params);
+      } else {
+        const params: SalesQueryParams = {
+          status: 'unpaid',
+          page,
+          limit,
+          ...(dateRange?.from && { startDate: dateRange.from.toISOString().split('T')[0] }),
+          ...(dateRange?.to && { endDate: dateRange.to.toISOString().split('T')[0] }),
+        };
+        return salesService.getPaginatedSales(params);
+      }
     },
     refetchOnMount: false,
   });
@@ -79,9 +88,7 @@ const UnpaidSales: React.FC = () => {
     queryFn: () => customersService.getAll(),
   });
 
-  const filteredSales = selectedCustomerId
-    ? allSales.filter(sale => sale.customerId === parseInt(selectedCustomerId))
-    : allSales;
+  const filteredSales = allSales;
 
   return (
     <Card>
@@ -90,16 +97,17 @@ const UnpaidSales: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="flex justify-end items-center space-x-2 mb-2">
-          <Select value={selectedCustomerId || ''} onValueChange={(value) => {
-            setSelectedCustomerId(value);
+          <Select value={selectedCustomer || ''} onValueChange={(value) => {
+            setSelectedCustomer(value);
             setPage(1);
           }}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by customer" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="cash">Cash</SelectItem>
               {customersQuery.data?.map(customer => (
-                <SelectItem key={customer.id} value={customer.id.toString()}>
+                <SelectItem key={customer.id} value={customer.name}>
                   {customer.name}
                 </SelectItem>
               ))}

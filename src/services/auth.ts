@@ -4,12 +4,19 @@ import { api } from '../lib/api';
 export interface User {
   id: number;
   email: string;
-  role?: string;
-  permissions?: string[];
+  role?: UserRole;
   name?: string;
   status?: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface UserRole{
+  id:Number;
+  name: String;
+  description?: String;
+  permissions: String[]
+
 }
 
 export interface AuthResponse {

@@ -1,19 +1,23 @@
 import {useState} from "react";
 import {Link} from "react-router-dom";
-import {useQuery} from "@tanstack/react-query";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Input} from "@/components/ui/input";
 import {
-  Search,
-  Plus,
-  Eye,
-  Edit,
-  User,
-  Loader2,
-} from "lucide-react";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {useToast} from "@/hooks/use-toast";
+import {Search, Plus, Edit, User, Loader2, Trash} from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -28,10 +32,35 @@ import {formatCurrency} from "@/lib/funcs";
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
+  const {toast} = useToast();
+  const queryClient = useQueryClient();
 
   const customersQuery = useQuery({
     queryKey: ["customers"],
     queryFn: () => customersService.getAll(),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => customersService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["customers"]});
+      toast({
+        title: "Customer Deleted",
+        description: "Customer deleted successfully.",
+        variant: "default",
+      });
+      setIsDeleteConfirmOpen(false);
+      setDeleteItemId(null);
+    },
+    onError: (err) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete customer",
+        variant: "destructive",
+      });
+    },
   });
 
   const customers = [
@@ -68,6 +97,17 @@ const Customers = () => {
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "dd-MM-yyyy");
+  };
+
+  const handleDeleteCustomer = (id: number) => {
+    setDeleteItemId(id);
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (deleteItemId) {
+      deleteMutation.mutate(deleteItemId);
+    }
   };
 
   // Compute stats from fetched data (only when not loading)
@@ -197,44 +237,38 @@ const Customers = () => {
                     }`}
                   >
                     {/* Customer Info */}
-                    <TableCell className="flex items-center gap-3">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold">{customer.name}</span>
-                        </div>
-                      </div>
+                    <TableCell className="align-middle">
+                      <span className="font-semibold">{customer.name}</span>
                     </TableCell>
 
                     {/* Email */}
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <TableCell className="align-middle">
+                      <span className="text-sm text-muted-foreground">
                         {customer.email || "—"}
-                      </div>
+                      </span>
                     </TableCell>
 
                     {/* Phone */}
-                    <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <TableCell className="align-middle">
+                      <span className="text-sm text-muted-foreground">
                         {customer.phone || "—"}
-                      </div>
+                      </span>
                     </TableCell>
 
                     {/* Credit Status */}
-                    <TableCell className="text-center font-bold">
+                    <TableCell className="text-center font-bold align-middle">
                       {formatCurrency(customer.creditLimit)}
                     </TableCell>
 
-                    {/* Total Spent */}
-                    {/* <TableCell className="text-center font-bold">
-                ${customer.totalSpent?.toFixed(0) ?? 0}
-              </TableCell> */}
-                    <TableCell>
+                    {/* Status */}
+                    <TableCell className="align-middle">
                       <Badge variant={getStatusColor(customer.status)}>
                         {customer.status}
                       </Badge>
                     </TableCell>
+
                     {/* Actions */}
-                    <TableCell className="text-right">
+                    <TableCell className="text-right align-middle">
                       {customer.id === "cash" ? (
                         <span className="text-muted-foreground text-sm">
                           Default
@@ -242,16 +276,21 @@ const Customers = () => {
                       ) : (
                         <div className="flex gap-1 justify-end">
                           <Button variant="outline" size="sm" asChild>
-                            <Link to={`/customers/${customer.id}`}>
-                              <Eye className="h-4 w-4" />
+                            <Link to={`/customers/${customer.id}/edit`}>
+                              <Edit className="h-4 w-4" />
                               Edit
                             </Link>
                           </Button>
-                          <Button variant="destructive" size="sm" asChild>
-                            <Link to={`/customers/${customer.id}/edit`}>
-                              <Edit className="h-4 w-4" />
-                              Delete
-                            </Link>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() =>
+                              handleDeleteCustomer(Number(customer.id))
+                            }
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash className="h-4 w-4" />
+                            Delete
                           </Button>
                         </div>
                       )}
@@ -262,6 +301,31 @@ const Customers = () => {
             </TableBody>
           </Table>
         </Card>
+
+        {/* Delete Confirmation */}
+        <AlertDialog
+          open={isDeleteConfirmOpen}
+          onOpenChange={setIsDeleteConfirmOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                customer.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? "Deleting..." : "Delete Customer"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </Layout>
   );

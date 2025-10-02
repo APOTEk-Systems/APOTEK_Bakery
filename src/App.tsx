@@ -33,7 +33,10 @@ const PurchaseOrderView = lazy(() => import("./pages/PurchaseOrderView"));
 const GoodsReceivingView = lazy(() => import("./pages/GoodsReceivingView"));
 const Accounting = lazy(() => import("./pages/Accounting"));
 const Reports = lazy(() => import("./pages/Reports"));
-const Settings = lazy(() => import("./pages/Settings"));
+const UserRoleManagement = lazy(() => import("./pages/UserRoleManagement"));
+const Information = lazy(() => import("./pages/Information"));
+const Notifications = lazy(() => import("./pages/Notifications"));
+const SystemSettings = lazy(() => import("./pages/SystemSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -184,9 +187,24 @@ const App = () => (
                   <Reports />
                 </ProtectedRoute>
               } />
-              <Route path="/settings" element={
+              <Route path="/user-role-management" element={
                 <ProtectedRoute>
-                  <Settings />
+                  <UserRoleManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/information" element={
+                <ProtectedRoute>
+                  <Information />
+                </ProtectedRoute>
+              } />
+              <Route path="/notifications" element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } />
+              <Route path="/system-settings" element={
+                <ProtectedRoute>
+                  <SystemSettings />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

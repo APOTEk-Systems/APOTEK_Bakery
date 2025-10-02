@@ -5,8 +5,8 @@ export interface CreateUserData {
   name: string;
   email: string;
   password: string;
-  role: 'admin' | 'cashier';
-  permissions: string[];
+  roleId: number;
+  permissions?: string[];
 }
 
 export const usersService = {

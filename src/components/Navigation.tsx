@@ -2,24 +2,27 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useLocation, Link } from "react-router-dom";
 import {
-  Home,
-  Package,
-  ShoppingCart,
-  Users,
-  Settings,
-  Cookie,
-  CreditCard,
-  Factory,
-  Calculator,
-  CheckCircle,
-  LogOut,
-  ChevronDown,
-  BarChart2,
-  Menu,
-  ChevronLeft,
-  ChevronRight,
-  FileText
-} from "lucide-react";
+   Home,
+   Package,
+   ShoppingCart,
+   Users,
+   Settings,
+   Cookie,
+   CreditCard,
+   Factory,
+   Calculator,
+   CheckCircle,
+   LogOut,
+   ChevronDown,
+   BarChart2,
+   Menu,
+   ChevronLeft,
+   ChevronRight,
+   FileText,
+   Shield,
+   Store,
+   Bell
+ } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Collapsible,
@@ -45,6 +48,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
   const { isAuthenticated, logout } = useAuth();
   const [inventoryOpen, setInventoryOpen] = useState(location.pathname.startsWith('/inventory') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products'));
   const [salesOpen, setSalesOpen] = useState(location.pathname.startsWith('/sales'));
+  const [settingsOpen, setSettingsOpen] = useState(location.pathname.startsWith('/settings'));
   
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
@@ -172,6 +176,67 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         <Link to="/customers" className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
                           {(!collapsed || isMobile) && "Customers"}
+                        </Link>
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
+                );
+              }
+              if (item.label === "Settings") {
+                const isActive = location.pathname.startsWith('/settings');
+                return (
+                  <Collapsible key={index} open={settingsOpen} onOpenChange={setSettingsOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant={isActive ? "default" : "ghost"}
+                        className={`w-full justify-between ${isActive ? 'bg-primary text-primary-foreground shadow-warm mb-2' : 'hover:bg-muted'}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className="h-5 w-5" />
+                          {(!collapsed || isMobile) && item.label}
+                        </div>
+                        {(!collapsed || isMobile) && <ChevronDown className={`h-4 w-4 transition-transform ${settingsOpen ? 'rotate-180' : ''}`} />}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1 ml-3">
+                      <Button
+                        variant={location.pathname === '/user-role-management' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/user-role-management" className="flex items-center gap-2">
+                          <Users className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "User and Role Management"}
+                        </Link>
+                      </Button>
+                      <Button
+                        variant={location.pathname === '/information' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/information" className="flex items-center gap-2">
+                          <Store className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Information"}
+                        </Link>
+                      </Button>
+                      <Button
+                        variant={location.pathname === '/notifications' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/notifications" className="flex items-center gap-2">
+                          <Bell className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Notifications"}
+                        </Link>
+                      </Button>
+                      <Button
+                        variant={location.pathname === '/system-settings' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/system-settings" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "System Settings"}
                         </Link>
                       </Button>
                     </CollapsibleContent>

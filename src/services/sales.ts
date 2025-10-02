@@ -11,6 +11,7 @@ export interface SalesQueryParams {
   startDate?: string;
   endDate?: string;
   customerId?: number;
+  customerName?: string;
 }
 
 export interface PaginatedSalesResponse {
