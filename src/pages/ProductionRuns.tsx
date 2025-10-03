@@ -210,9 +210,7 @@ const ProductionRuns = () => {
         <div className="mb-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Production
-              </h1>
+              <h1 className="text-3xl font-bold text-foreground">Production</h1>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
@@ -342,13 +340,14 @@ const ProductionRuns = () => {
         <Card className="shadow-none bg-transparent border-0 mb-6">
           <CardContent className="p-4">
             <div className="flex items-end gap-4">
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="search">Search</Label>
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
                   placeholder="Search production"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
               <div className="space-y-2">
@@ -362,7 +361,11 @@ const ProductionRuns = () => {
                       className="w-[240px] justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? format(date, "dd-MM-yyyy") : <span>Pick a date</span>}
+                      {date ? (
+                        format(date, "dd-MM-yyyy")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -429,11 +432,18 @@ const ProductionRuns = () => {
                   </TableHeader>
                   <TableBody>
                     {filteredRuns.map((run) => {
-                      const product = products.find((p) => p.id === Number(run.productId));
+                      const product = products.find(
+                        (p) => p.id === Number(run.productId)
+                      );
                       const productName = product?.name || "Unknown";
-                      const costPerProduct = Number(run.cost) / run.quantityProduced;
+                      const costPerProduct =
+                        Number(run.cost) / run.quantityProduced;
                       const sellingPrice = product?.price || 0;
-                      const profitMargin = sellingPrice > 0 ? ((sellingPrice - costPerProduct) / sellingPrice) * 100 : 0;
+                      const profitMargin =
+                        sellingPrice > 0
+                          ? ((sellingPrice - costPerProduct) / sellingPrice) *
+                            100
+                          : 0;
                       return (
                         <TableRow key={run.id}>
                           <TableCell className="font-medium">
@@ -441,13 +451,17 @@ const ProductionRuns = () => {
                           </TableCell>
                           <TableCell>{run.quantityProduced}</TableCell>
                           <TableCell>
-                            {format(new Date(run.date), 'dd-MM-yyyy')}
+                            {format(new Date(run.date), "dd-MM-yyyy")}
                           </TableCell>
                           <TableCell>
                             {formatCurrency(Number(run.cost))}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={profitMargin >= 0 ? "default" : "destructive"}>
+                            <Badge
+                              variant={
+                                profitMargin >= 0 ? "default" : "destructive"
+                              }
+                            >
                               {profitMargin.toFixed(1)}%
                             </Badge>
                           </TableCell>
@@ -459,11 +473,10 @@ const ProductionRuns = () => {
                                 asChild
                                 disabled={deleteMutation.isPending}
                               >
-                                <Link to={`/production-runs/${run.id}`}>
+                                <Link to={`/production/${run.id}`}>
                                   <Eye className="h-3 w-3" />
-                                    View
+                                  View
                                 </Link>
-                              
                               </Button>
                               <Button
                                 variant="destructive"

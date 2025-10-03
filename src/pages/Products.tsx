@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import {Badge} from "@/components/ui/badge";
 import {useToast} from "@/hooks/use-toast";
-import {Plus, Filter, Package, Edit, Trash2, Loader2} from "lucide-react";
+import {Plus, Filter, Package, Edit, Trash2, Loader2, Search} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -48,7 +48,7 @@ const Products = () => {
   const categories = ["all"];
 
   const productsQuery = useQuery({
-    queryKey: ['products'],
+    queryKey: ["products"],
     queryFn: () => getProducts(),
   });
 
@@ -94,7 +94,7 @@ const Products = () => {
   const deleteProductMutation = useMutation({
     mutationFn: (productId: number) => deleteProduct(productId),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['products']});
+      queryClient.invalidateQueries({queryKey: ["products"]});
       toast({
         title: "Success",
         description: "Product deleted successfully",
@@ -123,24 +123,29 @@ const Products = () => {
             <div>
               <h1 className="text-3xl font-bold text-foreground">Products</h1>
             </div>
+            <Button className="shadow-warm" asChild>
+              <Link to="/products/new">
+                <Plus className="h-4 w-4 mr-2" />
+                New Product
+              </Link>
+            </Button>
           </div>
         </div>
 
         {/* Filters - Moved to top */}
         <Card className="bg-transparent shadow-none border-0 py-4">
-          
           <CardContent className="space-y-4 py-0 flex items-center">
-            
-            <div className="space-y-2 mr-4 flex-1">
-              <Label htmlFor="search">Search</Label>
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="search"
                 placeholder="Search products..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
               />
             </div>
-            <div className="space-y-2" style={{marginTop: "0"}}>
+            {/* <div className="space-y-2" style={{marginTop: "0"}}>
               <Label htmlFor="sort">Sort By</Label>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-full">
@@ -152,16 +157,11 @@ const Products = () => {
                   <SelectItem value="stock">Stock</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
 
-      <div className="w-full flex justify-end mb-4">      <Button className="shadow-warm" asChild>
-              <Link to="/products/new">
-                <Plus className="h-4 w-4 mr-2" />
-                New Product
-              </Link>
-            </Button></div>
+        <div className="w-full flex justify-end mb-4"> </div>
         <div className="grid grid-cols-1 gap-6">
           {/* Products Table */}
           <div className="space-y-4">
@@ -172,7 +172,11 @@ const Products = () => {
             ) : productsQuery.error ? (
               <Card>
                 <CardContent className="p-6 text-center">
-                  <p className="text-destructive">{productsQuery.error instanceof Error ? productsQuery.error.message : 'Failed to load products'}</p>
+                  <p className="text-destructive">
+                    {productsQuery.error instanceof Error
+                      ? productsQuery.error.message
+                      : "Failed to load products"}
+                  </p>
                   <Button
                     onClick={() => productsQuery.refetch()}
                     className="mt-4"

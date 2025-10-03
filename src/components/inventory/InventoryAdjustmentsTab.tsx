@@ -156,8 +156,8 @@ const InventoryAdjustmentsTab = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
-                <TableHead>Item</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>Item Name</TableHead>
+                <TableHead>Quantity</TableHead>
                 <TableHead>Reason</TableHead>
                 
               </TableRow>

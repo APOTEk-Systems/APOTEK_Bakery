@@ -136,8 +136,8 @@ const InventoryForm = () => {
         name: item.name,
         unit,
         currentQuantity: fromBaseUnits(item.currentQuantity, unit) === 0 ? "" : fromBaseUnits(item.currentQuantity, unit).toString(),
-        minLevel: fromBaseUnits(item.minLevel, unit) === 0 ? "" : fromBaseUnits(item.minLevel, unit).toString(),
-        maxLevel: fromBaseUnits(item.maxLevel, unit) === 0 ? "" : fromBaseUnits(item.maxLevel, unit).toString(),
+        minLevel: item.minLevel === 0 ? "" : item.minLevel.toString(),
+        maxLevel: item.maxLevel === 0 ? "" : item.maxLevel.toString(),
         cost: denormalizeCost(item.cost, unit).toString(),
       });
     }
@@ -246,8 +246,6 @@ const InventoryForm = () => {
 
     // Convert to base units for DB
     currentQuantity = toBaseUnits(currentQuantity, unit);
-    minLevel = toBaseUnits(minLevel, unit);
-    maxLevel = toBaseUnits(maxLevel, unit);
     cost = normalizeCost(cost, unit);
 
     const submitData = {
@@ -314,7 +312,6 @@ const InventoryForm = () => {
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  placeholder="Enter item name"
                   required
                 />
                 {nameError && (

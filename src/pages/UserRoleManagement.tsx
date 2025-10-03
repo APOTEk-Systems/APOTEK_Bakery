@@ -64,6 +64,7 @@ const UserRoleManagement = () => {
     description: "",
     permissions: [],
   });
+  const [isEditingAdmin, setIsEditingAdmin] = useState(false);
 
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
@@ -351,10 +352,12 @@ const UserRoleManagement = () => {
 
   const handleEditRole = (role: Role) => {
     setEditingRole(role);
+    const isAdmin = role.name.toLowerCase() === "admin";
+    setIsEditingAdmin(isAdmin);
     setRoleFormData({
       name: role.name,
       description: role.description || "",
-      permissions: role.permissions,
+      permissions: isAdmin ? allPermissions : role.permissions,
     });
     setRoleDialogOpen(true);
   };
@@ -371,6 +374,7 @@ const UserRoleManagement = () => {
 
   const openCreateRoleDialog = () => {
     setEditingRole(null);
+    setIsEditingAdmin(false);
     setRoleFormData({
       name: "",
       description: "",
@@ -612,6 +616,7 @@ const UserRoleManagement = () => {
                           <Input
                             id="roleName"
                             value={roleFormData.name}
+                            disabled={isEditingAdmin}
                             onChange={(e) =>
                               setRoleFormData((prev) => ({ ...prev, name: e.target.value }))
                             }
@@ -625,6 +630,7 @@ const UserRoleManagement = () => {
                           <Textarea
                             id="roleDescription"
                             value={roleFormData.description}
+                            disabled={isEditingAdmin}
                             onChange={(e) =>
                               setRoleFormData((prev) => ({ ...prev, description: e.target.value }))
                             }
@@ -644,6 +650,7 @@ const UserRoleManagement = () => {
                                   <Checkbox
                                     id={`role-${permission}`}
                                     checked={roleFormData.permissions.includes(permission)}
+                                    disabled={isEditingAdmin}
                                     onCheckedChange={(checked) =>
                                       setRoleFormData((prev) => ({
                                         ...prev,
@@ -655,7 +662,7 @@ const UserRoleManagement = () => {
                                   />
                                   <Label
                                     htmlFor={`role-${permission}`}
-                                    className="text-sm font-normal cursor-pointer"
+                                    className={`text-sm font-normal ${isEditingAdmin ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                                   >
                                     {permission.replace(":", " ").replace(/^./, str => str.toUpperCase())}
                                   </Label>

@@ -43,7 +43,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
+      <Toaster  />
       <Sonner position={`top-right`} />
       <BrowserRouter>
         <AuthProvider>
@@ -166,12 +166,12 @@ const App = () => (
                   <SaleDetail />
                 </ProtectedRoute>
               } />
-              <Route path="/production-runs" element={
+              <Route path="/production" element={
                 <ProtectedRoute>
                   <ProductionRuns />
                 </ProtectedRoute>
               } />
-              <Route path="/production-runs/:id" element={
+              <Route path="/production/:id" element={
                 <ProtectedRoute>
                   <ProductionRunDetail />
                 </ProtectedRoute>

@@ -23,7 +23,7 @@ const ProductionRunDetail = () => {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center">
+        <div className="flex items-center h-full justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </Layout>
@@ -38,7 +38,7 @@ const ProductionRunDetail = () => {
             <CardContent className="p-6 text-center">
               <p className="text-destructive mb-4">Production run not found or error loading details.</p>
               <Button asChild>
-                <Link to="/production-runs">
+                <Link to="/production">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Production Runs
                 </Link>
@@ -55,7 +55,7 @@ const ProductionRunDetail = () => {
       <div className="p-6">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link to="/production-runs">
+            <Link to="/production">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Production Runs
             </Link>

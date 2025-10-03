@@ -10,8 +10,6 @@ import {
   Edit,
   AlertTriangle,
   Package,
-  TrendingDown,
-  TrendingUp,
   Trash2,
   Loader2,
   Plus as PlusIcon
@@ -191,8 +189,6 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
               </TableHeader>
               <TableBody>
                 {filteredInventory.map((item) => {
-                  const status = getStatus(item.currentQuantity, item.minLevel);
-
                   // Convert display values for kg/l units
                   let displayUnit = item.unit || 'N/A';
                   let displayQuantity = item.currentQuantity;
@@ -210,6 +206,8 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
                   } else {
                     // Leave as is for other units
                   }
+
+                  const status = getStatus(displayQuantity, item.minLevel);
 
                   return (
                     <TableRow key={item.id}>

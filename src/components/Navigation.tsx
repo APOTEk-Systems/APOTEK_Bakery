@@ -83,13 +83,13 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
             {navItems.map((item, index) => {
               const Icon = item.icon;
               if (item.label === "Inventory") {
-                const isActive = location.pathname.startsWith('/inventory') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products');
+                const isActive = location.pathname.startsWith('/materials') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products');
                 return (
                   <Collapsible key={index} open={inventoryOpen} onOpenChange={setInventoryOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
                         variant={isActive ? "default" : "ghost"}
-                        className={`w-full justify-between ${isActive ? 'bg-primary text-primary-foreground shadow-warm mb-2' : 'hover:bg-muted'}`}
+                        className={`w-full justify-between ${isActive ? 'bg-primary text-primary-foreground shadow-warm' : 'hover:bg-muted'}`}
                       >
                         <div className="flex items-center gap-3">
                           <Icon className="h-5 w-5" />
@@ -100,7 +100,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
                       <Button
-                        variant={location.pathname.startsWith('/material') ? "secondary" : "ghost"}
+                        variant={location.pathname.startsWith('/materials') ? "secondary" : "ghost"}
                         className="w-full justify-start hover:bg-muted"
                         asChild
                       >
