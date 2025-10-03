@@ -94,7 +94,7 @@ const InventoryForm = () => {
       queryClient.invalidateQueries({queryKey: ["inventory"]});
       toast({
         title: "Material Added",
-        description: `${formData.name} material has been added to inventory.`,
+        description: `${formData.name} material has been added.`,
       });
       navigate("/inventory");
     },

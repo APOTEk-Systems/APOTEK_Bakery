@@ -111,17 +111,11 @@ const Login = () => {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading ? "Loading..." : "Log In"}
               </Button>
             </form>
           </Form>
 
-          <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Don't have an account? </span>
-            <Button variant="link" className="p-0 h-auto font-normal">
-              Sign up
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

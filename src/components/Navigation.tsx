@@ -98,11 +98,11 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
                       <Button
-                        variant={location.pathname.startsWith('/inventory') ? "secondary" : "ghost"}
+                        variant={location.pathname.startsWith('/material') ? "secondary" : "ghost"}
                         className="w-full justify-start hover:bg-muted"
                         asChild
                       >
-                        <Link to="/inventory" className="flex items-center gap-2">
+                        <Link to="/material" className="flex items-center gap-2">
                           <Package className="h-4 w-4" />
                           {(!collapsed || isMobile) && "Raw Materials"}
                         </Link>

@@ -9,7 +9,7 @@ const Inventory = () => {
       <div className="p-6">
         <div className="mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Raw Materials</h1>
+            <h1 className="text-3xl font-bold text-foreground">Materials</h1>
           </div>
         </div>
 

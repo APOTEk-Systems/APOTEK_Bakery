@@ -174,7 +174,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
       ) : (
         <Card className="shadow-warm">
           <CardHeader>
-            <CardTitle>{title} Items</CardTitle>
+            <CardTitle>Materials</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>

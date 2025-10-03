@@ -342,15 +342,20 @@ const ProductForm = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label htmlFor="price">Selling Price (Tsh) *</Label>
+                      <Label htmlFor="price">Selling Price *</Label>
                       <Input
                         id="price"
-                        type="number"
-                        value={formData.price}
-                        onChange={(e) =>
-                          handleInputChange("price", e.target.value)
+                        type="text"
+                        value={
+                          formData.price
+                            ? Number(formData.price).toLocaleString("en-US")
+                            : ""
                         }
-                        placeholder="1000"
+                        onChange={(e) => {
+                          const raw = e.target.value.replace(/,/g, ""); // remove commas
+                          handleInputChange("price", raw);
+                        }}
+                        placeholder="1,000"
                         required
                       />
                     </div>

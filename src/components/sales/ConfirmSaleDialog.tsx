@@ -37,6 +37,7 @@ interface ConfirmSaleDialogProps {
   newSale: any;
   handleCompleteSale: () => void;
   createSaleMutation: any;
+  onResetSale?: () => void;
   businessInfo?: {
     bakeryName: string;
     address: string;
@@ -61,11 +62,20 @@ const ConfirmSaleDialog = ({
   newSale,
   handleCompleteSale,
   createSaleMutation,
+  onResetSale,
   businessInfo,
 }: ConfirmSaleDialogProps) => {
 
    const {user} = useAuth()
    console.log(user)
+  const handleCloseDialog = () => {
+    setShowConfirmDialog(false);
+    // Reset sale state when dialog closes after completion
+    if (saleCompleted && onResetSale) {
+      onResetSale();
+    }
+  };
+
   const handlePrintReceipt = () => {
     const customer = selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null;
     const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
@@ -245,7 +255,7 @@ const ConfirmSaleDialog = ({
     }
   };
   return (
-    <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+    <Dialog open={showConfirmDialog} onOpenChange={handleCloseDialog}>
       <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
         <DialogHeader>
           <DialogTitle>
@@ -382,7 +392,7 @@ const ConfirmSaleDialog = ({
             </>
           ) : (
             <Button
-              onClick={() => setShowConfirmDialog(false)}
+              onClick={handleCloseDialog}
             >
               Close
             </Button>

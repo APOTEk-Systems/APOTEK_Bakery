@@ -89,7 +89,7 @@ const ProductionRuns = () => {
       queryClient.invalidateQueries({queryKey: ["productionRuns", today]});
       toast({
         title: "Success",
-        description: "Production run created successfully",
+        description: "Production created successfully",
       });
       setCreateDialogOpen(false);
       setFormData({productId: "", quantity: "", notes: ""});
@@ -98,7 +98,7 @@ const ProductionRuns = () => {
     onError: (error: any) => {
       if (error.response?.status !== 500) {
         const errorMsg =
-          error.response?.data?.error || "Failed to create production run";
+          error.response?.data?.error || "Failed to create production";
         toast({
           title: "Warning",
           description: errorMsg,
@@ -120,13 +120,13 @@ const ProductionRuns = () => {
       queryClient.invalidateQueries({queryKey: ["productionRuns", today]});
       toast({
         title: "Success",
-        description: "Production run deleted successfully",
+        description: "Production deleted successfully",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to delete production run",
+        description: "Failed to delete production",
         variant: "destructive",
       });
     },
@@ -225,7 +225,7 @@ const ProductionRuns = () => {
                 <DialogHeader>
                   <DialogTitle>Create Production</DialogTitle>
                   <DialogDescription>
-                    Start a new production run for a product.
+                    Start a new production for a product.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
@@ -346,7 +346,7 @@ const ProductionRuns = () => {
                 <Label htmlFor="search">Search</Label>
                 <Input
                   id="search"
-                  placeholder="Search production runs..."
+                  placeholder="Search production"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -490,16 +490,16 @@ const ProductionRuns = () => {
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              No production runs for {format(date, "MMMM do, yyyy")}
+              No production for {format(date, "MMMM do, yyyy")}
             </h3>
             <p className="text-muted-foreground mb-4">
-              Get started by creating your first production run
+              Get started by creating your first production
             </p>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Production Run
+                  Create Production
                 </Button>
               </DialogTrigger>
               {/* Dialog content as above */}

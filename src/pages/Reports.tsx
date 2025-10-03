@@ -413,7 +413,7 @@ const Reports = () => {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="purchases">Purchases</TabsTrigger>
-            <TabsTrigger value="material">Materials</TabsTrigger>
+            <TabsTrigger value="material">Inventory</TabsTrigger>
             <TabsTrigger value="production">Production</TabsTrigger>
             <TabsTrigger value="financial">Accounting</TabsTrigger>
           </TabsList>

@@ -13,21 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {useToast} from "@/hooks/use-toast";
 import {ArrowLeft, Save, Loader2} from "lucide-react";
 import {
@@ -53,10 +38,6 @@ const SuppliesForm = () => {
     cost: "",
   });
 
-  const [costCalcOpen, setCostCalcOpen] = useState(false);
-  const [calcAmount, setCalcAmount] = useState("");
-  const [calcUnit, setCalcUnit] = useState("");
-  const [calcTotalCost, setCalcTotalCost] = useState("");
   const [nameError, setNameError] = useState("");
 
   const unitOptions = [
@@ -158,30 +139,6 @@ const SuppliesForm = () => {
     }
   };
 
-  const calculateCost = () => {
-    const amount = parseFloat(calcAmount);
-    const totalCost = parseFloat(calcTotalCost);
-    if (!amount || !totalCost || !calcUnit) return;
-
-    let costPerBaseUnit = 0;
-    if (calcUnit === "g") {
-      costPerBaseUnit = totalCost / amount;
-    } else if (calcUnit === "kg") {
-      costPerBaseUnit = totalCost / (amount * 1000);
-    } else if (calcUnit === "ml") {
-      costPerBaseUnit = totalCost / amount;
-    } else if (calcUnit === "l") {
-      costPerBaseUnit = totalCost / (amount * 1000);
-    } else if (calcUnit === "pcs" || calcUnit === "pair") {
-      costPerBaseUnit = totalCost / amount;
-    }
-
-    handleInputChange("cost", costPerBaseUnit.toFixed(0));
-    setCostCalcOpen(false);
-    setCalcAmount("");
-    setCalcUnit("");
-    setCalcTotalCost("");
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -359,112 +316,20 @@ const SuppliesForm = () => {
                 </div>
                 <div>
                   <Label htmlFor="cost">Unit Cost *</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      id="cost"
-                      type="text"
-                      value={formData.cost ? parseFloat(formData.cost).toLocaleString('en-US') : ''}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/,/g, '');
-                        if (!isNaN(Number(value)) || value === '') {
-                          handleInputChange("cost", value);
-                        }
-                      }}
-                      onWheel={(e) => e.currentTarget.blur()}
-                      placeholder=""
-                      required
-                    />
-                    <Dialog open={costCalcOpen} onOpenChange={setCostCalcOpen}>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <DialogTrigger asChild>
-                              <Button type="button" variant="outline" size="sm">
-                                Calculate
-                              </Button>
-                            </DialogTrigger>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>
-                              Calculate cost per unit from your purchase details
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Cost Calculator</DialogTitle>
-                          <DialogDescription>
-                            Enter the details of your purchase to calculate the
-                            cost per unit.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div>
-                            <Label>Purchased Quantity</Label>
-                            <Input
-                              type="number"
-                              value={calcAmount}
-                              onChange={(e) => setCalcAmount(e.target.value)}
-                              placeholder="e.g., 500"
-                            />
-                          </div>
-                          <div>
-                            <Label>Unit</Label>
-                            <Select
-                              value={calcUnit}
-                              onValueChange={setCalcUnit}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select unit" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {unitOptions.map((option) => (
-                                  <SelectItem
-                                    key={option.value}
-                                    value={option.value}
-                                  >
-                                    {option.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Total Cost Paid</Label>
-                            <Input
-                              type="text"
-                              value={calcTotalCost ? parseFloat(calcTotalCost).toLocaleString('en-US') : ''}
-                              onChange={(e) => {
-                                const value = e.target.value.replace(/,/g, '');
-                                if (!isNaN(Number(value)) || value === '') {
-                                  setCalcTotalCost(value);
-                                }
-                              }}
-                              placeholder="e.g., 8,500"
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setCostCalcOpen(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button
-                            onClick={calculateCost}
-                            disabled={
-                              !calcAmount || !calcUnit || !calcTotalCost
-                            }
-                          >
-                            Calculate Cost
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
+                  <Input
+                    id="cost"
+                    type="text"
+                    value={formData.cost ? parseFloat(formData.cost).toLocaleString('en-US') : ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      if (!isNaN(Number(value)) || value === '') {
+                        handleInputChange("cost", value);
+                      }
+                    }}
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
+                    required
+                  />
                 </div>
               </div>
 

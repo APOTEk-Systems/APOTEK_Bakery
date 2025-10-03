@@ -46,6 +46,23 @@ const NewSale = () => {
   const [newSale, setNewSale] = useState<any>(null);
   const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
 
+  const resetSaleState = () => {
+    setShowConfirmDialog(false);
+    setSoldCart([]);
+    setSaleCompleted(false);
+    setNewSale(null);
+    setPreviewFormat(null);
+    setCurrentStep(1);
+    setSearchTerm("");
+    setCart([]);
+    setPaymentMethod("cash");
+    setSelectedCustomer("");
+    setCustomerName("");
+    setCreditDueDate("");
+    setIsNewCustomerOpen(false);
+    setNewCustomerForm({name: "", email: "", phone: ""});
+  };
+
   const {toast} = useToast();
 
   const queryClient = useQueryClient();
@@ -100,7 +117,7 @@ const NewSale = () => {
       queryClient.invalidateQueries({ queryKey: ['unpaidSales'] });
       toast({
         title: "Success",
-        description: `Sale ${newSale?.id ?? ""} created successfully`,
+        description: `Sale created successfully`,
       });
       setSoldCart(cart);
       setCart([]);
@@ -359,6 +376,7 @@ const NewSale = () => {
         newSale={newSale}
         handleCompleteSale={handleCompleteSale}
         createSaleMutation={createSaleMutation}
+        onResetSale={resetSaleState}
         businessInfo={settings?.information}
       />
 

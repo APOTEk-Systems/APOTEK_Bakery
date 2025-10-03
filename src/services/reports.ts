@@ -74,7 +74,7 @@ export interface ProductionReport {
 
 export interface InventoryReport {
   data: {
-    inventory: Array<{
+    inventoryItem: Array<{
       id: number;
       name: string;
       unit: string;
@@ -935,7 +935,7 @@ export const reportsService = {
     //console.log("Inventory Data " , data.data.inventoryItems)
     // Inventory table
 
-    const tableData = data.data.inventory.map((item) => {
+    const tableData = data.data.inventoryItem.map((item) => {
       // Convert current quantity to displayed unit
       const displayQuantity =
         item.type === "raw_material"

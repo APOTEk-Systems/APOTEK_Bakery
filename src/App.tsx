@@ -24,7 +24,6 @@ const Customers = lazy(() => import("./pages/Customers"));
 const CustomerDetail = lazy(() => import("./pages/CustomerDetail"));
 const CustomerForm = lazy(() => import("./pages/CustomerForm"));
 const Sales = lazy(() => import("./pages/Sales"));
-const SalesStats = lazy(() => import("./pages/SalesStats"));
 const NewSale = lazy(() => import("./pages/NewSale"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -77,7 +76,7 @@ const App = () => (
                   <ProductForm />
                 </ProtectedRoute>
               } />
-              <Route path="/inventory" element={
+              <Route path="/materials" element={
                 <ProtectedRoute>
                   <Inventory />
                 </ProtectedRoute>
@@ -102,17 +101,17 @@ const App = () => (
                   <GoodsReceivingView />
                 </ProtectedRoute>
               } />
-              <Route path="/inventory/new" element={
+              <Route path="/material/new" element={
                 <ProtectedRoute>
                   <InventoryForm />
                 </ProtectedRoute>
               } />
-              <Route path="/inventory/:id/edit" element={
+              <Route path="/material/:id/edit" element={
                 <ProtectedRoute>
                   <InventoryForm />
                 </ProtectedRoute>
               } />
-              <Route path="/inventory/adjustments" element={
+              <Route path="/material/adjustments" element={
                 <ProtectedRoute>
                   <InventoryAdjustments />
                 </ProtectedRoute>
