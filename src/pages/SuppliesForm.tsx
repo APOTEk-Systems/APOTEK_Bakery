@@ -1,5 +1,6 @@
 import {useState, useEffect} from "react";
 import {Link, useParams, useNavigate} from "react-router-dom";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -12,22 +13,37 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {useToast} from "@/hooks/use-toast";
 import {ArrowLeft, Save, Loader2} from "lucide-react";
 import {
   getInventoryItem,
   createInventoryItem,
   updateInventoryItem,
+  getInventory,
   InventoryItem,
 } from "../services/inventory";
 
 const SuppliesForm = () => {
-  const {id} = useParams();
+  const {id} = useParams<{id: string}>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const {toast} = useToast();
   const isEdit = Boolean(id);
-  const [loading, setLoading] = useState(true);
-  const [submitLoading, setSubmitLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     unit: "",
@@ -37,38 +53,134 @@ const SuppliesForm = () => {
     cost: "",
   });
 
+  const [costCalcOpen, setCostCalcOpen] = useState(false);
+  const [calcAmount, setCalcAmount] = useState("");
+  const [calcUnit, setCalcUnit] = useState("");
+  const [calcTotalCost, setCalcTotalCost] = useState("");
+  const [nameError, setNameError] = useState("");
+
+  const unitOptions = [
+    {value: "kg", label: "kilograms (kg)"},
+    {value: "g", label: "grams (g)"},
+    {value: "l", label: "liters (l)"},
+    {value: "ml", label: "milliliters (ml)"},
+    {value: "pcs", label: "piece (pcs)"},
+    {value: "pair", label: "pair"},
+  ];
+
+  const itemQuery = useQuery({
+    queryKey: ["inventoryItem", id],
+    queryFn: () => getInventoryItem(id || "0"),
+    enabled: isEdit,
+  });
+
+  const existingItemsQuery = useQuery({
+    queryKey: ["inventory", "supplies"],
+    queryFn: () => getInventory({ type: "supplies" }),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: {
+      name: string;
+      unit: string;
+      type: "raw_material" | "supplies";
+      currentQuantity: number;
+      minLevel: number;
+      maxLevel: number;
+      cost: number;
+    }) => createInventoryItem(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["inventory"]});
+      toast({
+        title: "Supplies Added",
+        description: `${formData.name} Supplies has been added to inventory.`,
+      });
+      navigate("/supplies");
+    },
+    onError: (err) => {
+      toast({
+        title: "Error",
+        description: `Failed to add Supplies`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({id, data}: {id: string; data: Partial<InventoryItem>}) =>
+      updateInventoryItem(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["inventory"]});
+      toast({
+        title: "Supplies Updated",
+        description: `${formData.name} Supplies has been updated successfully.`,
+      });
+      navigate("/supplies");
+    },
+    onError: (err) => {
+      toast({
+        title: "Error",
+        description: `Failed to update Supplies`,
+        variant: "destructive",
+      });
+    },
+  });
+
   useEffect(() => {
-    if (isEdit && id) {
-      const fetchItem = async () => {
-        try {
-          setLoading(true);
-          const item = await getInventoryItem(id);
-          setFormData({
-            name: item.name,
-            unit: item.unit || "",
-            currentQuantity: item.currentQuantity.toString(),
-            minLevel: item.minLevel.toString(),
-            maxLevel: item.maxLevel.toString(),
-            cost: item.cost.toString(),
-          });
-        } catch (err) {
-          toast({
-            title: "Error",
-            description: "Failed to load supply",
-            variant: "destructive",
-          });
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchItem();
-    } else {
-      setLoading(false);
+    if (isEdit && itemQuery.data) {
+      const item = itemQuery.data;
+      setFormData({
+        name: item.name,
+        unit: item.unit || "",
+        currentQuantity: item.currentQuantity === 0 ? "" : item.currentQuantity.toString(),
+        minLevel: item.minLevel === 0 ? "" : item.minLevel.toString(),
+        maxLevel: item.maxLevel === 0 ? "" : item.maxLevel.toString(),
+        cost: item.cost.toString(),
+      });
     }
-  }, [id, isEdit, toast]);
+  }, [itemQuery.data]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({...prev, [field]: value}));
+
+    if (field === "name") {
+      setNameError("");
+      if (value.trim() && existingItemsQuery.data) {
+        const exists = existingItemsQuery.data.some(
+          (item) =>
+            item.name.toLowerCase() === value.toLowerCase() &&
+            (!isEdit || item.id.toString() !== id)
+        );
+        if (exists) {
+          setNameError("Supplies name already exists");
+        }
+      }
+    }
+  };
+
+  const calculateCost = () => {
+    const amount = parseFloat(calcAmount);
+    const totalCost = parseFloat(calcTotalCost);
+    if (!amount || !totalCost || !calcUnit) return;
+
+    let costPerBaseUnit = 0;
+    if (calcUnit === "g") {
+      costPerBaseUnit = totalCost / amount;
+    } else if (calcUnit === "kg") {
+      costPerBaseUnit = totalCost / (amount * 1000);
+    } else if (calcUnit === "ml") {
+      costPerBaseUnit = totalCost / amount;
+    } else if (calcUnit === "l") {
+      costPerBaseUnit = totalCost / (amount * 1000);
+    } else if (calcUnit === "pcs" || calcUnit === "pair") {
+      costPerBaseUnit = totalCost / amount;
+    }
+
+    handleInputChange("cost", costPerBaseUnit.toFixed(0));
+    setCostCalcOpen(false);
+    setCalcAmount("");
+    setCalcUnit("");
+    setCalcTotalCost("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,6 +190,15 @@ const SuppliesForm = () => {
       toast({
         title: "Error",
         description: "Item name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (nameError) {
+      toast({
+        title: "Error",
+        description: nameError,
         variant: "destructive",
       });
       return;
@@ -114,56 +235,28 @@ const SuppliesForm = () => {
       return;
     }
 
-    try {
-      setSubmitLoading(true);
-      if (isEdit && id) {
-        await updateInventoryItem(id, {
-          name: formData.name,
-          unit: formData.unit,
-          type: "supplies",
-          currentQuantity: parseInt(formData.currentQuantity),
-          minLevel: parseInt(formData.minLevel),
-          maxLevel: parseInt(formData.maxLevel),
-          cost: parseFloat(formData.cost),
-        });
-        toast({
-          title: "Supply Updated",
-          description: `${formData.name} supply has been updated successfully.`,
-        });
-      } else {
-        await createInventoryItem({
-          name: formData.name,
-          unit: formData.unit,
-          type: "supplies",
-          currentQuantity: parseInt(formData.currentQuantity),
-          minLevel: parseInt(formData.minLevel),
-          maxLevel: parseInt(formData.maxLevel),
-          cost: parseFloat(formData.cost),
-        });
-        toast({
-          title: "Supply Added",
-          description: `${formData.name} supply has been added to inventory.`,
-        });
-      }
-      navigate("/supplies");
-    } catch (err) {
-      toast({
-        title: "Error",
-        description: `Failed to ${isEdit ? "update" : "add"} supply`,
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitLoading(false);
+    const submitData = {
+      name: formData.name,
+      unit: formData.unit,
+      type: "supplies" as const,
+      currentQuantity: parseFloat(formData.currentQuantity) || 0,
+      minLevel: parseFloat(formData.minLevel) || 0,
+      maxLevel: parseFloat(formData.maxLevel) || 0,
+      cost: parseFloat(formData.cost) || 0,
+    };
+
+    if (isEdit && id) {
+      updateMutation.mutate({id, data: submitData});
+    } else {
+      createMutation.mutate(submitData);
     }
   };
 
-  if (loading) {
+  if (itemQuery.isLoading) {
     return (
       <Layout>
-        <div className="flex min-h-screen bg-background">
-          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </main>
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       </Layout>
     );
@@ -182,204 +275,250 @@ const SuppliesForm = () => {
               </Link>
             </Button>
           </div>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">
+                {isEdit ? "Edit Supplies" : "Add New Supplies"}
+              </h1>
 
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              {isEdit ? "Edit Supply" : "Add New Supply"}
-            </h1>
-            <p className="text-muted-foreground">
-              {isEdit
-                ? "Update supply information"
-                : "Add a new supply to your inventory"}
-            </p>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="shadow-warm">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        >
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Supply Information</CardTitle>
+              <CardTitle>Supplies Details</CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Item Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter item name"
-                    required
-                  />
-                </div>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="name">Item Name *</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
+                  placeholder="Enter item name"
+                  required
+                />
+                {nameError && (
+                  <p className="text-sm text-destructive mt-1">{nameError}</p>
+                )}
+              </div>
 
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="unit">Unit</Label>
+                  <Label htmlFor="unit">
+                    Unit {formData.unit.toLowerCase()}
+                  </Label>
                   <Select
-                    value={formData.unit}
+                    value={formData.unit.toLowerCase()}
                     onValueChange={(value) => handleInputChange("unit", value)}
                   >
-                    <SelectTrigger id="unit">
+                    <SelectTrigger>
                       <SelectValue placeholder="Select unit" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ml">ml</SelectItem>
-                      <SelectItem value="l">l</SelectItem>
-                      <SelectItem value="g">g</SelectItem>
-                      <SelectItem value="kg">kg</SelectItem>
-                      <SelectItem value="pcs">pcs</SelectItem>
+                      {unitOptions.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="currentQuantity">Current Quantity</Label>
-                    <Input
-                      id="currentQuantity"
-                      type="number"
-                      value={formData.currentQuantity}
-                      onChange={(e) =>
-                        handleInputChange("currentQuantity", e.target.value)
-                      }
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="minLevel">Min Level</Label>
-                    <Input
-                      id="minLevel"
-                      type="number"
-                      value={formData.minLevel}
-                      onChange={(e) =>
-                        handleInputChange("minLevel", e.target.value)
-                      }
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="maxLevel">Max Level</Label>
-                    <Input
-                      id="maxLevel"
-                      type="number"
-                      value={formData.maxLevel}
-                      onChange={(e) =>
-                        handleInputChange("maxLevel", e.target.value)
-                      }
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-                </div>
-
                 <div>
-                  <Label htmlFor="cost">Cost per Unit ($)</Label>
+                  <Label htmlFor="type">Type</Label>
                   <Input
-                    id="cost"
+                    id="type"
+                    value="Supplies"
+                    disabled
+                    className="bg-muted"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="currentQuantity">
+                    Current Quantity {formData.currentQuantity}
+                  </Label>
+                  <Input
+                    id="currentQuantity"
                     type="number"
-                    step="0.01"
-                    value={formData.cost}
-                    onChange={(e) => handleInputChange("cost", e.target.value)}
-                    placeholder="0.00"
+                    value={formData.currentQuantity}
+                    onChange={(e) =>
+                      handleInputChange("currentQuantity", e.target.value)
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
                     min="0"
                   />
                 </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button
-                    type="submit"
-                    className="flex-1"
-                    disabled={submitLoading}
-                  >
-                    {submitLoading ? (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    ) : (
-                      <Save className="h-4 w-4 mr-2" />
-                    )}
-                    {isEdit ? "Update Supply" : "Add Supply"}
-                  </Button>
-                  <Button type="button" variant="outline" asChild>
-                    <Link to="/supplies">Cancel</Link>
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-warm">
-            <CardHeader>
-              <CardTitle>Stock Level Preview</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-muted/30 rounded-lg">
-                  <h4 className="font-medium text-foreground mb-2">
-                    {formData.name || "Supply Name"}
-                  </h4>
-
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Current Quantity</span>
-                      <span>{formData.currentQuantity || 0}</span>
-                    </div>
-
-                    {formData.currentQuantity &&
-                      formData.minLevel &&
-                      formData.maxLevel && (
-                        <div>
-                          <div className="w-full bg-muted rounded-full h-3">
-                            <div
-                              className={`h-3 rounded-full ${
-                                parseInt(formData.currentQuantity) <=
-                                parseInt(formData.minLevel)
-                                  ? "bg-destructive"
-                                  : parseInt(formData.currentQuantity) <=
-                                    parseInt(formData.minLevel) * 1.5
-                                  ? "bg-orange-500"
-                                  : "bg-green-500"
-                              }`}
-                              style={{
-                                width: `${Math.max(
-                                  5,
-                                  Math.min(
-                                    100,
-                                    (parseInt(formData.currentQuantity) /
-                                      parseInt(formData.maxLevel)) *
-                                      100
-                                  )
-                                )}%`,
-                              }}
+                <div>
+                  <Label htmlFor="cost">Unit Cost *</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cost"
+                      type="text"
+                      value={formData.cost ? parseFloat(formData.cost).toLocaleString('en-US') : ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, '');
+                        if (!isNaN(Number(value)) || value === '') {
+                          handleInputChange("cost", value);
+                        }
+                      }}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      placeholder=""
+                      required
+                    />
+                    <Dialog open={costCalcOpen} onOpenChange={setCostCalcOpen}>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline" size="sm">
+                                Calculate
+                              </Button>
+                            </DialogTrigger>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>
+                              Calculate cost per unit from your purchase details
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Cost Calculator</DialogTitle>
+                          <DialogDescription>
+                            Enter the details of your purchase to calculate the
+                            cost per unit.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <Label>Purchased Quantity</Label>
+                            <Input
+                              type="number"
+                              value={calcAmount}
+                              onChange={(e) => setCalcAmount(e.target.value)}
+                              placeholder="e.g., 500"
                             />
                           </div>
-                          <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                            <span>Min: {formData.minLevel}</span>
-                            <span>Max: {formData.maxLevel}</span>
+                          <div>
+                            <Label>Unit</Label>
+                            <Select
+                              value={calcUnit}
+                              onValueChange={setCalcUnit}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select unit" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {unitOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Total Cost Paid</Label>
+                            <Input
+                              type="text"
+                              value={calcTotalCost ? parseFloat(calcTotalCost).toLocaleString('en-US') : ''}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/,/g, '');
+                                if (!isNaN(Number(value)) || value === '') {
+                                  setCalcTotalCost(value);
+                                }
+                              }}
+                              placeholder="e.g., 8,500"
+                            />
                           </div>
                         </div>
-                      )}
-
-                    {formData.cost && formData.currentQuantity && (
-                      <div className="flex justify-between text-sm pt-2 border-t">
-                        <span>Value</span>
-                        <span className="font-medium">
-                          $
-                          {(
-                            (parseFloat(formData.cost) || 0) *
-                            (parseInt(formData.currentQuantity) || 0)
-                          ).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
+                        <DialogFooter>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setCostCalcOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={calculateCost}
+                            disabled={
+                              !calcAmount || !calcUnit || !calcTotalCost
+                            }
+                          >
+                            Calculate Cost
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="minLevel">Minimum Level</Label>
+                  <Input
+                    id="minLevel"
+                    type="number"
+                    value={formData.minLevel}
+                    onChange={(e) =>
+                      handleInputChange("minLevel", e.target.value)
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="maxLevel">Maximum Level</Label>
+                  <Input
+                    id="maxLevel"
+                    type="number"
+                    value={formData.maxLevel}
+                    onChange={(e) =>
+                      handleInputChange("maxLevel", e.target.value)
+                    }
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
+                    min="0"
+                  />
                 </div>
               </div>
             </CardContent>
           </Card>
-        </div>
+
+          <div className="space-y-4 lg:col-span-2">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={createMutation.isPending || updateMutation.isPending}
+            >
+              {createMutation.isPending || updateMutation.isPending ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {isEdit ? "Update Supplies" : "Add Supplies"}
+            </Button>
+            <Button type="button" variant="outline" className="w-full" asChild>
+              <Link to="/supplies">Cancel</Link>
+            </Button>
+          </div>
+        </form>
       </div>{" "}
     </Layout>
   );

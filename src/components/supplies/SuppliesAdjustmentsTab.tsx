@@ -11,14 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Loader2, CalendarDays } from "lucide-react";
+import { Search, Plus, Loader2 } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -35,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {DateRangePicker, DateRange} from "@/components/ui/DateRange";
 import {
   getInventory,
   getAdjustments,
@@ -46,8 +41,7 @@ import { format } from 'date-fns';
 type AdjustmentAction = 'add' | 'minus';
 
 const SuppliesAdjustmentsTab = () => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
@@ -62,9 +56,15 @@ const SuppliesAdjustmentsTab = () => {
   });
 
   const adjustmentsQuery = useQuery({
-    queryKey: ['adjustments', 'supplies', date],
+    queryKey: ['adjustments', 'supplies', dateRange],
     queryFn: () => {
-      const params = date ? { date: date.toISOString().split('T')[0], type: "supplies" } : { type: "supplies" };
+      const params: any = { type: "supplies" };
+      if (dateRange?.from) {
+        params.startDate = dateRange.from.toISOString().split('T')[0];
+      }
+      if (dateRange?.to) {
+        params.endDate = dateRange.to.toISOString().split('T')[0];
+      }
       return getAdjustments(params);
     },
   });
@@ -117,39 +117,19 @@ const SuppliesAdjustmentsTab = () => {
     <div className="space-y-6">
       {/* Date Filter */}
       <div className="flex gap-4">
-        <div className="flex-1">
-          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {date ? format(date, "dd-MM-yyyy") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(selectedDate) => {
-                  setDate(selectedDate);
-                  setDatePopoverOpen(false);
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        <DateRangePicker
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
       </div>
 
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Supplies Issued</CardTitle>
+            <CardTitle>Supplies Adjustments</CardTitle>
             <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
               <Plus className="h-4 w-4 mr-2" />
-              Issue Supplies
+              Add Adjustment
             </Button>
           </div>
         </CardHeader>
@@ -191,15 +171,15 @@ const SuppliesAdjustmentsTab = () => {
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">
-                No supplies issued
+                No supplies adjustments
               </h3>
               <p className="text-muted-foreground mb-4">
-                {date
-                  ? `No supplies for ${format(date, "PPP")}`
-                  : "Get started issuing supplies"}
+                {dateRange
+                  ? "No supplies adjustments for selected date range"
+                  : "Get started by adding your first adjustment"}
               </p>
               <Button onClick={() => setDialogOpen(true)}>
-                Issue Supplies
+                Add Adjustment
               </Button>
             </div>
           )}
@@ -210,9 +190,9 @@ const SuppliesAdjustmentsTab = () => {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>New Supplies Issue</DialogTitle>
+            <DialogTitle>New Supplies Adjustment</DialogTitle>
             <DialogDescription>
-              Issue new Supplies.
+              Create a new supplies adjustment.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
@@ -267,7 +247,7 @@ const SuppliesAdjustmentsTab = () => {
                 id="reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Reason for issuing the supplies"
+                placeholder="Reason for adjustment"
               />
             </div>
             <DialogFooter>

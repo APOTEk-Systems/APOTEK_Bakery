@@ -258,7 +258,7 @@ const InventorySummaryTab = () => {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No low raw materials</p>
+              <p className="text-muted-foreground">No low materials</p>
             )}
           </div>
 
@@ -429,7 +429,7 @@ const Dashboard = () => {
               </TabsTrigger>
             )}
             {isAdmin && (
-              <TabsTrigger value="inventory" className="w-full">
+              <TabsTrigger value="material" className="w-full">
                 Inventory
               </TabsTrigger>
             )}
@@ -447,7 +447,7 @@ const Dashboard = () => {
               <TabsContent value="purchases">
                 <PurchasesSummaryTab />
               </TabsContent>
-              <TabsContent value="inventory">
+              <TabsContent value="material">
                 <InventorySummaryTab />
               </TabsContent>
               <TabsContent value="accounting">

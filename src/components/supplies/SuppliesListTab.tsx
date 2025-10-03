@@ -149,7 +149,7 @@ const SuppliesListTab = () => {
         <Button asChild className="shadow-warm">
           <Link to="/supplies/new">
             <PlusIcon className="h-4 w-4 mr-2" />
-            Add Supply
+            Add Supplies
           </Link>
         </Button>
       </div>

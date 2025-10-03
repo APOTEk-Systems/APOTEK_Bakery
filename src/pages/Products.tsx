@@ -121,7 +121,7 @@ const Products = () => {
         <div className="mb-1">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Finished Goods</h1>
+              <h1 className="text-3xl font-bold text-foreground">Products</h1>
             </div>
           </div>
         </div>
@@ -159,7 +159,7 @@ const Products = () => {
       <div className="w-full flex justify-end mb-4">      <Button className="shadow-warm" asChild>
               <Link to="/products/new">
                 <Plus className="h-4 w-4 mr-2" />
-                New Finished Good
+                New Product
               </Link>
             </Button></div>
         <div className="grid grid-cols-1 gap-6">

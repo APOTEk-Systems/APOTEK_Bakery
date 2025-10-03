@@ -11,10 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {Calendar} from "@/components/ui/calendar";
-import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
 import {useToast} from "@/hooks/use-toast";
-import {Search, Plus, Loader2, CalendarDays} from "lucide-react";
+import {Search, Plus, Loader2} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,6 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {DateRangePicker, DateRange} from "@/components/ui/DateRange";
 import {
   getInventory,
   getAdjustments,
@@ -51,8 +50,7 @@ const InventoryAdjustmentsTab = ({
   type,
   title,
 }: InventoryAdjustmentsTabProps) => {
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
@@ -68,11 +66,15 @@ const InventoryAdjustmentsTab = ({
   });
 
   const adjustmentsQuery = useQuery({
-    queryKey: ['adjustments', type, date],
+    queryKey: ['adjustments', type, dateRange],
     queryFn: () => {
-      const params = date
-        ? {date: date.toISOString().split("T")[0], type}
-        : {type};
+      const params: any = {type};
+      if (dateRange?.from) {
+        params.startDate = dateRange.from.toISOString().split('T')[0];
+      }
+      if (dateRange?.to) {
+        params.endDate = dateRange.to.toISOString().split('T')[0];
+      }
       return getAdjustments(params);
     },
   });
@@ -133,30 +135,10 @@ const InventoryAdjustmentsTab = ({
     <div className="space-y-6">
       {/* Date Filter */}
       <div className="flex gap-4">
-        <div className="flex-1">
-          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal"
-              >
-                <CalendarDays className="mr-2 h-4 w-4" />
-                {date ? format(date, "dd-MM-yyyy") : "Pick a date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={(selectedDate) => {
-                  setDate(selectedDate);
-                  setDatePopoverOpen(false);
-                }}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
+        <DateRangePicker
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
+        />
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Adjustment
@@ -216,8 +198,8 @@ const InventoryAdjustmentsTab = ({
                 No adjustments found
               </h3>
               <p className="text-muted-foreground mb-4">
-                {date
-                  ? `No adjustments for ${format(date, "PPP")}`
+                {dateRange
+                  ? "No adjustments for selected date range"
                   : "Get started by adding your first adjustment"}
               </p>
               <Button onClick={() => setDialogOpen(true)}>

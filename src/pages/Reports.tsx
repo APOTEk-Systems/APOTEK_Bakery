@@ -146,7 +146,7 @@ const Reports = () => {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to export finished goods summary report",
+        description: "Failed to export products summary report",
         variant: "destructive",
       });
     },
@@ -197,7 +197,7 @@ const Reports = () => {
   const exportInventoryMutation = useMutation({
     mutationFn: () => reportsService.exportInventoryReport(),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('inventory'));
+      downloadBlob(blob, generateFilename('material'));
       toast({
         title: "Success",
         description: "Inventory report exported successfully",
@@ -336,7 +336,7 @@ const Reports = () => {
       case 'ingredient-usage':
         exportIngredientUsageMutation.mutate();
         break;
-      case 'inventory':
+      case 'material':
         exportInventoryMutation.mutate();
         break;
       case 'low-stock':
@@ -413,7 +413,7 @@ const Reports = () => {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="sales">Sales</TabsTrigger>
             <TabsTrigger value="purchases">Purchases</TabsTrigger>
-            <TabsTrigger value="inventory">Inventory</TabsTrigger>
+            <TabsTrigger value="material">Materials</TabsTrigger>
             <TabsTrigger value="production">Production</TabsTrigger>
             <TabsTrigger value="financial">Accounting</TabsTrigger>
           </TabsList>
@@ -528,7 +528,7 @@ const Reports = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="inventory" className="mt-6">
+          <TabsContent value="material" className="mt-6">
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -543,7 +543,7 @@ const Reports = () => {
                         <SelectValue placeholder="Select inventory report type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="inventory">Current Stock Levels</SelectItem>
+                        <SelectItem value="material">Current Material Levels</SelectItem>
                         <SelectItem value="low-stock">Low Stock Alert Report</SelectItem>
                         <SelectItem value="stock-adjustment">Stock Adjustment Report</SelectItem>
                       </SelectContent>

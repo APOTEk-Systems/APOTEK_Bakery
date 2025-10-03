@@ -34,6 +34,7 @@ import {
   getInventoryItem,
   createInventoryItem,
   updateInventoryItem,
+  getInventory,
   InventoryItem,
 } from "../services/inventory";
 import {fromBaseUnits, denormalizeCost, normalizeCost, toBaseUnits} from "@/lib/funcs";
@@ -57,6 +58,7 @@ const InventoryForm = () => {
   const [calcAmount, setCalcAmount] = useState("");
   const [calcUnit, setCalcUnit] = useState("");
   const [calcTotalCost, setCalcTotalCost] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const unitOptions = [
     {value: "kg", label: "kilograms (kg)"},
@@ -73,6 +75,11 @@ const InventoryForm = () => {
     enabled: isEdit,
   });
 
+  const existingItemsQuery = useQuery({
+    queryKey: ["inventory", "raw_material"],
+    queryFn: () => getInventory({ type: "raw_material" }),
+  });
+
   const createMutation = useMutation({
     mutationFn: (data: {
       name: string;
@@ -86,15 +93,15 @@ const InventoryForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: ["inventory"]});
       toast({
-        title: "Raw Material Added",
-        description: `${formData.name} raw material has been added to inventory.`,
+        title: "Material Added",
+        description: `${formData.name} material has been added to inventory.`,
       });
       navigate("/inventory");
     },
     onError: (err) => {
       toast({
         title: "Error",
-        description: `Failed to add raw material`,
+        description: `Failed to add material`,
         variant: "destructive",
       });
     },
@@ -106,15 +113,15 @@ const InventoryForm = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: ["inventory"]});
       toast({
-        title: "Raw Material Updated",
-        description: `${formData.name} raw material has been updated successfully.`,
+        title: "Material Updated",
+        description: `${formData.name} material has been updated successfully.`,
       });
       navigate("/inventory");
     },
     onError: (err) => {
       toast({
         title: "Error",
-        description: `Failed to update raw material`,
+        description: `Failed to update material`,
         variant: "destructive",
       });
     },
@@ -128,9 +135,9 @@ const InventoryForm = () => {
       setFormData({
         name: item.name,
         unit,
-        currentQuantity: fromBaseUnits(item.currentQuantity, unit).toString(),
-        minLevel: fromBaseUnits(item.minLevel, unit).toString(),
-        maxLevel: fromBaseUnits(item.maxLevel, unit).toString(),
+        currentQuantity: fromBaseUnits(item.currentQuantity, unit) === 0 ? "" : fromBaseUnits(item.currentQuantity, unit).toString(),
+        minLevel: fromBaseUnits(item.minLevel, unit) === 0 ? "" : fromBaseUnits(item.minLevel, unit).toString(),
+        maxLevel: fromBaseUnits(item.maxLevel, unit) === 0 ? "" : fromBaseUnits(item.maxLevel, unit).toString(),
         cost: denormalizeCost(item.cost, unit).toString(),
       });
     }
@@ -138,6 +145,20 @@ const InventoryForm = () => {
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({...prev, [field]: value}));
+
+    if (field === "name") {
+      setNameError("");
+      if (value.trim() && existingItemsQuery.data) {
+        const exists = existingItemsQuery.data.some(
+          (item) =>
+            item.name.toLowerCase() === value.toLowerCase() &&
+            (!isEdit || item.id.toString() !== id)
+        );
+        if (exists) {
+          setNameError("Material name already exists");
+        }
+      }
+    }
   };
 
   const calculateCost = () => {
@@ -172,6 +193,15 @@ const InventoryForm = () => {
       toast({
         title: "Error",
         description: "Item name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (nameError) {
+      toast({
+        title: "Error",
+        description: nameError,
         variant: "destructive",
       });
       return;
@@ -255,20 +285,16 @@ const InventoryForm = () => {
             <Button variant="ghost" size="sm" asChild>
               <Link to="/inventory">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Inventory
+                Back to Materials
               </Link>
             </Button>
           </div>
           <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-foreground">
-                {isEdit ? "Edit Inventory Item" : "Add New Inventory Item"}
+                {isEdit ? "Edit Material" : "Add New Material"}
               </h1>
-              <p className="text-muted-foreground">
-                {isEdit
-                  ? "Update inventory item details"
-                  : "Add a new raw material or supply to inventory"}
-              </p>
+          
             </div>
           </div>
         </div>
@@ -279,7 +305,7 @@ const InventoryForm = () => {
         >
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Inventory Details</CardTitle>
+              <CardTitle>Material Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -291,6 +317,9 @@ const InventoryForm = () => {
                   placeholder="Enter item name"
                   required
                 />
+                {nameError && (
+                  <p className="text-sm text-destructive mt-1">{nameError}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -318,7 +347,7 @@ const InventoryForm = () => {
                   <Label htmlFor="type">Type</Label>
                   <Input
                     id="type"
-                    value="Raw Material"
+                    value="Material"
                     disabled
                     className="bg-muted"
                   />
@@ -337,24 +366,26 @@ const InventoryForm = () => {
                     onChange={(e) =>
                       handleInputChange("currentQuantity", e.target.value)
                     }
-                    onWheel={(e) => e.currentTarget.blur()}   
-                    placeholder="0"
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
                     min="0"
                   />
                 </div>
                 <div>
-                  <Label htmlFor="cost">Unit Cost (Tsh)</Label>
+                  <Label htmlFor="cost">Unit Cost *</Label>
                   <div className="flex gap-2">
                     <Input
                       id="cost"
-                      type="number"
-                      value={formData.cost}
-                      onChange={(e) =>
-                        handleInputChange("cost", e.target.value)
-                      }
-                      onWheel={(e) => e.currentTarget.blur()}   
-                      placeholder="1000"
-                      min="0"
+                      type="text"
+                      value={formData.cost ? parseFloat(formData.cost).toLocaleString('en-US') : ''}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, '');
+                        if (!isNaN(Number(value)) || value === '') {
+                          handleInputChange("cost", value);
+                        }
+                      }}
+                      onWheel={(e) => e.currentTarget.blur()}
+                      placeholder=""
                       required
                     />
                     <Dialog open={costCalcOpen} onOpenChange={setCostCalcOpen}>
@@ -384,7 +415,7 @@ const InventoryForm = () => {
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
-                            <Label>Purchased Amount</Label>
+                            <Label>Purchased Quantity</Label>
                             <Input
                               type="number"
                               value={calcAmount}
@@ -414,13 +445,17 @@ const InventoryForm = () => {
                             </Select>
                           </div>
                           <div>
-                            <Label>Total Cost Paid (Tsh)</Label>
+                            <Label>Total Cost Paid</Label>
                             <Input
-                              type="number"
-                              step="0.01"
-                              value={calcTotalCost}
-                              onChange={(e) => setCalcTotalCost(e.target.value)}
-                              placeholder="e.g., 8500"
+                              type="text"
+                              value={calcTotalCost ? parseFloat(calcTotalCost).toLocaleString('en-US') : ''}
+                              onChange={(e) => {
+                                const value = e.target.value.replace(/,/g, '');
+                                if (!isNaN(Number(value)) || value === '') {
+                                  setCalcTotalCost(value);
+                                }
+                              }}
+                              placeholder="e.g., 8,500"
                             />
                           </div>
                         </div>
@@ -457,8 +492,8 @@ const InventoryForm = () => {
                     onChange={(e) =>
                       handleInputChange("minLevel", e.target.value)
                     }
-                    onWheel={(e) => e.currentTarget.blur()}   
-                    placeholder="0"
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
                     min="0"
                   />
                 </div>
@@ -471,8 +506,8 @@ const InventoryForm = () => {
                     onChange={(e) =>
                       handleInputChange("maxLevel", e.target.value)
                     }
-                    onWheel={(e) => e.currentTarget.blur()}   
-                    placeholder="100"
+                    onWheel={(e) => e.currentTarget.blur()}
+                    placeholder=""
                     min="0"
                   />
                 </div>
@@ -491,7 +526,7 @@ const InventoryForm = () => {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {isEdit ? "Update Item" : "Add Item"}
+              {isEdit ? "Update Material" : "Add Material"}
             </Button>
             <Button type="button" variant="outline" className="w-full" asChild>
               <Link to="/inventory">Cancel</Link>

@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {useToast} from "@/hooks/use-toast";
-import {Search, Plus, Loader2, Calendar} from "lucide-react";
+import {Search, Plus, Loader2} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -31,6 +31,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {DateRangePicker, DateRange} from "@/components/ui/DateRange";
 import {
   getInventory,
   getAdjustments,
@@ -40,7 +41,7 @@ import {
 import { format } from 'date-fns';
 
 const InventoryAdjustments = () => {
-  const [date, setDate] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [adjustments, setAdjustments] = useState([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,7 @@ const InventoryAdjustments = () => {
   useEffect(() => {
     fetchInventory();
     fetchAdjustments();
-  }, [date]);
+  }, [dateRange]);
 
   const fetchInventory = async () => {
     try {
@@ -72,9 +73,13 @@ const InventoryAdjustments = () => {
   const fetchAdjustments = async () => {
     try {
       setLoading(true);
-      const params = date
-        ? {date, type: "raw_material"}
-        : {type: "raw_material"};
+      const params: any = {type: "raw_material"};
+      if (dateRange?.from) {
+        params.startDate = dateRange.from.toISOString().split('T')[0];
+      }
+      if (dateRange?.to) {
+        params.endDate = dateRange.to.toISOString().split('T')[0];
+      }
       const data = await getAdjustments(params);
       setAdjustments(data);
     } catch (err) {
@@ -149,7 +154,7 @@ const InventoryAdjustments = () => {
                   Raw Materials Adjustments
                 </h1>
                 <p className="text-muted-foreground">
-                  View and manage inventory adjustments for raw materials
+                  View and manage inventory adjustments for materials
                 </p>
               </div>
             </div>
@@ -160,15 +165,10 @@ const InventoryAdjustments = () => {
           </div>
 
           <div className="flex gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="pl-10"
-              />
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            </div>
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
             <Button onClick={fetchAdjustments}>Filter</Button>
           </div>
         </div>
@@ -216,8 +216,8 @@ const InventoryAdjustments = () => {
                   No adjustments found
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  {date
-                    ? "No adjustments for selected date"
+                  {dateRange
+                    ? "No adjustments for selected date range"
                     : "Get started by adding your first adjustment"}
                 </p>
                 <Button onClick={() => setDialogOpen(true)}>
@@ -234,7 +234,7 @@ const InventoryAdjustments = () => {
             <DialogHeader>
               <DialogTitle>Add Adjustment</DialogTitle>
               <DialogDescription>
-                Create a new adjustment for raw materials inventory.
+                Create a new adjustment for materials inventory.
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmitAdjustment} className="space-y-4">

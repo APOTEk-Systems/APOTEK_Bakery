@@ -124,7 +124,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       >
                         <Link to="/products" className="flex items-center gap-2">
                           <Cookie className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Finished Goods"}
+                          {(!collapsed || isMobile) && "Products"}
                         </Link>
                       </Button>
                     </CollapsibleContent>

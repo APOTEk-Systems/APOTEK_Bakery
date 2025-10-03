@@ -695,7 +695,7 @@ export const reportsService = {
     startDate?: string,
     endDate?: string
   ): Promise<Blob> => {
-    console.log("📊 Starting finished goods summary report export...", {
+    console.log("📊 Starting products summary report export...", {
       startDate,
       endDate,
     });
@@ -713,7 +713,7 @@ export const reportsService = {
       console.log("📄 Finished goods summary PDF generated successfully");
       return pdfBlob;
     } catch (error) {
-      console.error("❌ Error exporting finished goods summary report:", error);
+      console.error("❌ Error exporting products summary report:", error);
       throw error;
     }
   },
