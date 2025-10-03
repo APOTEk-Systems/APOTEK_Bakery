@@ -96,7 +96,7 @@ const InventoryForm = () => {
         title: "Material Added",
         description: `${formData.name} material has been added.`,
       });
-      navigate("/inventory");
+      navigate("/materials");
     },
     onError: (err) => {
       toast({
@@ -116,7 +116,7 @@ const InventoryForm = () => {
         title: "Material Updated",
         description: `${formData.name} material has been updated successfully.`,
       });
-      navigate("/inventory");
+      navigate("/materials");
     },
     onError: (err) => {
       toast({
