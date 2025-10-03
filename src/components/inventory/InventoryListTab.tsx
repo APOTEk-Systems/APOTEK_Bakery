@@ -155,7 +155,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
           />
         </div>
         <Button asChild className="shadow-warm">
-          <Link to={`/${type === 'raw_material' ? 'inventory' : 'supplies'}/new`}>
+          <Link to={`/${type === 'raw_material' ? 'materials' : 'supplies'}/new`}>
             <PlusIcon className="h-4 w-4 mr-2" />
             Add {type === 'raw_material' ? 'Material' : 'Supply'}
           </Link>
@@ -226,7 +226,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
                       <TableCell>
                         <div className="flex gap-2">
                           <Button variant="outline" size="sm" asChild>
-                            <Link to={`/${type === 'raw_material' ? 'inventory' : 'supplies'}/${item.id}/edit`}>
+                            <Link to={`/${type === 'raw_material' ? 'materials' : 'supplies'}/${item.id}/edit`}>
                               <Edit className="h-3 w-3" />
                               Edit
                             </Link>

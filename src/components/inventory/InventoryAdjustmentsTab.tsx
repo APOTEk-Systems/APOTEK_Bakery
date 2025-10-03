@@ -134,7 +134,7 @@ const InventoryAdjustmentsTab = ({
   return (
     <div className="space-y-6">
       {/* Date Filter */}
-      <div className="flex gap-4">
+      <div className="flex w-full justify-between">
         <DateRangePicker
           dateRange={dateRange}
           onDateRangeChange={setDateRange}

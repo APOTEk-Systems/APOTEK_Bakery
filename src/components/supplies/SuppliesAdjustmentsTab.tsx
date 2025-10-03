@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {useState} from "react";
+import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import {Button} from "@/components/ui/button";
+import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,8 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Search, Plus, Loader2 } from "lucide-react";
+import {useToast} from "@/hooks/use-toast";
+import {Search, Plus, Loader2} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -36,9 +36,9 @@ import {
   createAdjustment,
   InventoryItem,
 } from "../../services/inventory";
-import { format } from 'date-fns';
+import {format} from "date-fns";
 
-type AdjustmentAction = 'add' | 'minus';
+type AdjustmentAction = "add" | "minus";
 
 const SuppliesAdjustmentsTab = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
@@ -46,24 +46,24 @@ const SuppliesAdjustmentsTab = () => {
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
-  const [action, setAction] = useState<AdjustmentAction>('add');
-  const { toast } = useToast();
+  const [action, setAction] = useState<AdjustmentAction>("add");
+  const {toast} = useToast();
   const queryClient = useQueryClient();
 
   const inventoryQuery = useQuery({
-    queryKey: ['inventory', 'supplies'],
-    queryFn: () => getInventory({ type: "supplies" }),
+    queryKey: ["inventory", "supplies"],
+    queryFn: () => getInventory({type: "supplies"}),
   });
 
   const adjustmentsQuery = useQuery({
-    queryKey: ['adjustments', 'supplies', dateRange],
+    queryKey: ["adjustments", "supplies", dateRange],
     queryFn: () => {
-      const params: any = { type: "supplies" };
+      const params: any = {type: "supplies"};
       if (dateRange?.from) {
-        params.startDate = dateRange.from.toISOString().split('T')[0];
+        params.startDate = dateRange.from.toISOString().split("T")[0];
       }
       if (dateRange?.to) {
-        params.endDate = dateRange.to.toISOString().split('T')[0];
+        params.endDate = dateRange.to.toISOString().split("T")[0];
       }
       return getAdjustments(params);
     },
@@ -76,13 +76,13 @@ const SuppliesAdjustmentsTab = () => {
         title: "Success",
         description: "Adjustment created successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['adjustments'] });
+      queryClient.invalidateQueries({queryKey: ["adjustments"]});
       // Reset form
       setDialogOpen(false);
       setSelectedItemId("");
       setAmount("");
       setReason("");
-      setAction('add');
+      setAction("add");
     },
     onError: () => {
       toast({
@@ -97,7 +97,8 @@ const SuppliesAdjustmentsTab = () => {
     e.preventDefault();
     if (!selectedItemId || !amount) return;
 
-    const adjustmentAmount = action === 'add' ? parseFloat(amount) : -parseFloat(amount);
+    const adjustmentAmount =
+      action === "add" ? parseFloat(amount) : -parseFloat(amount);
     createAdjustmentMutation.mutate({
       inventoryItemId: parseInt(selectedItemId),
       amount: adjustmentAmount,
@@ -116,21 +117,21 @@ const SuppliesAdjustmentsTab = () => {
   return (
     <div className="space-y-6">
       {/* Date Filter */}
-      <div className="flex gap-4">
+      <div className="flex w-full justify-between">
         <DateRangePicker
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
         />
+        <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Adjustment
+        </Button>
       </div>
 
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle>Supplies Adjustments</CardTitle>
-            <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Adjustment
-            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -141,14 +142,13 @@ const SuppliesAdjustmentsTab = () => {
                 <TableHead>Item</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Reason</TableHead>
-              
               </TableRow>
             </TableHeader>
             <TableBody>
               {adjustmentsQuery.data?.map((adjustment) => (
                 <TableRow key={adjustment.id}>
-                    <TableCell>
-                    {format(new Date(adjustment.createdAt), 'dd-MM-yyyy')}
+                  <TableCell>
+                    {format(new Date(adjustment.createdAt), "dd-MM-yyyy")}
                   </TableCell>
                   <TableCell>
                     {inventoryQuery.data?.find(
@@ -161,28 +161,28 @@ const SuppliesAdjustmentsTab = () => {
                       : adjustment.amount}
                   </TableCell>
                   <TableCell>{adjustment.reason}</TableCell>
-
                 </TableRow>
               ))}
             </TableBody>
           </Table>
 
-          {adjustmentsQuery.data?.length === 0 && !adjustmentsQuery.isLoading && (
-            <div className="text-center py-12">
-              <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                No supplies adjustments
-              </h3>
-              <p className="text-muted-foreground mb-4">
-                {dateRange
-                  ? "No supplies adjustments for selected date range"
-                  : "Get started by adding your first adjustment"}
-              </p>
-              <Button onClick={() => setDialogOpen(true)}>
-                Add Adjustment
-              </Button>
-            </div>
-          )}
+          {adjustmentsQuery.data?.length === 0 &&
+            !adjustmentsQuery.isLoading && (
+              <div className="text-center py-12">
+                <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  No supplies adjustments
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {dateRange
+                    ? "No supplies adjustments for selected date range"
+                    : "Get started by adding your first adjustment"}
+                </p>
+                <Button onClick={() => setDialogOpen(true)}>
+                  Add Adjustment
+                </Button>
+              </div>
+            )}
         </CardContent>
       </Card>
 
@@ -198,10 +198,7 @@ const SuppliesAdjustmentsTab = () => {
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="item">Item</Label>
-              <Select
-                value={selectedItemId}
-                onValueChange={setSelectedItemId}
-              >
+              <Select value={selectedItemId} onValueChange={setSelectedItemId}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select item" />
                 </SelectTrigger>
@@ -260,7 +257,11 @@ const SuppliesAdjustmentsTab = () => {
               </Button>
               <Button
                 type="submit"
-                disabled={createAdjustmentMutation.isPending || !selectedItemId || !amount}
+                disabled={
+                  createAdjustmentMutation.isPending ||
+                  !selectedItemId ||
+                  !amount
+                }
               >
                 {createAdjustmentMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

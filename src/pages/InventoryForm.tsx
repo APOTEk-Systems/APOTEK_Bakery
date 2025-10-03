@@ -283,7 +283,7 @@ const InventoryForm = () => {
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
             <Button variant="ghost" size="sm" asChild>
-              <Link to="/inventory">
+              <Link to="/materials">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Materials
               </Link>
@@ -357,7 +357,7 @@ const InventoryForm = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="currentQuantity">
-                    Current Quantity {formData.currentQuantity}
+                    Current Quantity
                   </Label>
                   <Input
                     id="currentQuantity"
@@ -473,7 +473,7 @@ const InventoryForm = () => {
                               !calcAmount || !calcUnit || !calcTotalCost
                             }
                           >
-                            Calculate Cost
+                            Calculate
                           </Button>
                         </DialogFooter>
                       </DialogContent>

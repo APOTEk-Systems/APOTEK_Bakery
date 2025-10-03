@@ -300,7 +300,7 @@ const SuppliesForm = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="currentQuantity">
-                    Current Quantity {formData.currentQuantity}
+                    Current Quantity
                   </Label>
                   <Input
                     id="currentQuantity"

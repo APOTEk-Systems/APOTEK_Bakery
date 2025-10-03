@@ -21,7 +21,9 @@ import {
    FileText,
    Shield,
    Store,
-   Bell
+   Bell,
+   Utensils,
+   UtensilsCrossed
  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -65,11 +67,11 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
     <div className={collapsed && !isMobile ? "p-2" : "p-6"}>
       {isMobile && (
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-            <Cookie className="h-6 w-6 text-primary-foreground" />
+          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+            <img src="/icon.png"  className="w-full"/>
           </div>
           <div>
-            <h2 className="font-bold text-lg text-foreground">Golden Crust</h2>
+            <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
             <p className="text-sm text-muted-foreground">Bakery Manager</p>
           </div>
         </div>
@@ -104,7 +106,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       >
                         <Link to="/materials" className="flex items-center gap-2">
                           <Package className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Raw Materials"}
+                          {(!collapsed || isMobile) && "Materials"}
                         </Link>
                       </Button>
                       <Button
@@ -113,7 +115,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         asChild
                       >
                         <Link to="/supplies" className="flex items-center gap-2">
-                          <Package className="h-4 w-4" />
+                          <UtensilsCrossed  className="h-4 w-4" />
                           {(!collapsed || isMobile) && "Supplies"}
                         </Link>
                       </Button>
@@ -206,7 +208,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       >
                         <Link to="/user-role-management" className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "User and Role Management"}
+                          {(!collapsed || isMobile) && "Users and Roles"}
                         </Link>
                       </Button>
                       <Button
@@ -311,10 +313,10 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
             </SheetContent>
           </Sheet>
           <div className="ml-4 flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <Cookie className="h-5 w-5 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+               <img src="/icon.png"  className="w-full"/>
             </div>
-            <h2 className="font-bold text-lg text-foreground">Golden Crust</h2>
+            <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
           </div>
         </div>
         <div className="h-16" /> {/* Spacer for fixed top bar */}
@@ -327,10 +329,10 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
       <div className="flex items-center justify-between p-4 border-b">
         {!collapsed && (
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-              <Cookie className="h-5 w-5 text-primary-foreground" />
+            <div className="w-8 h-8  rounded-lg flex items-center justify-center">
+            <img src="/icon.png"  className="w-full"/>
             </div>
-            <h2 className="font-bold text-lg text-foreground">Golden Crust</h2>
+            <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
           </div>
         )}
         <Button

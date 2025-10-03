@@ -101,17 +101,17 @@ const App = () => (
                   <GoodsReceivingView />
                 </ProtectedRoute>
               } />
-              <Route path="/material/new" element={
+              <Route path="/materials/new" element={
                 <ProtectedRoute>
                   <InventoryForm />
                 </ProtectedRoute>
               } />
-              <Route path="/material/:id/edit" element={
+              <Route path="/materials/:id/edit" element={
                 <ProtectedRoute>
                   <InventoryForm />
                 </ProtectedRoute>
               } />
-              <Route path="/material/adjustments" element={
+              <Route path="/materials/adjustments" element={
                 <ProtectedRoute>
                   <InventoryAdjustments />
                 </ProtectedRoute>
