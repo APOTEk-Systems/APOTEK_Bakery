@@ -102,7 +102,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         className="w-full justify-start hover:bg-muted"
                         asChild
                       >
-                        <Link to="/material" className="flex items-center gap-2">
+                        <Link to="/materials" className="flex items-center gap-2">
                           <Package className="h-4 w-4" />
                           {(!collapsed || isMobile) && "Raw Materials"}
                         </Link>

@@ -148,7 +148,7 @@ const InventoryAdjustmentsTab = ({
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>{title} Adjustments</CardTitle>
+            <CardTitle>Material Adjustments</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
