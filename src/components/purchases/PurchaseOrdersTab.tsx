@@ -160,7 +160,7 @@ export default function PurchaseOrdersTab() {
       queryClient.invalidateQueries({queryKey: ["purchaseOrders"]});
       toast({
         title: "PO Created",
-        description: `Purchase order ${newPO.id} created successfully.`,
+        description: `Purchase order created successfully.`,
       });
       setIsCreatePODialogOpen(false);
       setCreatePOForm({
@@ -354,7 +354,7 @@ export default function PurchaseOrdersTab() {
         {/* Search + Status */}
         <div className="flex flex-col sm:flex-row gap-4">
           <Input
-            placeholder="Search by supplier or ID..."
+            placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="max-w-sm lg:mt-4"
@@ -543,11 +543,11 @@ export default function PurchaseOrdersTab() {
                   <div className="w-20">Price</div>
                 </div>
                 {createPOForm.items.map((item, index) => {
-                  let price = item.price;
+                  let displayPrice = item.price;
                   if (item.unit === "kg") {
-                    price = price * 1000;
+                    displayPrice = item.price * 1000;
                   } else if (item.unit === "l") {
-                    price = price * 1000;
+                    displayPrice = item.price * 1000;
                   }
                   return (
                     <div key={index} className="flex gap-2 items-end">
@@ -607,24 +607,31 @@ export default function PurchaseOrdersTab() {
                       <div className="w-20">
                         <Label className="sr-only">Price</Label>
                         <Input
-                          type="text" // 👈 must be text so commas can appear
-                          value={
-                            price !== undefined && price !== null
-                              ? price.toLocaleString("en-US") // adds commas (1,000, 12,345)
-                              : ""
-                          }
-                          onChange={(e) => {
-                            // remove commas before parsing
-                            const raw = e.target.value.replace(/,/g, "");
-                            const val = raw === "" ? 0 : parseFloat(raw);
+          type="text"
+          value={
+            displayPrice
+              ? displayPrice.toLocaleString("en-US")
+              : ""
+          }
+          onChange={(e) => {
+            const raw = e.target.value.replace(/,/g, "");
+            const userPrice = parseFloat(raw) || 0;
 
-                            updateItemPrice(index, val);
-                          }}
-                          placeholder="1,000"
-                          className="w-full text-right"
-                          inputMode="numeric"
-                          pattern="[0-9,]*"
-                        />
+            // --- Convert back to base unit before saving ---
+            let basePrice = userPrice;
+            if (item.unit === "kg") {
+              basePrice = userPrice / 1000; // convert kg → g
+            } else if (item.unit === "l") {
+              basePrice = userPrice / 1000; // convert l → ml
+            }
+
+            updateItemPrice(index, basePrice);
+          }}
+          placeholder="1,000"
+          className="w-full text-right"
+          inputMode="numeric"
+          pattern="[0-9,]*"
+        />
                       </div>
                       <Button
                         type="button"
@@ -651,7 +658,7 @@ export default function PurchaseOrdersTab() {
             </div>
             <div className="border-t pt-4">
               <div className="flex justify-between text-lg font-bold">
-                <span>Total Estimated Cost:</span>
+                <span>Total Cost:</span>
                 <span>{formatCurrency(calculateTotal())}</span>
               </div>
             </div>

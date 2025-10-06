@@ -1,15 +1,23 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Truck, Loader2, CheckCircle } from "lucide-react";
 
-import { purchasesService, type PurchaseOrder, type GoodsReceipt } from "@/services/purchases";
+import { purchasesService, type PurchaseOrder, type GoodsReceipt, type GoodsReceiptItem } from "@/services/purchases";
 import { suppliersService } from "@/services/suppliers";
 import { getInventory } from "@/services/inventory";
 import type { InventoryItem } from "@/services/inventory";
@@ -20,8 +28,10 @@ const GoodsReceivingView = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [deliveryNotes, setDeliveryNotes] = useState("");
+  const [receiveNotes, setReceiveNotes] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [receiveForm, setReceiveForm] = useState<GoodsReceiptItem[]>([]);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   // Fetch PO data
   const poQuery = useQuery({
@@ -94,6 +104,16 @@ const GoodsReceivingView = () => {
   const hasReceipt = po.goodsReceipts && po.goodsReceipts.length > 0;
   const receiptStatus = hasReceipt ? po.goodsReceipts[0].status : null;
 
+  useEffect(() => {
+    if (po && po.status === "approved" && !hasReceipt) {
+      const initialForm = po.items.map(item => ({
+        inventoryItemId: item.inventoryItemId,
+        receivedQuantity: item.quantity
+      }));
+      setReceiveForm(initialForm);
+    }
+  }, [po, hasReceipt]);
+
   const handleSubmitReceive = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitLoading(true)
@@ -105,11 +125,12 @@ const GoodsReceivingView = () => {
       }));
       const newReceipt = await purchasesService.createReceipt({
         purchaseOrderId: po.id,
-        items,
-        notes: deliveryNotes.trim() || undefined
+        items: receiveForm,
+        notes: receiveNotes.trim() || undefined
       });
       toast({ title: "Goods Received", description: `Receipt ${newReceipt.id} created for PO ${po.id}` });
-      setDeliveryNotes("");
+      setReceiveNotes("");
+      setIsConfirmDialogOpen(false);
       navigate(`/purchases/${po.id}`);
     } catch (error) {
       toast({ title: "Error", description: "Failed to receive goods", variant: "destructive" });
@@ -150,7 +171,15 @@ const GoodsReceivingView = () => {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
                 Goods Received Summary
-                <Badge variant={getStatusVariant(po.status)}>{capitalizeStatus(po.status)}</Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={getStatusVariant(po.status)}>{capitalizeStatus(po.status)}</Badge>
+                  {po.status === "approved" && !hasReceipt && (
+                    <Button size="sm" onClick={() => setIsConfirmDialogOpen(true)} disabled={submitLoading}>
+                      <Truck className="h-4 w-4 mr-1" />
+                      Receive
+                    </Button>
+                  )}
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 mb-6">
@@ -209,6 +238,32 @@ const GoodsReceivingView = () => {
 
         </div>
       </div>
+
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Goods Receipt</DialogTitle>
+          </DialogHeader>
+          <p>Are you sure you want to mark all goods as received for this purchase order?</p>
+          <div>
+            <Label htmlFor="receiveNotes">Delivery Notes (optional)</Label>
+            <Textarea
+              id="receiveNotes"
+              value={receiveNotes}
+              onChange={(e) => setReceiveNotes(e.target.value)}
+              placeholder="Add any delivery notes..."
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSubmitReceive} disabled={submitLoading}>
+              {submitLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+              Confirm Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </Layout>
   );
 };

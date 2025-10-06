@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
@@ -51,6 +51,8 @@ const InventoryAdjustmentsTab = ({
   title,
 }: InventoryAdjustmentsTabProps) => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
@@ -60,20 +62,31 @@ const InventoryAdjustmentsTab = ({
   const {toast} = useToast();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const inventoryQuery = useQuery({
     queryKey: ['inventory', type],
     queryFn: () => getInventory({type}),
   });
 
   const adjustmentsQuery = useQuery({
-    queryKey: ['adjustments', type, dateRange],
+    queryKey: ['adjustments', type, dateRange, debouncedSearchTerm],
     queryFn: () => {
       const params: any = {type};
-      if (dateRange?.from) {
-        params.startDate = dateRange.from.toISOString().split('T')[0];
-      }
-      if (dateRange?.to) {
-        params.endDate = dateRange.to.toISOString().split('T')[0];
+      if (debouncedSearchTerm.trim()) {
+        params.name = debouncedSearchTerm.trim();
+      } else {
+        if (dateRange?.from) {
+          params.startDate = dateRange.from.toISOString().split('T')[0];
+        }
+        if (dateRange?.to) {
+          params.endDate = dateRange.to.toISOString().split('T')[0];
+        }
       }
       return getAdjustments(params);
     },
@@ -133,16 +146,26 @@ const InventoryAdjustmentsTab = ({
 
   return (
     <div className="space-y-6">
-      {/* Date Filter */}
-      <div className="flex w-full justify-between">
-        <DateRangePicker
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-        />
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Adjustment
-        </Button>
+      {/* Filters */}
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="flex-1">
+            <Input
+              placeholder="Search by item name"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Adjustment
+          </Button>
+        </div>
       </div>
 
       <Card className="shadow-warm">

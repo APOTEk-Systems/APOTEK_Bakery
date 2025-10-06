@@ -57,7 +57,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
     { icon: CreditCard, label: "Sales", path: "/sales" },
     { icon: ShoppingCart, label: "Purchases", path: "/purchases" },
     { icon: Package, label: "Inventory", path: "/inventory" },
-    { icon: Factory, label: "Production", path: "/production-runs" },
+    { icon: Factory, label: "Production", path: "/production" },
     { icon: Calculator, label: "Accounting", path: "/accounting" },
     { icon: FileText, label: "Reports", path: "/reports" },
     { icon: Settings, label: "Settings", path: "/settings" }
