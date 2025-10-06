@@ -747,12 +747,15 @@ export default function PurchaseOrdersTab() {
               <div>
                 <Label>Items and Costs</Label>
                 <div className="space-y-2">
+                  <div className="flex gap-2 text-xs font-medium text-muted-foreground mb-1">
+                    <div className="flex-1">Item</div>
+                    <div className="w-20">Quantity</div>
+                    <div className="w-20">Unit</div>
+                    <div className="w-20">Price</div>
+                  </div>
                   {selectedPOForReceive.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex gap-2 items-center justify-between"
-                    >
-                      <div className="w-full">
+                    <div key={index} className="flex gap-2 items-end">
+                      <div className="flex-1">
                         <Input
                           value={
                             inventoryItems.find(
@@ -763,7 +766,25 @@ export default function PurchaseOrdersTab() {
                           readOnly
                         />
                       </div>
-                      <div className="w-1/2">
+                      <div className="w-20">
+                        <Input
+                          value={item.quantity}
+                          className="bg-muted text-center"
+                          readOnly
+                        />
+                      </div>
+                      <div className="w-20">
+                        <Input
+                          value={
+                            inventoryItems.find(
+                              (i) => i.id === item.inventoryItemId
+                            )?.unit || ""
+                          }
+                          className="bg-muted text-center"
+                          readOnly
+                        />
+                      </div>
+                      <div className="w-20">
                         <Input
                           value={formatCurrency(item.price)}
                           className="bg-muted text-center"

@@ -164,7 +164,7 @@ const GoodsReceivingView = () => {
               </p>
             </div>
             <Button asChild variant="outline">
-              <Link to={`/purchases/${po.id}`}>Back to PO</Link>
+              <Link to="/purchases">Back to Purchases</Link>
             </Button>
           </div>
 

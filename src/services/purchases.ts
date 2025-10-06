@@ -37,6 +37,18 @@ export interface GoodsReceipt {
   createdById?: number;
 }
 
+export interface GoodsReceiptResponse {
+  id: number;
+  purchaseOrderId: number;
+  receivedQuantity: number;
+  status: 'pending' | 'completed';
+  receivedDate?: string;
+  notes?: string;
+  createdById?: number;
+  supplierName:string;
+  total:number
+}
+
 export const purchasesService = {
   //Purchases Summary
 
@@ -82,7 +94,7 @@ export const purchasesService = {
   },
 
   // Goods Receipts
-  getAllReceipts: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string }): Promise<{ goodsReceipts: GoodsReceipt[], total: number }> => {
+  getAllReceipts: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string }): Promise<{ goodsReceipts: GoodsReceiptResponse[], total: number }> => {
     const response = await api.get('/purchases/receiving', { params });
     return response.data;
   },
