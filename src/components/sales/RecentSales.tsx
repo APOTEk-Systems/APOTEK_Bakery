@@ -26,7 +26,7 @@ const RecentSales: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [selectedCustomer, setSelectedCustomer] = useState<string>('');
   const [page, setPage] = useState(1);
-  const [limit] = useState(5); // Fixed limit as per the example
+  const [limit] = useState(10); // Fixed limit as per the example
 
   const getVisiblePages = (current: number, total: number): (number | string)[] => {
     const delta = 2;

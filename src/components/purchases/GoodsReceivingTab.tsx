@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,34 +7,59 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Eye, Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
 import { purchasesService, type GoodsReceipt } from "@/services/purchases";
 import { Link } from "react-router-dom";
+import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function GoodsReceivingTab() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [date, setDate] = useState<Date | null>(null);
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedGR, setSelectedGR] = useState<GoodsReceipt | null>(null);
   const [isViewGRDialogOpen, setIsViewGRDialogOpen] = useState(false);
 
-  const goodsReceiptsQuery = useQuery<GoodsReceipt[]>({
-    queryKey: ['goodsReceipts'],
-    queryFn: () => purchasesService.getAllReceipts({status:"completed"}),
+  const goodsReceiptsQuery = useQuery<{ goodsReceipts: GoodsReceipt[], total: number }>({
+    queryKey: ['goodsReceipts', currentPage, filterStatus, dateRange],
+    queryFn: () => purchasesService.getAllReceipts({
+      page: currentPage,
+      status: filterStatus === "all" ? undefined : filterStatus,
+      startDate: dateRange?.from?.toISOString(),
+      endDate: dateRange?.to?.toISOString(),
+    }),
   });
 
-  const goodsReceiving = goodsReceiptsQuery.data || [];
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, dateRange]);
+
+  const goodsReceiving = goodsReceiptsQuery.data?.goodsReceipts || [];
+  const total = goodsReceiptsQuery.data?.total || 0;
+  const pageSize = 10;
+  const totalPages = Math.ceil(total / pageSize);
   const isLoading = goodsReceiptsQuery.isLoading;
   const hasError = goodsReceiptsQuery.error;
 
   const filteredGR = goodsReceiving.filter(gr => {
-    const dateKey = date ? new Date(date.setHours(0, 0, 0, 0)).toISOString().split('T')[0] : null;
-    return (gr.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      gr.purchaseOrderId.toString().toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (!dateKey || new Date(gr.receivedDate).toISOString().split('T')[0] === dateKey);
+    return gr.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+      gr.purchaseOrderId.toString().toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const getStatusVariant = (status: string) => {
@@ -57,43 +82,37 @@ export default function GoodsReceivingTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col items-end justify-end sm:flex-row gap-4">
-        <Input
-          placeholder="Search by ID or PO ID..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-[200px] justify-start text-left font-normal",
-                !date && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : <span>Pick a date</span>}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={date || undefined}
-              onSelect={(d) => setDate(d || null)}
-              initialFocus
+      <div className="flex flex-col sm:flex-row justify-end items-center gap-4 w-full">
+        {/* Search + Status */}
+        <div className="flex flex-col sm:flex-row gap-4">
+          <Input
+            placeholder="Search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+      
+        </div>
+
+        {/* Dates */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
             />
-          </PopoverContent>
-        </Popover>
+          </div>
+        </div>
       </div>
       <Card>
         <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
+                <TableHead>Order #</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Supplier</TableHead>
+                <TableHead>Total</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -131,7 +150,7 @@ export default function GoodsReceivingTab() {
                         No goods receipts found
                       </h3>
                       <p className="text-muted-foreground">
-                        {searchTerm || date
+                        {searchTerm || dateRange
                           ? "Try adjusting your filters or search terms"
                           : "Goods receipts will appear here when purchase orders are received"
                         }
@@ -145,6 +164,8 @@ export default function GoodsReceivingTab() {
                   <TableRow key={gr.id}>
                     <TableCell>{gr.purchaseOrderId}</TableCell>
                     <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>
+                    <TableCell> {gr.supplierName} </TableCell>
+                    <TableCell> {gr.total.toLocaleString()} </TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(gr.status)}>
                         {capitalizeStatus(gr.status)}
@@ -163,6 +184,36 @@ export default function GoodsReceivingTab() {
           </Table>
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* View GR Dialog */}
       <Dialog open={isViewGRDialogOpen} onOpenChange={setIsViewGRDialogOpen}>

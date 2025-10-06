@@ -1,19 +1,29 @@
- import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Edit, Trash, Save, Loader2, User } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { suppliersService, type Supplier } from "@/services/suppliers";
+import { useState, useEffect } from "react";
+ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+ import { Button } from "@/components/ui/button";
+ import { Card, CardContent } from "@/components/ui/card";
+ import { Input } from "@/components/ui/input";
+ import { Label } from "@/components/ui/label";
+ import { Textarea } from "@/components/ui/textarea";
+ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+ import { Plus, Edit, Trash, Save, Loader2, User } from "lucide-react";
+ import { useToast } from "@/hooks/use-toast";
+ import { suppliersService, type Supplier } from "@/services/suppliers";
+ import axios from "axios";
+ import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function SuppliersTab() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
@@ -22,6 +32,10 @@ export default function SuppliersTab() {
   const [validationErrors, setValidationErrors] = useState<{ email?: string; contactInfo?: string; address?: string }>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const suppliersQuery = useQuery<Supplier[]>({
     queryKey: ['suppliers'],
@@ -32,12 +46,21 @@ export default function SuppliersTab() {
   const isLoading = suppliersQuery.isLoading;
   const hasError = suppliersQuery.error;
 
+  let errorMessage = "Failed to load suppliers";
+  if (hasError && axios.isAxiosError(hasError) && hasError.response?.status !== 500) {
+    errorMessage = hasError.response?.data?.message || hasError.message;
+  }
+
   const filteredSuppliers = suppliers.filter(sup =>
     sup.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (sup.contactInfo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (sup.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (sup.address || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const pageSize = 10;
+  const totalPages = Math.ceil(filteredSuppliers.length / pageSize);
+  const paginatedSuppliers = filteredSuppliers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   // Validation functions
   const validateEmail = (email: string): string | undefined => {
@@ -53,7 +76,7 @@ export default function SuppliersTab() {
     }
 
     // Remove any spaces or hyphens
-    const cleanPhone = phone.replace(/[\s\-]/g, '');
+    const cleanPhone = phone.replace(/[\s-]/g, '');
 
     // Check for 07 or 06 prefix (10 digits total)
     if (/^(07|06)\d{8}$/.test(cleanPhone)) {
@@ -92,19 +115,37 @@ export default function SuppliersTab() {
   };
 
   const updateSupplierMutation = useMutation({
-    mutationFn: (data: { name: string; contactInfo: string }) => 
-      editingSupplierId 
-        ? suppliersService.update(editingSupplierId, data) 
+    mutationFn: (data: { name: string; contactInfo: string; email?: string; address?: string }) =>
+      editingSupplierId
+        ? suppliersService.update(editingSupplierId, data)
         : suppliersService.create(data),
     onSuccess: (updated) => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast({ title: editingSupplierId ? "Supplier Updated" : "Supplier Added" });
       setIsSupplierDialogOpen(false);
       setNewSupplier({ name: "", contactInfo: "", email: "", address: "" });
+      setValidationErrors({});
       setEditingSupplierId(null);
     },
     onError: (err) => {
-      toast({ title: "Error", description: "Failed to save supplier", variant: "destructive" });
+      if (axios.isAxiosError(err) && err.response?.status === 409) {
+        const errorMessage = err.response?.data?.message || "Conflict error";
+        const errors: { email?: string; contactInfo?: string; address?: string } = {};
+        if (errorMessage.toLowerCase().includes("email")) {
+          errors.email = errorMessage;
+        } else if (errorMessage.toLowerCase().includes("contact") || errorMessage.toLowerCase().includes("phone")) {
+          errors.contactInfo = errorMessage;
+        } else {
+          errors.address = errorMessage; // fallback
+        }
+        setValidationErrors(errors);
+      } else {
+        let errorMessage = "Failed to save supplier";
+        if (axios.isAxiosError(err) && err.response?.status !== 500) {
+          errorMessage = err.response?.data?.message || err.message;
+        }
+        toast({ title: "Error", description: errorMessage, variant: "destructive" });
+      }
     },
   });
 
@@ -117,7 +158,11 @@ export default function SuppliersTab() {
       setDeleteItemId(null);
     },
     onError: (err) => {
-      toast({ title: "Error", description: "Failed to delete", variant: "destructive" });
+      let errorMessage = "Failed to delete";
+      if (axios.isAxiosError(err) && err.response?.status !== 500) {
+        errorMessage = err.response?.data?.message || err.message;
+      }
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     },
   });
 
@@ -159,7 +204,7 @@ export default function SuppliersTab() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <Input
-          placeholder="Search by name, phone, email, or address..."
+          placeholder="Search"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="max-w-sm"
@@ -202,7 +247,7 @@ export default function SuppliersTab() {
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">
                     <div className="flex flex-col items-center justify-center">
-                      <p className="text-destructive mb-2">Failed to load suppliers</p>
+                      <p className="text-destructive mb-2">{errorMessage}</p>
                       <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
                         Retry
                       </Button>
@@ -240,7 +285,7 @@ export default function SuppliersTab() {
                 </TableRow>
               ) : (
                 // Data rows
-                filteredSuppliers.map(sup => (
+                paginatedSuppliers.map(sup => (
                   <TableRow key={sup.id}>
                     <TableCell>{sup.name}</TableCell>
                     <TableCell>{sup.contactInfo || '-'}</TableCell>
@@ -263,6 +308,36 @@ export default function SuppliersTab() {
           </Table>
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* Supplier Dialog */}
       <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>

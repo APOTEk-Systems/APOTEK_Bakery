@@ -68,7 +68,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
       {isMobile && (
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center">
-            <img src="/icon.png"  className="w-full"/>
+            <img src="/icon.png"  className="w-full" alt="Apotek Icon"/>
           </div>
           <div>
             <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
@@ -77,7 +77,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-y-auto max-h-[calc(100vh-8rem)]">
         {isAuthenticated ? (
           <>
             {navItems.map((item, index) => {
@@ -157,7 +157,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       >
                         <Link to="/sales/new" className="flex items-center gap-2">
                           <CreditCard className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "POS"}
+                          {(!collapsed || isMobile) && "New Sale"}
                         </Link>
                       </Button>
                       <Button
@@ -202,13 +202,23 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
                       <Button
-                        variant={location.pathname === '/user-role-management' ? "secondary" : "ghost"}
+                        variant={location.pathname === '/users' ? "secondary" : "ghost"}
                         className="w-full justify-start hover:bg-muted"
                         asChild
                       >
-                        <Link to="/user-role-management" className="flex items-center gap-2">
+                        <Link to="/users" className="flex items-center gap-2">
                           <Users className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Users and Roles"}
+                          {(!collapsed || isMobile) && "Users"}
+                        </Link>
+                      </Button>
+                      <Button
+                        variant={location.pathname === '/roles' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/roles" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Roles"}
                         </Link>
                       </Button>
                       <Button
@@ -217,8 +227,8 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         asChild
                       >
                         <Link to="/information" className="flex items-center gap-2">
-                          <Store className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Information"}
+                          <Settings className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Configurations"}
                         </Link>
                       </Button>
                       <Button
@@ -314,7 +324,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
           </Sheet>
           <div className="ml-4 flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-               <img src="/icon.png"  className="w-full"/>
+               <img src="/icon.png"  className="w-full" alt="APOTEk Image"/>
             </div>
             <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
           </div>
@@ -325,12 +335,12 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
   }
 
   return (
-    <nav className={`fixed left-0 top-0 h-full ${collapsed ? 'w-16' : 'w-64'} bg-card border-r border-border shadow-warm z-50 transition-all duration-300`}>
+    <nav className={`fixed left-0 top-0 h-full ${collapsed ? 'w-12' : 'w-64'} bg-card border-r border-border shadow-warm z-50 transition-all duration-300`}>
       <div className="flex items-center justify-between p-4 border-b">
         {!collapsed && (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8  rounded-lg flex items-center justify-center">
-            <img src="/icon.png"  className="w-full"/>
+            <img src="/icon.png"  className="w-full" alt="APOTEk Logo"/>
             </div>
             <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
           </div>

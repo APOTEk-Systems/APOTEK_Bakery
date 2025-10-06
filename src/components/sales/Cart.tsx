@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ShoppingCart, Minus, Plus, Trash2, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/funcs";
 
@@ -8,23 +9,25 @@ interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  cartQuantity: number;
 }
 
 interface CartProps {
   cart: CartItem[];
+  products: any[];
   updateQuantity: (id: number, quantity: number) => void;
   removeFromCart: (id: number) => void;
   setCurrentStep: (step: number) => void;
 }
 
-const Cart = ({ cart, updateQuantity, removeFromCart, setCurrentStep }: CartProps) => {
+const Cart = ({ cart, products, updateQuantity, removeFromCart, setCurrentStep }: CartProps) => {
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5" />
-            Cart ({cart.reduce((s, i) => s + i.quantity, 0)} items)
+            Cart ({cart.reduce((s, i) => s + i.cartQuantity, 0)} items)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -52,23 +55,32 @@ const Cart = ({ cart, updateQuantity, removeFromCart, setCurrentStep }: CartProp
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        updateQuantity(item.id, item.quantity - 1);
+                        updateQuantity(item.id, item.cartQuantity - 1);
                       }}
                       className="h-6 w-6 p-0"
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
 
-                    <span className="text-sm font-medium w-8 text-center">
-                      {item.quantity}
-                    </span>
+                    <Input
+                      type="number"
+                      min="1"
+                      max={item.quantity}
+                      value={item.cartQuantity}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || 1;
+                        updateQuantity(item.id, val);
+                      }}
+                      className="w-16 text-center h-6"
+                      onClick={(e) => e.stopPropagation()}
+                    />
 
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={(e) => {
                         e.stopPropagation();
-                        updateQuantity(item.id, item.quantity + 1);
+                        updateQuantity(item.id, item.cartQuantity + 1);
                       }}
                       className="h-6 w-6 p-0"
                     >

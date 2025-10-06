@@ -16,7 +16,7 @@ import ConfirmSaleDialog from "../components/sales/ConfirmSaleDialog";
 import NewCustomerDialog from "../components/sales/NewCustomerDialog";
 
 interface CartItem extends Product {
-  quantity: number;
+  cartQuantity: number;
 }
 
 const NewSale = () => {
@@ -115,6 +115,7 @@ const NewSale = () => {
     onSuccess: (newSale) => {
       queryClient.invalidateQueries({ queryKey: ['recentSales'] });
       queryClient.invalidateQueries({ queryKey: ['unpaidSales'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
         title: "Success",
         description: `Sale created successfully`,
@@ -146,11 +147,19 @@ const NewSale = () => {
     setCart((prev) => {
       const exists = prev.find((i) => i.id === product.id);
       if (exists) {
+        if (exists.cartQuantity + 1 > product.quantity) {
+          toast({
+            title: "Insufficient Stock",
+            description: `Only ${product.quantity} available for ${product.name}`,
+            variant: "destructive",
+          });
+          return prev;
+        }
         return prev.map((i) =>
-          i.id === product.id ? {...i, quantity: i.quantity + 1} : i
+          i.id === product.id ? {...i, cartQuantity: i.cartQuantity + 1} : i
         );
       }
-      return [...prev, {...product, quantity: 1}];
+      return [...prev, {...product, cartQuantity: 1}];
     });
   };
 
@@ -158,7 +167,16 @@ const NewSale = () => {
     if (quantity <= 0) {
       setCart((prev) => prev.filter((i) => i.id !== id));
     } else {
-      setCart((prev) => prev.map((i) => (i.id === id ? {...i, quantity} : i)));
+      const product = products.find(p => p.id === id);
+      if (product && quantity > product.quantity) {
+        toast({
+          title: "Insufficient Stock",
+          description: `Only ${product.quantity} available for ${product.name}`,
+          variant: "destructive",
+        });
+        return;
+      }
+      setCart((prev) => prev.map((i) => (i.id === id ? {...i, cartQuantity: quantity} : i)));
     }
   };
 
@@ -166,7 +184,7 @@ const NewSale = () => {
     setCart((prev) => prev.filter((i) => i.id !== id));
 
   // totals
-  const subtotal = cart.reduce((s, it) => s + it.price * it.quantity, 0);
+  const subtotal = cart.reduce((s, it) => s + it.price * it.cartQuantity, 0);
   const tax = subtotal * 0 //For Now will be set later;
   const total = subtotal + tax;
 
@@ -237,7 +255,7 @@ const NewSale = () => {
       (it) =>
         ({
           productId: it.id,
-          quantity: it.quantity,
+          quantity: it.cartQuantity,
           // some services expect `price` or `unitPrice` — earlier examples used `price`
           price: it.price,
         } as unknown as SaleItem)
@@ -271,7 +289,6 @@ const NewSale = () => {
       creditLimit:0,
       currentCredit:0,
       loyaltyPoints: 0,
-      preferredContact: "both",
       isCredit: true,
     });
   };
@@ -322,18 +339,19 @@ const NewSale = () => {
 
           {currentStep === 1 ? (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <ProductsList
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                filteredProducts={filteredProducts}
-                addToCart={addToCart}
-              />
-              <Cart
-                cart={cart}
-                updateQuantity={updateQuantity}
-                removeFromCart={removeFromCart}
-                setCurrentStep={setCurrentStep}
-              />
+                 <ProductsList
+                   searchTerm={searchTerm}
+                   setSearchTerm={setSearchTerm}
+                   filteredProducts={filteredProducts}
+                   addToCart={addToCart}
+                 />
+                 <Cart
+                   cart={cart}
+                   products={products}
+                   updateQuantity={updateQuantity}
+                   removeFromCart={removeFromCart}
+                   setCurrentStep={setCurrentStep}
+                 />
             </div>
           ) : (
             <Checkout
@@ -353,7 +371,7 @@ const NewSale = () => {
               subtotal={subtotal}
               tax={tax}
               total={total}
-              cart={cart}
+              cart={cart.map(item => ({...item, quantity: item.cartQuantity}))}
               createSaleMutation={createSaleMutation}
             />
           )}

@@ -50,8 +50,8 @@ export const purchasesService = {
     return response.data;
   },
   // Purchase Orders
-  getAllPOs: async (): Promise<PurchaseOrder[]> => {
-    const response = await api.get('/purchases/orders');
+  getAllPOs: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string }): Promise<{ purchaseOrders: PurchaseOrder[], total: number }> => {
+    const response = await api.get('/purchases/orders', { params });
     return response.data;
   },
 
@@ -82,15 +82,10 @@ export const purchasesService = {
   },
 
   // Goods Receipts
- getAllReceipts: async (params?: { date?: string; status?: string }): Promise<GoodsReceipt[]> => {
-  const response = await api.get('/purchases/receiving', {
-    params: {
-      ...(params?.date ? { date: params.date } : {}),
-      ...(params?.status ? { status: params.status } : {}),
-    },
-  });
-  return response.data;
-},
+  getAllReceipts: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string }): Promise<{ goodsReceipts: GoodsReceipt[], total: number }> => {
+    const response = await api.get('/purchases/receiving', { params });
+    return response.data;
+  },
 
 
   getReceiptById: async (id: number): Promise<GoodsReceipt> => {

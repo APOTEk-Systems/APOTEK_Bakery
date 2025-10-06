@@ -183,7 +183,7 @@ const Checkout = ({
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span>Vat:</span>
+                <span>VAT:</span>
                 <span>{formatCurrency(tax)}</span>
               </div>
               <Separator />
@@ -202,7 +202,7 @@ const Checkout = ({
               {createSaleMutation.isPending ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
-                <Receipt className="h-4 w-4 mr-2" />
+               null
               )}
               {createSaleMutation.isPending
                 ? "Processing..."

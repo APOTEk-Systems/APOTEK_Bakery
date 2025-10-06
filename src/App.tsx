@@ -32,7 +32,8 @@ const PurchaseOrderView = lazy(() => import("./pages/PurchaseOrderView"));
 const GoodsReceivingView = lazy(() => import("./pages/GoodsReceivingView"));
 const Accounting = lazy(() => import("./pages/Accounting"));
 const Reports = lazy(() => import("./pages/Reports"));
-const UserRoleManagement = lazy(() => import("./pages/UserRoleManagement"));
+const Users = lazy(() => import("./pages/Users"));
+const Roles = lazy(() => import("./pages/Roles"));
 const Information = lazy(() => import("./pages/Information"));
 const Notifications = lazy(() => import("./pages/Notifications"));
 const SystemSettings = lazy(() => import("./pages/SystemSettings"));
@@ -186,9 +187,14 @@ const App = () => (
                   <Reports />
                 </ProtectedRoute>
               } />
-              <Route path="/user-role-management" element={
+              <Route path="/users" element={
                 <ProtectedRoute>
-                  <UserRoleManagement />
+                  <Users />
+                </ProtectedRoute>
+              } />
+              <Route path="/roles" element={
+                <ProtectedRoute>
+                  <Roles />
                 </ProtectedRoute>
               } />
               <Route path="/information" element={

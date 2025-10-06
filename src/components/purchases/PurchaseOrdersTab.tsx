@@ -1,4 +1,4 @@
-import {useState} from "react";
+import { useState, useEffect } from "react";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
 import {
@@ -49,6 +49,14 @@ import {getInventory} from "@/services/inventory";
 import {formatCurrency} from "@/lib/funcs";
 import {Link} from "react-router-dom";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 import type {GoodsReceiptItem} from "@/services/purchases";
 import { format } from "date-fns";
@@ -63,6 +71,7 @@ export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [currentPage, setCurrentPage] = useState(1);
   const [isCreatePODialogOpen, setIsCreatePODialogOpen] = useState(false);
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
   const [selectedPOForReceive, setSelectedPOForReceive] =
@@ -79,14 +88,23 @@ export default function PurchaseOrdersTab() {
   const {toast} = useToast();
   const queryClient = useQueryClient();
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, dateRange]);
+
   const suppliersQuery = useQuery<Supplier[]>({
     queryKey: ["suppliers"],
     queryFn: () => suppliersService.getAll(),
   });
 
-  const purchaseOrdersQuery = useQuery<PurchaseOrder[]>({
-    queryKey: ["purchaseOrders"],
-    queryFn: () => purchasesService.getAllPOs(),
+  const purchaseOrdersQuery = useQuery<{ purchaseOrders: PurchaseOrder[], total: number }>({
+    queryKey: ["purchaseOrders", currentPage, filterStatus, dateRange],
+    queryFn: () => purchasesService.getAllPOs({
+      page: currentPage,
+      status: filterStatus === "all" ? undefined : filterStatus,
+      startDate: dateRange?.from?.toISOString(),
+      endDate: dateRange?.to?.toISOString(),
+    }),
   });
 
   const inventoryQuery = useQuery<InventoryItem[]>({
@@ -95,8 +113,11 @@ export default function PurchaseOrdersTab() {
   });
 
   const suppliers = suppliersQuery.data || [];
-  const purchaseOrders = purchaseOrdersQuery.data || [];
+  const purchaseOrders = purchaseOrdersQuery.data?.purchaseOrders || [];
+  const total = purchaseOrdersQuery.data?.total || 0;
   const inventoryItems: InventoryItem[] = inventoryQuery.data || [];
+  const pageSize = 10;
+  const totalPages = Math.ceil(total / pageSize);
 
   const isLoading =
     suppliersQuery.isLoading ||
@@ -291,7 +312,7 @@ export default function PurchaseOrdersTab() {
       return;
     }
     const items = createPOForm.items.map((item) => {
-      let quantity = item.quantity;
+      const quantity = item.quantity;
       let price = item.price;
 
       if (item.unit.toLowerCase() === "l" || item.unit.toLowerCase() === "kg") {
@@ -389,7 +410,7 @@ export default function PurchaseOrdersTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order ID</TableHead>
+                <TableHead>Order #</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Items</TableHead>
@@ -501,6 +522,36 @@ export default function PurchaseOrdersTab() {
           </Table>
         </CardContent>
       </Card>
+
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* Create PO Dialog */}
       <Dialog

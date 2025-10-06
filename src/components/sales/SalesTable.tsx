@@ -124,9 +124,10 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
           <TableHeader>
             <TableRow>
               {/* <TableHead>Sale ID</TableHead> */}
-              <TableHead>Date</TableHead>
+              <TableHead>Recepit #</TableHead>
               <TableHead>Customer</TableHead>
-              <TableHead>Total Amount</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
               
@@ -136,6 +137,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
             {salesToRender.map((sale, index) => (
               <TableRow key={sale.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                 {/* <TableCell>{sale.id}</TableCell> */}
+                <TableCell> {sale.id} </TableCell>
                 <TableCell className="py-1">{format(new Date(sale.createdAt), 'dd-MM-yyyy')}</TableCell>
                 <TableCell className='font-medium py-1'>{sale.customer?.name || 'Cash'}</TableCell>
                 <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>

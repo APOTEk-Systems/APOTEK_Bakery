@@ -64,6 +64,19 @@ const GoodsReceivingView = () => {
   const loading = poQuery.isLoading || suppliersQuery.isLoading || inventoryQuery.isLoading;
   const error = poQuery.error || suppliersQuery.error || inventoryQuery.error;
 
+  // Check if goods are already received
+  const hasReceipt = po && po.goodsReceipts && po.goodsReceipts.length > 0;
+
+  useEffect(() => {
+    if (po && po.status === "approved" && !hasReceipt) {
+      const initialForm = po.items.map(item => ({
+        inventoryItemId: item.inventoryItemId,
+        receivedQuantity: item.quantity
+      }));
+      setReceiveForm(initialForm);
+    }
+  }, [po, hasReceipt]);
+
   if (loading) {
     return (
       <Layout>
@@ -100,19 +113,7 @@ const GoodsReceivingView = () => {
   const totalQty = po.items.reduce((sum, i) => sum + i.quantity, 0);
   const unit = inventory.find(i => i.id === (po.items[0]?.inventoryItemId))?.unit || '';
 
-  // Check if goods are already received
-  const hasReceipt = po.goodsReceipts && po.goodsReceipts.length > 0;
   const receiptStatus = hasReceipt ? po.goodsReceipts[0].status : null;
-
-  useEffect(() => {
-    if (po && po.status === "approved" && !hasReceipt) {
-      const initialForm = po.items.map(item => ({
-        inventoryItemId: item.inventoryItemId,
-        receivedQuantity: item.quantity
-      }));
-      setReceiveForm(initialForm);
-    }
-  }, [po, hasReceipt]);
 
   const handleSubmitReceive = async (e: React.FormEvent) => {
     e.preventDefault();

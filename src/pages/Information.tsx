@@ -6,13 +6,12 @@ import {Label} from "@/components/ui/label";
 import {Textarea} from "@/components/ui/textarea";
 import {Switch} from "@/components/ui/switch";
 import {useToast} from "@/hooks/use-toast";
-import {settingsService, SettingsData, BusinessHour} from "@/services/settings";
+import {settingsService, SettingsData} from "@/services/settings";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Save,
   Store,
-  Clock,
 } from "lucide-react";
 
 const Information = () => {
@@ -27,6 +26,7 @@ const Information = () => {
     email: "",
     website: "",
     description: "",
+    tin: "",
   });
 
   const [validationErrors, setValidationErrors] = useState<{
@@ -43,7 +43,6 @@ const Information = () => {
     return undefined;
   };
 
-  const [businessHoursData, setBusinessHoursData] = useState<BusinessHour[]>([]);
 
   // Fetch settings with React Query
   const { data: settings, isLoading: settingsLoading, error: settingsError } = useQuery<SettingsData>({
@@ -80,8 +79,8 @@ const Information = () => {
             ? settings.information.phone.substring(4)
             : settings.information.phone
           : "",
+        tin: settings.information.tin || "",
       });
-      setBusinessHoursData(settings.businessHours.data);
     }
   }, [settings]);
 
@@ -126,12 +125,6 @@ const Information = () => {
             : "",
         };
         break;
-      case "Business Hours":
-        updateData = {
-          key: "businessHours",
-          data: businessHoursData,
-        };
-        break;
       default:
         return;
     }
@@ -143,17 +136,17 @@ const Information = () => {
     <Layout>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Information</h1>
+          <h1 className="text-3xl font-bold text-foreground">Configurations</h1>
         </div>
 
         <div className="space-y-6">
           {/* Bakery Information */}
           <Card className="shadow-warm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              {/* <CardTitle className="flex items-center gap-2">
                 <Store className="h-5 w-5" />
                 Bakery Information
-              </CardTitle>
+              </CardTitle> */}
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -280,6 +273,21 @@ const Information = () => {
                 />
               </div>
 
+              <div>
+                <Label htmlFor="tin">TIN Number</Label>
+                <Input
+                  id="tin"
+                  value={informationData.tin}
+                  onChange={(e) =>
+                    setInformationData((prev) => ({
+                      ...prev,
+                      tin: e.target.value,
+                    }))
+                  }
+                  disabled={settingsLoading}
+                />
+              </div>
+
               <Button
                 onClick={() => handleSave("Bakery Information")}
                 className="w-full md:w-auto"
@@ -289,76 +297,6 @@ const Information = () => {
                 {updateSettingsMutation.isPending
                   ? "Saving..."
                   : "Save Bakery Info"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Business Hours */}
-          <Card className="shadow-warm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Business Hours
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {businessHoursData.map((hour, index) => (
-                <div key={hour.day} className="flex items-center gap-4">
-                  <div className="w-20">
-                    <Label>{hour.day}</Label>
-                  </div>
-                  <Switch
-                    checked={hour.isOpen}
-                    onCheckedChange={(checked) => {
-                      const updatedHours = [...businessHoursData];
-                      updatedHours[index] = {...hour, isOpen: checked};
-                      setBusinessHoursData(updatedHours);
-                    }}
-                    disabled={settingsLoading}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="time"
-                      value={hour.open || ""}
-                      onChange={(e) => {
-                        const updatedHours = [...businessHoursData];
-                        updatedHours[index] = {
-                          ...hour,
-                          open: e.target.value,
-                        };
-                        setBusinessHoursData(updatedHours);
-                      }}
-                      className="w-24"
-                      disabled={!hour.isOpen || settingsLoading}
-                    />
-                    <span className="text-muted-foreground">to</span>
-                    <Input
-                      type="time"
-                      value={hour.close || ""}
-                      onChange={(e) => {
-                        const updatedHours = [...businessHoursData];
-                        updatedHours[index] = {
-                          ...hour,
-                          close: e.target.value,
-                        };
-                        setBusinessHoursData(updatedHours);
-                      }}
-                      className="w-24"
-                      disabled={!hour.isOpen || settingsLoading}
-                    />
-                  </div>
-                </div>
-              ))}
-
-              <Button
-                onClick={() => handleSave("Business Hours")}
-                className="w-full md:w-auto"
-                disabled={updateSettingsMutation.isPending}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {updateSettingsMutation.isPending
-                  ? "Saving..."
-                  : "Save Hours"}
               </Button>
             </CardContent>
           </Card>
