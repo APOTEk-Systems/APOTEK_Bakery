@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Truck, Package, Users } from "lucide-react";
@@ -8,7 +9,8 @@ import SuppliersTab from "@/components/purchases/SuppliersTab";
 
 
 export default function Purchases() {
-  const [activeTab, setActiveTab] = useState("purchase-orders");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || "purchase-orders");
 
   return (
     <Layout>

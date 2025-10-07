@@ -6,6 +6,7 @@ export interface Supplier {
   contactInfo?: string;
   email?: string;
   address?: string;
+  status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
 }
@@ -38,7 +39,7 @@ export const suppliersService = {
     return response.data;
   },
 
-  update: async (id: number, supplier: Partial<{ name: string; contactInfo?: string; email?: string; address?: string }>): Promise<Supplier> => {
+  update: async (id: number, supplier: Partial<{ name: string; contactInfo?: string; email?: string; address?: string; status: 'active' | 'inactive' }>): Promise<Supplier> => {
     const response = await api.put(`/suppliers/${id}`, supplier);
     return response.data;
   },

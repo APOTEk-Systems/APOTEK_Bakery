@@ -302,7 +302,6 @@ const Users = () => {
                       <Select
                         value={getRoleNameFromId(formData.roleId)}
                         onValueChange={handleRoleChange}
-                        disabled={editingUser !== null}
                       >
                         <SelectTrigger className="col-span-3">
                           <SelectValue />

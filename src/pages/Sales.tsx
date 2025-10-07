@@ -25,7 +25,7 @@ const Sales: React.FC = () => {
         <Tabs defaultValue="recent" className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="recent">Recent Sales</TabsTrigger>
-            <TabsTrigger value="unpaid">Unpaid Credit Sales</TabsTrigger>
+            <TabsTrigger value="unpaid">Unpaid Sales</TabsTrigger>
           </TabsList>
           <TabsContent value="recent">
             <RecentSales />

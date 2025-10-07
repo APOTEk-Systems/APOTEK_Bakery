@@ -101,8 +101,8 @@ const GoodsReceivingView = () => {
             <p className="text-muted-foreground mt-2">
               {error ? "Failed to load purchase order data" : "The requested purchase order could not be found"}
             </p>
-            <Link to="/purchases">
-              <Button variant="outline" className="mt-4">Back to Purchases</Button>
+            <Link to="/purchases?tab=goods-receiving">
+              <Button variant="outline" className="mt-4">Back to Materials Receiving</Button>
             </Link>
           </div>
         </div>
@@ -164,7 +164,7 @@ const GoodsReceivingView = () => {
               </p>
             </div>
             <Button asChild variant="outline">
-              <Link to="/purchases">Back to Purchases</Link>
+              <Link to="/purchases?tab=goods-receiving">Back to Materials Receiving</Link>
             </Button>
           </div>
 

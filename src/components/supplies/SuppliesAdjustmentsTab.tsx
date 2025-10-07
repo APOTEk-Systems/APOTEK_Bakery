@@ -34,7 +34,6 @@ import {
   getInventory,
   getAdjustments,
   createAdjustment,
-  InventoryItem,
 } from "../../services/inventory";
 import {format} from "date-fns";
 
@@ -168,15 +167,13 @@ const SuppliesAdjustmentsTab = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {adjustmentsQuery.data?.map((adjustment) => (
-                <TableRow key={adjustment.id}>
+              {adjustmentsQuery.data?.adjustments?.map((adjustment) => (
+                <TableRow key={adjustment.id.toString()}>
                   <TableCell>
                     {format(new Date(adjustment.createdAt), "dd-MM-yyyy")}
                   </TableCell>
                   <TableCell>
-                    {inventoryQuery.data?.find(
-                      (item) => item.id === parseInt(adjustment.inventoryItemId)
-                    )?.name || "Unknown"}
+                    {adjustment.inventoryItem?.name || "Unknown"}
                   </TableCell>
                   <TableCell>
                     {adjustment.amount > 0
@@ -189,7 +186,7 @@ const SuppliesAdjustmentsTab = () => {
             </TableBody>
           </Table>
 
-          {adjustmentsQuery.data?.length === 0 &&
+          {adjustmentsQuery.data?.adjustments?.length === 0 &&
             !adjustmentsQuery.isLoading && (
               <div className="text-center py-12">
                 <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

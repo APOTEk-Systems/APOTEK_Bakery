@@ -42,7 +42,8 @@ export default function SuppliersTab() {
     queryFn: () => suppliersService.getAll(),
   });
 
-  const suppliers = suppliersQuery.data || [];
+  const allSuppliers = suppliersQuery.data || [];
+  const suppliers = allSuppliers.filter(sup => sup.status === "active");
   const isLoading = suppliersQuery.isLoading;
   const hasError = suppliersQuery.error;
 
@@ -142,15 +143,15 @@ export default function SuppliersTab() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => suppliersService.delete(id),
+    mutationFn: (id: number) => suppliersService.update(id, { status: "inactive" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
-      toast({ title: "Supplier Deleted", description: `Supplier deleted.`, variant: "default" });
+      toast({ title: "Supplier Deactivated", description: `Supplier deactivated.`, variant: "default" });
       setIsDeleteConfirmOpen(false);
       setDeleteItemId(null);
     },
     onError: (err) => {
-      let errorMessage = "Failed to delete";
+      let errorMessage = "Failed to deactivate";
       if (axios.isAxiosError(err) && err.response?.status !== 500) {
         errorMessage = err.response?.data?.message || err.message;
       }
@@ -434,9 +435,9 @@ export default function SuppliersTab() {
       <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+            <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the supplier.
+              This will deactivate the supplier. They will no longer appear in the active suppliers list, but their data will be preserved.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -445,7 +446,7 @@ export default function SuppliersTab() {
               {deleteMutation.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Delete Supplier
+              Deactivate Supplier
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

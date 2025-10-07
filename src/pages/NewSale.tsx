@@ -39,6 +39,7 @@ const NewSale = () => {
     name: "",
     email: "",
     phone: "",
+    creditLimit: "",
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [soldCart, setSoldCart] = useState<CartItem[]>([]);
@@ -60,7 +61,7 @@ const NewSale = () => {
     setCustomerName("");
     setCreditDueDate("");
     setIsNewCustomerOpen(false);
-    setNewCustomerForm({name: "", email: "", phone: ""});
+    setNewCustomerForm({name: "", email: "", phone: "", creditLimit: ""});
   };
 
   const {toast} = useToast();
@@ -99,7 +100,7 @@ const NewSale = () => {
         description: "New customer created successfully",
       });
       setIsNewCustomerOpen(false);
-      setNewCustomerForm({name: "", email: "", phone: ""});
+      setNewCustomerForm({name: "", email: "", phone: "", creditLimit: ""});
     },
     onError: (err) => {
       toast({
@@ -281,12 +282,15 @@ const NewSale = () => {
   // create customer
   const handleAddNewCustomer = () => {
     if (!newCustomerForm.name.trim()) return;
+    if (!newCustomerForm.phone.trim()) return;
+    if (!newCustomerForm.creditLimit.trim()) return;
+
     createCustomerMutation.mutate({
       name: newCustomerForm.name,
       email: newCustomerForm.email || undefined,
-      phone: newCustomerForm.phone || undefined,
+      phone: "+255" + newCustomerForm.phone.replace(/^0/, ''),
       status: "active",
-      creditLimit:0,
+      creditLimit: parseFloat(newCustomerForm.creditLimit.replace(/,/g, '')),
       currentCredit:0,
       loyaltyPoints: 0,
       isCredit: true,

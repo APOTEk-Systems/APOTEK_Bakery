@@ -186,10 +186,8 @@ const InventoryAdjustmentsTab = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {adjustmentsQuery.data?.map((adjustment) => {
-                const item = inventoryQuery.data?.find(
-                  (i) => i.id === parseInt(adjustment.inventoryItemId)
-                );
+              {adjustmentsQuery.data?.adjustments?.map((adjustment) => {
+                const item = adjustment.inventoryItem;
                 const unit = item?.unit || "g"; // fallback
                 const displayAmount = fromBaseUnits(
                   Math.abs(adjustment.amount),
@@ -214,7 +212,7 @@ const InventoryAdjustmentsTab = ({
             </TableBody>
           </Table>
 
-          {adjustmentsQuery.data?.length === 0 && !adjustmentsQuery.isLoading && (
+          {adjustmentsQuery.data?.adjustments?.length === 0 && !adjustmentsQuery.isLoading && (
             <div className="text-center py-12">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">

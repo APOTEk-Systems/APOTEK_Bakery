@@ -30,8 +30,8 @@ interface CheckoutProps {
   setCreditDueDate: (date: string) => void;
   isNewCustomerOpen: boolean;
   setIsNewCustomerOpen: (open: boolean) => void;
-  newCustomerForm: { name: string; email: string; phone: string };
-  setNewCustomerForm: (form: { name: string; email: string; phone: string }) => void;
+  newCustomerForm: { name: string; email: string; phone: string; creditLimit: string };
+  setNewCustomerForm: (form: { name: string; email: string; phone: string; creditLimit: string }) => void;
   handleConfirmSale: () => void;
   subtotal: number;
   tax: number;

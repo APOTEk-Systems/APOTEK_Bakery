@@ -43,7 +43,7 @@ const Customers = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => customersService.delete(id),
+    mutationFn: (id: number) => customersService.update(id, { status: "inactive" }),
     onSuccess: () => {
       queryClient.invalidateQueries({queryKey: ["customers"]});
       toast({
@@ -57,13 +57,13 @@ const Customers = () => {
     onError: (err) => {
       toast({
         title: "Error",
-        description: "Failed to delete customer",
+        description: "Failed to deactivate customer",
         variant: "destructive",
       });
     },
   });
 
-  const customers = [
+  const allCustomers = [
     {
       id: "cash",
       name: "Cash",
@@ -81,6 +81,8 @@ const Customers = () => {
     },
     ...(customersQuery.data || []),
   ];
+
+  const customers = allCustomers.filter(customer => customer.status === "active");
   const loading = customersQuery.isLoading;
   const error = customersQuery.error;
 
@@ -309,10 +311,9 @@ const Customers = () => {
         >
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+              <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
               <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the
-                customer.
+                This will deactivate the customer. They will no longer appear in the active customers list, but their data will be preserved.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -321,7 +322,7 @@ const Customers = () => {
                 onClick={confirmDelete}
                 disabled={deleteMutation.isPending}
               >
-                {deleteMutation.isPending ? "Deleting..." : "Delete Customer"}
+                {deleteMutation.isPending ? "Deactivating..." : "Deactivate Customer"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

@@ -31,6 +31,7 @@ const Information = () => {
 
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
+    phone?: string;
   }>({});
 
   // Validation functions
@@ -42,6 +43,25 @@ const Information = () => {
     }
     return undefined;
   };
+
+const validatePhone = (phone: string): string | undefined => {
+  if (!phone.trim()) return undefined; // Optional field
+
+  const cleanPhone = phone.replace(/[\s\-]/g, '');
+
+  // Accept: 07XXXXXXXX or 06XXXXXXXX (10 digits total)
+  if (/^(07|06)\d{8}$/.test(cleanPhone)) {
+    return undefined;
+  }
+
+  // Accept: 7XXXXXXXX or 6XXXXXXXX (9 digits total, no leading zero)
+  if (/^(7|6)\d{8}$/.test(cleanPhone)) {
+    return undefined;
+  }
+
+  return "Invalid Phone Number";
+};
+
 
 
   // Fetch settings with React Query
@@ -117,6 +137,20 @@ const Information = () => {
           }
         }
 
+        // Validate phone if provided
+        if (informationData.phone.trim()) {
+          const phoneError = validatePhone(informationData.phone);
+          if (phoneError) {
+            setValidationErrors(prev => ({...prev, phone: phoneError}));
+            toast({
+              title: "Error",
+              description: phoneError,
+              variant: "destructive",
+            });
+            return;
+          }
+        }
+
         updateData = {
           key: "information",
           ...informationData,
@@ -173,16 +207,35 @@ const Information = () => {
                     <Input
                       id="phone"
                       value={informationData.phone}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setInformationData((prev) => ({
                           ...prev,
                           phone: e.target.value,
-                        }))
-                      }
+                        }));
+                        // Clear validation error when user starts typing
+                        if (validationErrors.phone) {
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            phone: undefined,
+                          }));
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const error = validatePhone(e.target.value);
+                        setValidationErrors((prev) => ({
+                          ...prev,
+                          phone: error,
+                        }));
+                      }}
                       placeholder="enter phone number"
-                      className="rounded-l-none"
+                      className={`rounded-l-none ${validationErrors.phone ? "border-destructive" : ""}`}
                       disabled={settingsLoading}
                     />
+                    {validationErrors.phone && (
+                      <p className="text-sm text-destructive mt-1">
+                        {validationErrors.phone}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

@@ -111,7 +111,7 @@ const Login = () => {
                 className="w-full" 
                 disabled={isLoading}
               >
-                {isLoading ? "Loading..." : "Log In"}
+                {isLoading ? "Loading..." : "Login"}
               </Button>
             </form>
           </Form>

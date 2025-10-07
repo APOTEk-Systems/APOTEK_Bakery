@@ -23,7 +23,8 @@ import {
    Store,
    Bell,
    Utensils,
-   UtensilsCrossed
+   UtensilsCrossed,
+   Banknote
  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -156,7 +157,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         asChild
                       >
                         <Link to="/sales/new" className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4" />
+                          <Banknote className="h-4 w-4" />
                           {(!collapsed || isMobile) && "New Sale"}
                         </Link>
                       </Button>
@@ -202,6 +203,16 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
                       <Button
+                        variant={location.pathname === '/information' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/information" className="flex items-center gap-2">
+                          <Settings className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Configurations"}
+                        </Link>
+                      </Button>
+                      <Button
                         variant={location.pathname === '/users' ? "secondary" : "ghost"}
                         className="w-full justify-start hover:bg-muted"
                         asChild
@@ -221,16 +232,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                           {(!collapsed || isMobile) && "Roles"}
                         </Link>
                       </Button>
-                      <Button
-                        variant={location.pathname === '/information' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/information" className="flex items-center gap-2">
-                          <Settings className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Configurations"}
-                        </Link>
-                      </Button>
+                    
                       <Button
                         variant={location.pathname === '/notifications' ? "secondary" : "ghost"}
                         className="w-full justify-start hover:bg-muted"

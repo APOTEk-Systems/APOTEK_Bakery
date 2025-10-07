@@ -86,14 +86,14 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({
   };
 
   const formatDateRange = (range: DateRange | undefined) => {
-    if (!range) return "Pick a date range";
+    if (!range) return "Pick date range";
     if (range.from && range.to) {
       if (range.from.toDateString() === range.to.toDateString()) {
         return format(range.from, "PPP");
       }
       return `${format(range.from, "LLL dd")} - ${format(range.to, "LLL dd, y")}`;
     }
-    return "Pick a date range";
+    return "Pick date range";
   };
 
   return (

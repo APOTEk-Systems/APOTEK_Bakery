@@ -93,7 +93,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
     return(
       <div className="flex flex-col w-full justify-center items-center p-6">
         <Loader2 className="w-6 h-6 animate-spin" />
-        <p>Loading ...</p>
+        <p>Loading ...</p>  
       </div>
     )
   };
@@ -167,7 +167,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                         {payMutation.isPending ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         ) : null}
-                        Complete Sale
+                        Pay
                       </Button>
                     ) : null
                   )}

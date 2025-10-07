@@ -100,12 +100,12 @@ const Accounting = () => {
         </div>
 
         <Tabs defaultValue="expenses" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            {/* <TabsTrigger value="overview">Overview</TabsTrigger> */}
+          {/* <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
             <TabsTrigger value="categories">Categories</TabsTrigger>
-            {/* <TabsTrigger value="reports">Financial Reports</TabsTrigger> */}
-          </TabsList>
+            <TabsTrigger value="reports">Financial Reports</TabsTrigger>
+          </TabsList> */}
 
           {/* <TabsContent value="overview">
             <OverviewTab

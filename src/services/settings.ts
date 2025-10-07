@@ -15,6 +15,7 @@ export interface SettingsData {
     website: string;
     bakeryName: string;
     description: string;
+    tin:string;
   };
   businessHours: {data:BusinessHour[]};
   notifications: {

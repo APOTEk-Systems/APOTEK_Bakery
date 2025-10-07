@@ -169,6 +169,24 @@ const CustomerForm = () => {
       return;
     }
 
+    if (!formData.phone.trim()) {
+      toast({
+        title: "Error",
+        description: "Phone number is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.creditLimit <= 0) {
+      toast({
+        title: "Error",
+        description: "Credit limit is required and must be greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!formData.email.trim() && !formData.phone.trim()) {
       toast({
         title: "Error",
@@ -285,7 +303,7 @@ const CustomerForm = () => {
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <Label htmlFor="phone">Phone Number *</Label>
                       <div className="flex items-center">
                         <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">+255</span>
                         <Input
@@ -349,7 +367,7 @@ const CustomerForm = () => {
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="creditLimit">Credit Limit</Label>
+                      <Label htmlFor="creditLimit">Credit Limit *</Label>
                       <Input
                         id="creditLimit"
                         type="text" // 👈 use text to allow formatted values
@@ -394,10 +412,10 @@ const CustomerForm = () => {
             {/* Form Actions */}
             <Card className="shadow-warm">
               <CardContent className="pt-6">
-                <div className="flex gap-3">
+                <div className="flex flex-row-reverse gap-3">
                   <Button
                     type="submit"
-                    className="flex-1"
+                    className="w-full"
                     disabled={
                       customerMutation.isPending || customerQuery.isLoading
                     }
@@ -414,7 +432,7 @@ const CustomerForm = () => {
                       </>
                     )}
                   </Button>
-                  <Button type="button" variant="outline" asChild>
+                  <Button type="button" variant="outline" asChild className="w-full">
                     <Link to="/customers">Cancel</Link>
                   </Button>
                 </div>

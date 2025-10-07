@@ -17,20 +17,43 @@ export interface InventoryItem {
 }
 
 export interface Adjustment {
-  id: string;
-  inventoryItemId: string;
+  id: number;
+  inventoryItemId: number;
   amount: number;
   reason: string;
   createdAt: string;
-  createdById: string;
+  createdById: number;
+  inventoryItem: InventoryItem;
+  createdBy: {
+    id: number;
+    email: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
+    password: string;
+    status: string;
+    refreshToken: string;
+    refreshTokenExpiresAt: string;
+    roleId: number;
+  };
+}
+
+export interface PaginatedAdjustments {
+  adjustments: Adjustment[];
+  total: number;
+  page: number;
+  limit: number;
 }
 
 // Get all adjustments
 export const getAdjustments = async (params?: {
   date?: string;
   type?: string;
-}): Promise<Adjustment[]> => {
-  const response = await api.get<Adjustment[]>('/adjustments', { params });
+  name?: string;
+  startDate?: string;
+  endDate?: string;
+}): Promise<PaginatedAdjustments> => {
+  const response = await api.get<PaginatedAdjustments>('/adjustments', { params });
   return response.data;
 };
 
