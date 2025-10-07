@@ -46,6 +46,8 @@ const NewSale = () => {
   const [saleCompleted, setSaleCompleted] = useState(false);
   const [newSale, setNewSale] = useState<any>(null);
   const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
+  const [soldCustomer, setSoldCustomer] = useState<Customer | null>(null);
+  const [soldCustomerName, setSoldCustomerName] = useState("");
 
   const resetSaleState = () => {
     setShowConfirmDialog(false);
@@ -53,6 +55,8 @@ const NewSale = () => {
     setSaleCompleted(false);
     setNewSale(null);
     setPreviewFormat(null);
+    setSoldCustomer(null);
+    setSoldCustomerName("");
     setCurrentStep(1);
     setSearchTerm("");
     setCart([]);
@@ -121,7 +125,9 @@ const NewSale = () => {
         title: "Success",
         description: `Sale created successfully`,
       });
-      setSoldCart(cart);
+      setSoldCart(cart.map(item => ({...item, quantity: item.cartQuantity})));
+      setSoldCustomer(selectedCustomer ? customers.find(c => c.id.toString() === selectedCustomer) || null : null);
+      setSoldCustomerName(customerName);
       setCart([]);
       setSelectedCustomer("");
       setCustomerName("");
@@ -395,6 +401,8 @@ const NewSale = () => {
         customers={customers}
         customerName={customerName}
         soldCart={soldCart}
+        soldCustomer={soldCustomer}
+        soldCustomerName={soldCustomerName}
         newSale={newSale}
         handleCompleteSale={handleCompleteSale}
         createSaleMutation={createSaleMutation}

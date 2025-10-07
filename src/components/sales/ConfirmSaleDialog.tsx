@@ -34,6 +34,8 @@ interface ConfirmSaleDialogProps {
   customers: Customer[];
   customerName: string;
   soldCart: CartItem[];
+  soldCustomer: Customer | null;
+  soldCustomerName: string;
   newSale: any;
   handleCompleteSale: () => void;
   createSaleMutation: any;
@@ -59,6 +61,8 @@ const ConfirmSaleDialog = ({
   customers,
   customerName,
   soldCart,
+  soldCustomer,
+  soldCustomerName,
   newSale,
   handleCompleteSale,
   createSaleMutation,
@@ -77,7 +81,8 @@ const ConfirmSaleDialog = ({
   };
 
   const handlePrintReceipt = () => {
-    const customer = selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null;
+    const customer = soldCustomer;
+    const customerName = soldCustomerName;
     const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
     const tax = 0; // Assuming no tax for now
     const total = subtotal + tax;
@@ -331,7 +336,8 @@ const ConfirmSaleDialog = ({
             receiptFormat={previewFormat}
             sale={newSale}
             cart={soldCart}
-            customer={selectedCustomer ? customers.find((c) => c.id.toString() === selectedCustomer) : null}
+            customer={soldCustomer}
+            customerName={soldCustomerName}
             paymentMethod={paymentMethod}
             creditDueDate={creditDueDate}
             total={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) + (soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0)}
@@ -373,7 +379,7 @@ const ConfirmSaleDialog = ({
                 {createSaleMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
-                  <Receipt className="h-4 w-4 mr-2" />
+                  null
                 )}
                 {createSaleMutation.isPending ? "Processing..." : "Confirm Sale"}
               </Button>

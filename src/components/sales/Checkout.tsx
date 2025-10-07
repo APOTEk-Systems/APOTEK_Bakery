@@ -206,7 +206,7 @@ const Checkout = ({
               )}
               {createSaleMutation.isPending
                 ? "Processing..."
-                : `Complete Sale ${formatCurrency(total)}`}
+                : `Complete Sale`}
             </Button>
           </CardContent>
         </Card>

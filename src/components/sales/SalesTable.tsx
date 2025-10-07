@@ -125,8 +125,9 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
             <TableRow>
               {/* <TableHead>Sale ID</TableHead> */}
               <TableHead>Recepit #</TableHead>
-              <TableHead>Customer</TableHead>
               <TableHead>Date</TableHead>
+              <TableHead>Customer</TableHead>
+              
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>

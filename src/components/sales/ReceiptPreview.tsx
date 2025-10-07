@@ -7,6 +7,7 @@ interface ReceiptPreviewProps {
   sale: any;
   cart: any[];
   customer: any;
+  customerName?: string;
   paymentMethod: string;
   creditDueDate: string;
   total: number;
@@ -25,6 +26,7 @@ const ReceiptPreview = ({
   sale,
   cart,
   customer,
+  customerName,
   paymentMethod,
   creditDueDate,
   total,
@@ -97,7 +99,7 @@ const ReceiptPreview = ({
 
       <div className="text-center mb-4">
         <p>Sale ID: {sale?.id}</p>
-        <p>Customer: {customer?.name || 'Cash'}</p>
+        <p>Customer: {customer?.name || customerName || 'Cash'}</p>
         <p>Date: {new Date().toLocaleString()}</p>
       </div>
 

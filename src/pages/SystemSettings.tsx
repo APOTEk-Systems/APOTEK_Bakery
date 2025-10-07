@@ -86,7 +86,6 @@ const SystemSettings = () => {
         <Card className="shadow-warm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
               VAT & Tax
             </CardTitle>
           </CardHeader>
