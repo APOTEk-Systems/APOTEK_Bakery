@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Eye, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { purchasesService, type GoodsReceipt } from "@/services/purchases";
+import { GoodsReceiptResponse, purchasesService, type GoodsReceipt } from "@/services/purchases";
 import { Link } from "react-router-dom";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 import {
@@ -20,35 +20,45 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from "@/components/ui/select";
 
 export default function GoodsReceivingTab() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedGR, setSelectedGR] = useState<GoodsReceipt | null>(null);
   const [isViewGRDialogOpen, setIsViewGRDialogOpen] = useState(false);
 
-  const goodsReceiptsQuery = useQuery<{ goodsReceipts: GoodsReceipt[], total: number }>({
-    queryKey: ['goodsReceipts', currentPage, filterStatus, dateRange],
+  const goodsReceiptsQuery = useQuery<{ goodsReceipts: GoodsReceiptResponse[], total: number }>({
+    queryKey: ['goodsReceipts', currentPage, filterStatus, dateRange, debouncedSearch],
     queryFn: () => purchasesService.getAllReceipts({
       page: currentPage,
       status: filterStatus === "all" ? undefined : filterStatus,
       startDate: dateRange?.from?.toISOString(),
       endDate: dateRange?.to?.toISOString(),
+      search: debouncedSearch || undefined,
     }),
   });
 
   useEffect(() => {
     setCurrentPage(1);
   }, [filterStatus, dateRange]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const goodsReceiving = goodsReceiptsQuery.data?.goodsReceipts || [];
   const total = goodsReceiptsQuery.data?.total || 0;
@@ -57,10 +67,6 @@ export default function GoodsReceivingTab() {
   const isLoading = goodsReceiptsQuery.isLoading;
   const hasError = goodsReceiptsQuery.error;
 
-  const filteredGR = goodsReceiving.filter(gr => {
-    return gr.id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
-      gr.purchaseOrderId.toString().toLowerCase().includes(searchTerm.toLowerCase());
-  });
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -121,7 +127,7 @@ export default function GoodsReceivingTab() {
               {isLoading ? (
                 // Loading state
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={4} className="h-24 text-center w-full">
                     <div className="flex items-center justify-center">
                       <Loader2 className="h-6 w-6 animate-spin mr-2" />
                       Loading goods receipts...
@@ -140,17 +146,17 @@ export default function GoodsReceivingTab() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : filteredGR.length === 0 ? (
+              ) : goodsReceiving.length === 0 ? (
                 // Empty state
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={4} className="h-24 text-center w-full">
                     <div className="flex flex-col items-center justify-center">
                       <Eye className="h-12 w-12 text-muted-foreground mb-4" />
                       <h3 className="text-lg font-semibold text-foreground mb-2">
                         No goods receipts found
                       </h3>
                       <p className="text-muted-foreground">
-                        {searchTerm || dateRange
+                        {debouncedSearch || dateRange
                           ? "Try adjusting your filters or search terms"
                           : "Goods receipts will appear here when purchase orders are received"
                         }
@@ -160,7 +166,7 @@ export default function GoodsReceivingTab() {
                 </TableRow>
               ) : (
                 // Data rows
-                filteredGR.map(gr => (
+                goodsReceiving.map(gr => (
                   <TableRow key={gr.id}>
                     <TableCell>{gr.purchaseOrderId}</TableCell>
                     <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>

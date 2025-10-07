@@ -69,6 +69,7 @@ interface POItem {
 }
 export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
@@ -92,18 +93,27 @@ export default function PurchaseOrdersTab() {
     setCurrentPage(1);
   }, [filterStatus, dateRange]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const suppliersQuery = useQuery<Supplier[]>({
     queryKey: ["suppliers"],
     queryFn: () => suppliersService.getAll(),
   });
 
   const purchaseOrdersQuery = useQuery<{ purchaseOrders: PurchaseOrder[], total: number }>({
-    queryKey: ["purchaseOrders", currentPage, filterStatus, dateRange],
+    queryKey: ["purchaseOrders", currentPage, filterStatus, dateRange, debouncedSearch],
     queryFn: () => purchasesService.getAllPOs({
       page: currentPage,
       status: filterStatus === "all" ? undefined : filterStatus,
       startDate: dateRange?.from?.toISOString(),
       endDate: dateRange?.to?.toISOString(),
+      search: debouncedSearch || undefined,
     }),
   });
 
@@ -135,27 +145,6 @@ export default function PurchaseOrdersTab() {
     acc[i.id] = i.name;
     return acc;
   }, {} as Record<number, string>);
-
-  const filteredPOs = purchaseOrders.filter((po) => {
-    const matchesSearch =
-      po.items.some((i) =>
-        inventoryMap[i.inventoryItemId]
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase())
-      ) ||
-      supplierMap[po.supplierId]
-        ?.toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      po.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || po.status === filterStatus;
-
-    // Date filtering
-    const poDate = new Date(po.createdAt);
-    const matchesStartDate = !dateRange?.from || poDate >= dateRange.from;
-    const matchesEndDate = !dateRange?.to || poDate <= dateRange.to;
-
-    return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
-  });
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -207,8 +196,8 @@ export default function PurchaseOrdersTab() {
     onSuccess: (newReceipt) => {
       queryClient.invalidateQueries({queryKey: ["purchaseOrders"]});
       toast({
-        title: "Goods Received",
-        description: `Goods receipt for PO ${selectedPOForReceive?.id} created successfully.`,
+        title: "Materials Received",
+        description: `Materials received successfully.`,
       });
       setIsReceiveDialogOpen(false);
       setSelectedPOForReceive(null);
@@ -448,7 +437,7 @@ export default function PurchaseOrdersTab() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : filteredPOs.length === 0 ? (
+              ) : purchaseOrders.length === 0 ? (
                 // Empty state
                 <TableRow>
                   <TableCell colSpan={6} className="h-24 text-center">
@@ -458,11 +447,11 @@ export default function PurchaseOrdersTab() {
                         No purchase orders found
                       </h3>
                       <p className="text-muted-foreground mb-4">
-                        {filterStatus !== "all" || searchTerm
+                        {filterStatus !== "all" || debouncedSearch || dateRange
                           ? "Try adjusting your filters or search terms"
                           : "Get started by creating your first purchase order"}
                       </p>
-                      {!searchTerm && filterStatus === "all" && (
+                      {!debouncedSearch && filterStatus === "all" && !dateRange && (
                         <Button onClick={() => setIsCreatePODialogOpen(true)}>
                           <Plus className="h-4 w-4 mr-2" />
                           New Purchase Order
@@ -473,7 +462,7 @@ export default function PurchaseOrdersTab() {
                 </TableRow>
               ) : (
                 // Data rows
-                filteredPOs.map((po) => (
+                purchaseOrders.map((po) => (
                   <TableRow key={po.id} className="py-0">
                     <TableCell>{po.id}</TableCell>
                     <TableCell>{format(new Date(po.createdAt), "dd-MM-yyyy")}</TableCell>
@@ -751,7 +740,6 @@ export default function PurchaseOrdersTab() {
                     <div className="flex-1">Item</div>
                     <div className="w-20">Quantity</div>
                     <div className="w-20">Unit</div>
-                    <div className="w-20">Price</div>
                   </div>
                   {selectedPOForReceive.items.map((item, index) => (
                     <div key={index} className="flex gap-2 items-end">
@@ -780,13 +768,6 @@ export default function PurchaseOrdersTab() {
                               (i) => i.id === item.inventoryItemId
                             )?.unit || ""
                           }
-                          className="bg-muted text-center"
-                          readOnly
-                        />
-                      </div>
-                      <div className="w-20">
-                        <Input
-                          value={formatCurrency(item.price)}
                           className="bg-muted text-center"
                           readOnly
                         />

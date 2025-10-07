@@ -234,59 +234,6 @@ const PurchaseOrderView = () => {
                   </div>
                 )}
               </CardContent>
-              <CardFooter className="pt-0">
-                <div className="flex justify-end flex-row-reverse gap-2">
-                  {po.status === "approved" && (
-                    <Button asChild>
-                      <Link to={`/purchases/${po.id}/receive`}>
-                        <Truck className="mr-2 h-4 w-4" />
-                        Receive Goods
-                      </Link>
-                    </Button>
-                  )}
-                  {isAdmin && po.status === "pending" && (
-                    <Button
-                      onClick={() => {
-                        setDialogAction("approve");
-                        setShowDialog(true);
-                      }}
-                      disabled={
-                        isUpdatingStatus || updateStatusMutation.isPending
-                      }
-                    >
-                      {updateStatusMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Approve Order"
-                      )}
-                    </Button>
-                  )}
-                  {isAdmin && po.status === "pending" && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setDialogAction("cancel");
-                        setShowDialog(true);
-                      }}
-                      disabled={
-                        isUpdatingStatus || updateStatusMutation.isPending
-                      }
-                    >
-                      {updateStatusMutation.isPending ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Processing...
-                        </>
-                      ) : (
-                        "Cancel Order"
-                      )}
-                    </Button>
-                  )}
-                </div>
-              </CardFooter>
             </Card>
 
             <Card>
@@ -329,6 +276,58 @@ const PurchaseOrderView = () => {
                 </Table>
               </CardContent>
             </Card>
+
+            <div className="flex justify-end gap-2">
+              {po.status === "approved" && (
+                <Button asChild>
+                  <Link to={`/purchases/${po.id}/receive`}>
+                    <Truck className="mr-2 h-4 w-4" />
+                    Receive Goods
+                  </Link>
+                </Button>
+              )}
+              {isAdmin && po.status === "pending" && (
+                <Button
+                  onClick={() => {
+                    setDialogAction("approve");
+                    setShowDialog(true);
+                  }}
+                  disabled={
+                    isUpdatingStatus || updateStatusMutation.isPending
+                  }
+                >
+                  {updateStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Approve Order"
+                  )}
+                </Button>
+              )}
+              {isAdmin && po.status === "pending" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDialogAction("cancel");
+                    setShowDialog(true);
+                  }}
+                  disabled={
+                    isUpdatingStatus || updateStatusMutation.isPending
+                  }
+                >
+                  {updateStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Cancel Order"
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </Layout>

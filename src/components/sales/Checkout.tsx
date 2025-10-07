@@ -86,7 +86,7 @@ const Checkout = ({
                   htmlFor="selectedCustomer"
                   className="text-sm font-medium"
                 >
-                  Select Customer (optional)
+                  Select Customer
                 </Label>
                 <Select
                   value={selectedCustomer}

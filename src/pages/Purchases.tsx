@@ -28,7 +28,7 @@ export default function Purchases() {
               </TabsTrigger>
               <TabsTrigger value="goods-receiving">
                 <Truck className="mr-2 h-4 w-4" />
-                Goods Received
+                Materials Received
               </TabsTrigger>
               <TabsTrigger value="suppliers">
                 <Users className="mr-2 h-4 w-4" />

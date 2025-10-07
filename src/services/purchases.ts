@@ -62,7 +62,7 @@ export const purchasesService = {
     return response.data;
   },
   // Purchase Orders
-  getAllPOs: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string }): Promise<{ purchaseOrders: PurchaseOrder[], total: number }> => {
+  getAllPOs: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string; search?: string }): Promise<{ purchaseOrders: PurchaseOrder[], total: number }> => {
     const response = await api.get('/purchases/orders', { params });
     return response.data;
   },
@@ -94,7 +94,7 @@ export const purchasesService = {
   },
 
   // Goods Receipts
-  getAllReceipts: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string }): Promise<{ goodsReceipts: GoodsReceiptResponse[], total: number }> => {
+  getAllReceipts: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string; search?: string }): Promise<{ goodsReceipts: GoodsReceiptResponse[], total: number }> => {
     const response = await api.get('/purchases/receiving', { params });
     return response.data;
   },

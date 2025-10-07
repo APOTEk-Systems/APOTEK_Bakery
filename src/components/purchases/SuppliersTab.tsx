@@ -128,24 +128,16 @@ export default function SuppliersTab() {
       setEditingSupplierId(null);
     },
     onError: (err) => {
-      if (axios.isAxiosError(err) && err.response?.status === 409) {
-        const errorMessage = err.response?.data?.message || "Conflict error";
-        const errors: { email?: string; contactInfo?: string; address?: string } = {};
-        if (errorMessage.toLowerCase().includes("email")) {
-          errors.email = errorMessage;
-        } else if (errorMessage.toLowerCase().includes("contact") || errorMessage.toLowerCase().includes("phone")) {
-          errors.contactInfo = errorMessage;
+      let errorMessage = "Failed to save supplier";
+      if (axios.isAxiosError(err) && err.response?.status !== 500) {
+        const serverMessage = err.response?.data?.message || err.message;
+        if (serverMessage.toLowerCase().includes("already exists")) {
+          errorMessage = "Supplier already exists";
         } else {
-          errors.address = errorMessage; // fallback
+          errorMessage = serverMessage;
         }
-        setValidationErrors(errors);
-      } else {
-        let errorMessage = "Failed to save supplier";
-        if (axios.isAxiosError(err) && err.response?.status !== 500) {
-          errorMessage = err.response?.data?.message || err.message;
-        }
-        toast({ title: "Error", description: errorMessage, variant: "destructive" });
       }
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     },
   });
 
