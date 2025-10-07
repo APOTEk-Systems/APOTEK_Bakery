@@ -43,12 +43,12 @@ const Customers = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: number) => customersService.update(id, { status: "inactive" }),
-    onSuccess: () => {
+    mutationFn: ({id, hasSales}: {id: number, hasSales: boolean}) => hasSales ? customersService.update(id, { status: "inactive" }) : customersService.delete(id),
+    onSuccess: (_, {hasSales}) => {
       queryClient.invalidateQueries({queryKey: ["customers"]});
       toast({
-        title: "Customer Deleted",
-        description: "Customer deleted successfully.",
+        title: hasSales ? "Customer Deactivated" : "Customer Deleted",
+        description: hasSales ? "Customer deactivated successfully." : "Customer deleted successfully.",
         variant: "default",
       });
       setIsDeleteConfirmOpen(false);
@@ -82,7 +82,7 @@ const Customers = () => {
     ...(customersQuery.data || []),
   ];
 
-  const customers = allCustomers.filter(customer => customer.status === "active");
+  const customers = allCustomers;
   const loading = customersQuery.isLoading;
   const error = customersQuery.error;
 
@@ -101,14 +101,17 @@ const Customers = () => {
     return format(new Date(dateString), "dd-MM-yyyy");
   };
 
-  const handleDeleteCustomer = (id: number) => {
-    setDeleteItemId(id);
+  const handleDeleteCustomer = (customer: any) => {
+    setDeleteItemId(customer.id);
     setIsDeleteConfirmOpen(true);
   };
 
   const confirmDelete = () => {
     if (deleteItemId) {
-      deleteMutation.mutate(deleteItemId);
+      const customer = allCustomers.find(c => c.id === deleteItemId);
+      if (customer) {
+        deleteMutation.mutate({id: deleteItemId, hasSales: (customer.totalOrders || 0) > 0});
+      }
     }
   };
 
@@ -287,7 +290,7 @@ const Customers = () => {
                             variant="destructive"
                             size="sm"
                             onClick={() =>
-                              handleDeleteCustomer(Number(customer.id))
+                              handleDeleteCustomer(customer)
                             }
                             disabled={deleteMutation.isPending}
                           >

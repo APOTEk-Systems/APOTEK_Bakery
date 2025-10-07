@@ -27,6 +27,7 @@ export default function SuppliersTab() {
   const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
+  const [supplierToDelete, setSupplierToDelete] = useState<Supplier | null>(null);
   const [editingSupplierId, setEditingSupplierId] = useState<number | null>(null);
   const [newSupplier, setNewSupplier] = useState<{ id?: number; name: string; contactInfo: string; email: string; address: string }>({ name: "", contactInfo: "", email: "", address: "" });
   const [validationErrors, setValidationErrors] = useState<{ email?: string; contactInfo?: string; address?: string }>({});
@@ -42,8 +43,14 @@ export default function SuppliersTab() {
     queryFn: () => suppliersService.getAll(),
   });
 
+  const supplierPOsQuery = useQuery({
+    queryKey: ['supplierPOs', supplierToDelete?.id],
+    queryFn: () => supplierToDelete ? suppliersService.getPOsBySupplier(supplierToDelete.id) : Promise.resolve([]),
+    enabled: !!supplierToDelete,
+  });
+
   const allSuppliers = suppliersQuery.data || [];
-  const suppliers = allSuppliers.filter(sup => sup.status === "active");
+  const suppliers = allSuppliers;
   const isLoading = suppliersQuery.isLoading;
   const hasError = suppliersQuery.error;
 
@@ -142,16 +149,35 @@ export default function SuppliersTab() {
     },
   });
 
-  const deleteMutation = useMutation({
+  const deactivateMutation = useMutation({
     mutationFn: (id: number) => suppliersService.update(id, { status: "inactive" }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       toast({ title: "Supplier Deactivated", description: `Supplier deactivated.`, variant: "default" });
       setIsDeleteConfirmOpen(false);
       setDeleteItemId(null);
+      setSupplierToDelete(null);
     },
     onError: (err) => {
       let errorMessage = "Failed to deactivate";
+      if (axios.isAxiosError(err) && err.response?.status !== 500) {
+        errorMessage = err.response?.data?.message || err.message;
+      }
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => suppliersService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      toast({ title: "Supplier Deleted", description: `Supplier deleted.`, variant: "default" });
+      setIsDeleteConfirmOpen(false);
+      setDeleteItemId(null);
+      setSupplierToDelete(null);
+    },
+    onError: (err) => {
+      let errorMessage = "Failed to delete";
       if (axios.isAxiosError(err) && err.response?.status !== 500) {
         errorMessage = err.response?.data?.message || err.message;
       }
@@ -182,14 +208,22 @@ export default function SuppliersTab() {
     setIsSupplierDialogOpen(true);
   };
 
-  const handleDeleteSupplier = (id: number) => {
-    setDeleteItemId(id);
+  const handleDeleteSupplier = (supplier: Supplier) => {
+    setSupplierToDelete(supplier);
+    setDeleteItemId(supplier.id);
     setIsDeleteConfirmOpen(true);
   };
 
+  const hasPurchases = supplierPOsQuery.data ? supplierPOsQuery.data.length > 0 : false;
+  const isCheckingPurchases = supplierPOsQuery.isLoading;
+
   const confirmDelete = () => {
     if (deleteItemId) {
-      deleteMutation.mutate(deleteItemId);
+      if (hasPurchases) {
+        deactivateMutation.mutate(deleteItemId);
+      } else {
+        deleteMutation.mutate(deleteItemId);
+      }
     }
   };
 
@@ -289,7 +323,7 @@ export default function SuppliersTab() {
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
                       </Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteSupplier(sup.id)} className="ml-2">
+                      <Button variant="destructive" size="sm" onClick={() => handleDeleteSupplier(sup)} className="ml-2">
                         <Trash className="h-4 w-4 mr-1" />
                         Delete
                       </Button>
@@ -435,18 +469,27 @@ export default function SuppliersTab() {
       <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
+            <AlertDialogTitle>Confirm {hasPurchases ? 'Deactivation' : 'Deletion'}</AlertDialogTitle>
             <AlertDialogDescription>
-              This will deactivate the supplier. They will no longer appear in the active suppliers list, but their data will be preserved.
+              {isCheckingPurchases ? (
+                <div className="flex items-center">
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Checking for linked purchases...
+                </div>
+              ) : hasPurchases ? (
+                "This supplier has linked purchases. They will be deactivated but their data will be preserved."
+              ) : (
+                "This supplier has no linked purchases. They will be permanently deleted."
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={deleteMutation.isPending}>
-              {deleteMutation.isPending ? (
+            <AlertDialogCancel disabled={isCheckingPurchases}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} disabled={isCheckingPurchases || deactivateMutation.isPending || deleteMutation.isPending}>
+              {(deactivateMutation.isPending || deleteMutation.isPending) ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Deactivate Supplier
+              {hasPurchases ? 'Deactivate Supplier' : 'Delete Supplier'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

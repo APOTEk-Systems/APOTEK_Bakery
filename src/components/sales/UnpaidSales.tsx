@@ -120,10 +120,6 @@ const UnpaidSales: React.FC = () => {
               setPage(1);
             }}
           />
-          <Button onClick={() => {
-            setPage(1);
-            refetch();
-          }}>Search</Button>
         </div>
         <SalesTable sales={filteredSales} loading={loading} error={error?.message || null} isUnpaid={true} />
         {totalPages > 1 && (

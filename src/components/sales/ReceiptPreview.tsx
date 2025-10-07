@@ -98,9 +98,9 @@ const ReceiptPreview = ({
       </div>
 
       <div className="text-center mb-4">
-        <p>Sale ID: {sale?.id}</p>
+        <p>Receipt #: {sale?.id}</p>
         <p>Customer: {customer?.name || customerName || 'Cash'}</p>
-        <p>Date: {new Date().toLocaleString()}</p>
+        <p>Date: {format(new Date(sale.createdAt), "dd-MM-yyyy")}</p>
       </div>
 
       <div className="mb-4">

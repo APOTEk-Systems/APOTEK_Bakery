@@ -124,10 +124,6 @@ const RecentSales: React.FC = () => {
               setPage(1);
             }}
           />
-          <Button onClick={() => {
-            setPage(1);
-            refetch();
-          }}>Search</Button>
         </div>
         <SalesTable sales={sales} loading={loading} error={error?.message || null} />
         {totalPages > 1 && (

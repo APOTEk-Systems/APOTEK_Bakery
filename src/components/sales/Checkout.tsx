@@ -121,17 +121,28 @@ const Checkout = ({
                 {paymentMethod === "credit" && (
                   <div className="space-y-2 mt-3">
                     <Label
-                      htmlFor="creditDueDate"
+                      htmlFor="creditDueDays"
                       className="text-sm font-medium"
                     >
-                      Credit Due Date
+                      Credit Due Days
                     </Label>
-                    <Input
-                      id="creditDueDate"
-                      type="date"
-                      value={creditDueDate}
-                      onChange={(e) => setCreditDueDate(e.target.value)}
-                    />
+                    <Select
+                      value={creditDueDate ? Math.ceil((new Date(creditDueDate).getTime() - Date.now()) / (24 * 60 * 60 * 1000)).toString() : ""}
+                      onValueChange={(days) => {
+                        const dueDate = new Date(Date.now() + parseInt(days) * 24 * 60 * 60 * 1000);
+                        setCreditDueDate(dueDate.toISOString().split('T')[0]);
+                      }}
+                    >
+                      <SelectTrigger id="creditDueDays">
+                        <SelectValue placeholder="Select due days" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="7">7 days</SelectItem>
+                        <SelectItem value="14">14 days</SelectItem>
+                        <SelectItem value="21">21 days</SelectItem>
+                        <SelectItem value="30">30 days</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>

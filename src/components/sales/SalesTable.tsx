@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Sale } from '@/services/sales';
 import { salesService } from '@/services/sales';
+import { getProducts } from '@/services/products';
+import { settingsService } from '@/services/settings';
 import {
   Table,
   TableBody,
@@ -22,11 +24,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Eye, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Eye, Loader2, Receipt, ReceiptText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/lib/funcs';
 import { format } from 'date-fns';
+import ReceiptPreview from './ReceiptPreview';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface SalesTableProps {
   sales: Sale[];
@@ -39,7 +44,13 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
+  const [printSale, setPrintSale] = useState<Sale | null>(null);
+  const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const productsQuery = useQuery({ queryKey: ['products'], queryFn: getProducts });
+  const settingsQuery = useQuery({ queryKey: ['settings'], queryFn: () => settingsService.getAll() });
 
   const payMutation = useMutation({
     mutationFn: (saleId: number) => salesService.paySale(saleId),
@@ -88,6 +99,192 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
     setSelectedSale(null);
   };
 
+  const handlePrintReceipt = () => {
+    if (!printSale) return;
+    const products = productsQuery.data || [];
+    const customer = printSale.customer;
+    const subtotal = printSale.items.reduce((s, it) => s + it.price * it.quantity, 0);
+    const tax = 0; // Assuming no tax for now
+    const total = subtotal + tax;
+
+    // Generate clean HTML for printing
+    const printHTML = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Receipt</title>
+          <style>
+            body {
+              font-family: monospace;
+              font-size: 10px;
+              line-height: 1.2;
+              margin: 10px 0;
+              max-width: ${previewFormat === 'a5' ? '210mm' : '48mm'};
+              padding: 0;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 10px;
+            }
+            .header h1 {
+              font-size: 14px;
+              font-weight: bold;
+              margin: 0 0 5px 0;
+            }
+            .header p {
+              margin: 2px 0;
+              font-size: 10px;
+            }
+            .info {
+              margin-bottom: 10px;
+            }
+            .info p {
+              margin: 2px 0;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 10px;
+            }
+            th, td {
+              text-align: left;
+              padding: 2px 0;
+            }
+            .qty, .amount {
+              text-align: right;
+            }
+            .thermal-header {
+              border-bottom: 1px solid #000;
+              margin-bottom: 5px;
+            }
+            .separator {
+              border-bottom: 1px solid #000;
+              margin: 5px 0;
+            }
+            .totals {
+              margin-bottom: 10px;
+            }
+            .totals div {
+              display: flex;
+              justify-content: space-between;
+              margin: 2px 0;
+            }
+            .footer {
+              text-align: center;
+              border-top: 1px solid #000;
+              padding-top: 5px;
+              margin-top: 10px;
+            }
+            .footer p {
+              margin: 2px 0;
+              font-size: 10px;
+            }
+            @media print {
+              body { margin: 20px 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${settingsQuery.data?.information?.bakeryName || 'Pastry Pros'}</h1>
+            ${settingsQuery.data?.information?.address ? `<p>${settingsQuery.data.information.address}</p>` : ''}
+            ${settingsQuery.data?.information?.phone ? `<p>Tel: ${settingsQuery.data.information.phone}</p>` : ''}
+            ${settingsQuery.data?.information?.email ? `<p>${settingsQuery.data.information.email}</p>` : ''}
+          </div>
+
+          <div class="info">
+            <p>Sale ID: ${printSale.id}</p>
+            <p>Customer: ${customer?.name || 'Cash'}</p>
+            <p>Issued By: ${user?.name || ''} </p>
+            <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>
+          </div>
+
+          ${previewFormat === 'a5' ?
+            `<table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th class="qty">Qty</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${printSale.items.map(item => {
+                  const product = products.find(p => p.id === item.productId);
+                  return `
+                    <tr>
+                      <td>${product?.name || 'Unknown'}</td>
+                      <td class="qty">${item.quantity}</td>
+                      <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>` :
+            `<table>
+              <thead>
+                <tr class="thermal-header">
+                  <th>Item</th>
+                  <th class="qty">Qty</th>
+                  <th class="amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${printSale.items.map(item => {
+                  const product = products.find(p => p.id === item.productId);
+                  return `
+                    <tr>
+                      <td>${product?.name || 'Unknown'}</td>
+                      <td class="qty">${item.quantity}</td>
+                      <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>`
+          }
+
+          <div class="separator"></div>
+
+          <div class="totals">
+            <div>
+              <span>Subtotal:</span>
+              <span>${formatCurrency(subtotal)}</span>
+            </div>
+            <div>
+              <span>VAT:</span>
+              <span>${formatCurrency(tax)}</span>
+            </div>
+            <div style="font-weight: bold;">
+              <span>Total:</span>
+              <span>${formatCurrency(total)}</span>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <p>Payment: ${printSale.isCredit ? 'Credit' : 'Cash'}</p>
+            ${printSale.isCredit && printSale.creditDueDate ? `<p>Due: ${format(new Date(printSale.creditDueDate), 'dd-MM-yyyy')}</p>` : ''}
+          </div>
+
+          <div class="footer">
+            <p>Thank you for shopping with us!</p>
+            <p>Enjoy!</p>
+          </div>
+        </body>
+      </html>
+    `;
+
+    // Open print window and write the HTML
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(printHTML);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  };
+
   const salesToRender = sales;
  if(loading){
     return(
@@ -125,9 +322,8 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
             <TableRow>
               {/* <TableHead>Sale ID</TableHead> */}
               <TableHead>Recepit #</TableHead>
-              <TableHead>Date</TableHead>
               <TableHead>Customer</TableHead>
-              
+              <TableHead>Date</TableHead>
               <TableHead>Amount</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
@@ -139,8 +335,9 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
               <TableRow key={sale.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                 {/* <TableCell>{sale.id}</TableCell> */}
                 <TableCell> {sale.id} </TableCell>
-                <TableCell className="py-1">{format(new Date(sale.createdAt), 'dd-MM-yyyy')}</TableCell>
                 <TableCell className='font-medium py-1'>{sale.customer?.name || 'Cash'}</TableCell>
+                <TableCell className="py-1">{format(new Date(sale.createdAt), 'dd-MM-yyyy')}</TableCell>
+               
                 <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
                 <TableCell className="py-1">
                   <Badge variant={getStatusVariant(sale.status)}>
@@ -153,6 +350,10 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                     <Eye className='w-4 h-4' />
                       View
                     </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => { setPrintSale(sale); setPreviewFormat('thermal'); }} className="mr-2">
+                    <ReceiptText className='w-4 h-4' />
+                    Print
                   </Button>
                   {isUnpaid && (
                     sale.status === 'unpaid' ? (
@@ -209,6 +410,47 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Print Receipt Dialog */}
+      <Dialog open={!!printSale} onOpenChange={() => setPrintSale(null)}>
+        <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
+          <DialogHeader>
+            <DialogTitle>Receipt Preview ({previewFormat?.toUpperCase()})</DialogTitle>
+          </DialogHeader>
+          {printSale && previewFormat && (
+            <ReceiptPreview
+              receiptFormat={previewFormat}
+              sale={printSale}
+              cart={printSale.items.map(item => {
+                const product = productsQuery.data?.find(p => p.id === item.productId);
+                return { id: item.productId, name: product?.name || 'Unknown', price: item.price, quantity: item.quantity };
+              })}
+              customer={printSale.customer}
+              customerName={printSale.customer ? undefined : 'Cash'}
+              paymentMethod={printSale.isCredit ? 'credit' : 'cash'}
+              creditDueDate={printSale.creditDueDate || ''}
+              total={printSale.total}
+              subtotal={printSale.total / 1.0}
+              tax={0}
+              businessInfo={settingsQuery.data?.information}
+            />
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewFormat('a5')}>
+              A5 Paper
+            </Button>
+            <Button variant="outline" onClick={() => setPreviewFormat('thermal')}>
+              Thermal Paper
+            </Button>
+            <Button variant="outline" onClick={() => setPrintSale(null)}>
+              Close
+            </Button>
+            <Button onClick={handlePrintReceipt}>
+              Print Receipt
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

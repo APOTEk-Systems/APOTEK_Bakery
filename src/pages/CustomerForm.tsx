@@ -81,7 +81,7 @@ const CustomerForm = () => {
       return undefined;
     }
 
-    return "Phone number must start with 07, 06, 7, or 6";
+    return "Invalid Phone Number";
   };
 
   // React Query for fetching customer data
