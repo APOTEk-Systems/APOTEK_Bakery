@@ -182,9 +182,7 @@ const PurchaseOrderView = () => {
                 <h1 className="text-3xl font-bold tracking-tight">
                   Purchase Order {po.id}
                 </h1>
-                <p className="text-muted-foreground mt-1">
-                  Order details and items
-                </p>
+             
               </div>
               <Link to="/purchases">
                 <Button variant="outline">Back to Purchases</Button>
@@ -278,6 +276,27 @@ const PurchaseOrderView = () => {
             </Card>
 
             <div className="flex justify-end gap-2">
+                 {isAdmin && po.status === "pending" && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDialogAction("cancel");
+                    setShowDialog(true);
+                  }}
+                  disabled={
+                    isUpdatingStatus || updateStatusMutation.isPending
+                  }
+                >
+                  {updateStatusMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    "Cancel Order"
+                  )}
+                </Button>
+              )}
               {po.status === "approved" && (
                 <Button asChild>
                   <Link to={`/purchases/${po.id}/receive`}>
@@ -306,27 +325,7 @@ const PurchaseOrderView = () => {
                   )}
                 </Button>
               )}
-              {isAdmin && po.status === "pending" && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setDialogAction("cancel");
-                    setShowDialog(true);
-                  }}
-                  disabled={
-                    isUpdatingStatus || updateStatusMutation.isPending
-                  }
-                >
-                  {updateStatusMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    "Cancel Order"
-                  )}
-                </Button>
-              )}
+           
             </div>
           </div>
         </div>

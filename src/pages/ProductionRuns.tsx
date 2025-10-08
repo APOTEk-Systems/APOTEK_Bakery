@@ -48,17 +48,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   getProductionRuns,
   createProductionRun,
   deleteProductionRun,
   ProductionRun,
+  ProductionRunsResponse,
 } from "../services/productionRuns";
 import {getProducts, Product} from "../services/products";
 import {formatCurrency} from "@/lib/funcs";
+import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 
 const ProductionRuns = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [date, setDate] = useState(new Date());
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const today = new Date();
+    return { from: today, to: today };
+  });
+  const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     productId: "",
@@ -68,14 +83,44 @@ const ProductionRuns = () => {
   const [quantityError, setQuantityError] = useState<string | null>(null);
   const {toast} = useToast();
 
-  const today = format(date, "yyyy-MM-dd");
+  const pageSize = 10;
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when search changes
+      // Clear date range when search is triggered
+      if (searchTerm.trim()) {
+        setDateRange(undefined);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const queryClient = useQueryClient();
 
-  const productionRunsQuery = useQuery({
-    queryKey: ["productionRuns", today],
-    queryFn: () => getProductionRuns({date: today, limit: 100}),
-    enabled: !!today,
+  const productionRunsQuery = useQuery<ProductionRunsResponse>({
+    queryKey: ["productionRuns", dateRange, debouncedSearchTerm, currentPage],
+    queryFn: () => {
+      const params: any = {
+        page: currentPage,
+        limit: pageSize,
+      };
+
+      // Add productName if debouncedSearchTerm is provided
+      if (debouncedSearchTerm.trim()) {
+        params.productName = debouncedSearchTerm.trim();
+      }
+
+      // Add date range if set (can be combined with productName)
+      if (dateRange?.from && dateRange?.to) {
+        params.startDate = dateRange.from.toISOString().split('T')[0];
+        params.endDate = dateRange.to.toISOString().split('T')[0];
+      }
+
+      return getProductionRuns(params);
+    },
   });
 
   const productsQuery = useQuery({
@@ -86,7 +131,7 @@ const ProductionRuns = () => {
   const createMutation = useMutation({
     mutationFn: (data: any) => createProductionRun(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["productionRuns", today]});
+      queryClient.invalidateQueries({queryKey: ["productionRuns"]});
       toast({
         title: "Success",
         description: "Production created successfully",
@@ -117,7 +162,7 @@ const ProductionRuns = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteProductionRun(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["productionRuns", today]});
+      queryClient.invalidateQueries({queryKey: ["productionRuns"]});
       toast({
         title: "Success",
         description: "Production deleted successfully",
@@ -132,7 +177,9 @@ const ProductionRuns = () => {
     },
   });
 
-  const productionRuns = productionRunsQuery.data || [];
+  const productionRuns = productionRunsQuery.data?.productionRuns || [];
+  const total = productionRunsQuery.data?.total || 0;
+  const totalPages = productionRunsQuery.data?.totalPages || 0;
   const products = productsQuery.data || [];
   const loading = productionRunsQuery.isLoading || productsQuery.isLoading;
   const error = productionRunsQuery.error || productsQuery.error;
@@ -222,9 +269,6 @@ const ProductionRuns = () => {
               <DialogContent className="max-w-md">
                 <DialogHeader>
                   <DialogTitle>Create Production</DialogTitle>
-                  <DialogDescription>
-                    Start a new production for a product.
-                  </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4">
                   <div className="space-y-2">
@@ -339,44 +383,22 @@ const ProductionRuns = () => {
         {/* Filters - Moved to top */}
         <Card className="shadow-none bg-transparent border-0 mb-6">
           <CardContent className="p-4">
-            <div className="flex items-end gap-4">
-              <div className="flex-1 relative">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="search"
-                  placeholder="Search production"
+                  placeholder="Search by product name"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="date" className="mr-2">
-                  Date
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-[240px] justify-start text-left font-normal"
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {date ? (
-                        format(date, "dd-MM-yyyy")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+              <div>
+                <DateRangePicker
+                  dateRange={dateRange}
+                  onDateRangeChange={setDateRange}
+                />
               </div>
             </div>
           </CardContent>
@@ -418,83 +440,116 @@ const ProductionRuns = () => {
                 </CardContent>
               </Card>
             ) : (
-              <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product</TableHead>
-                      <TableHead>Quantity</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Cost</TableHead>
-                      <TableHead>Profit Margin</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredRuns.map((run) => {
-                      const product = products.find(
-                        (p) => p.id === Number(run.productId)
-                      );
-                      const productName = product?.name || "Unknown";
-                      const costPerProduct =
-                        Number(run.cost) / run.quantityProduced;
-                      const sellingPrice = product?.price || 0;
-                      const profitMargin =
-                        sellingPrice > 0
-                          ? ((sellingPrice - costPerProduct) / sellingPrice) *
-                            100
-                          : 0;
-                      return (
-                        <TableRow key={run.id}>
-                          <TableCell className="font-medium">
-                            {productName}
-                          </TableCell>
-                          <TableCell>{run.quantityProduced}</TableCell>
-                          <TableCell>
-                            {format(new Date(run.date), "dd-MM-yyyy")}
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrency(Number(run.cost))}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                profitMargin >= 0 ? "default" : "destructive"
-                              }
-                            >
-                              {profitMargin.toFixed(1)}%
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                asChild
-                                disabled={deleteMutation.isPending}
+              <>
+                <Card>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Cost</TableHead>
+                        <TableHead>Profit Margin</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredRuns.map((run) => {
+                        const product = products.find(
+                          (p) => p.id === Number(run.productId)
+                        );
+                        const productName = product?.name || "Unknown";
+                        const costPerProduct =
+                          Number(run.cost) / run.quantityProduced;
+                        const sellingPrice = product?.price || 0;
+                        const profitMargin =
+                          sellingPrice > 0
+                            ? ((sellingPrice - costPerProduct) / sellingPrice) *
+                              100
+                            : 0;
+                        return (
+                          <TableRow key={run.id}>
+                            <TableCell className="font-medium">
+                              {productName}
+                            </TableCell>
+                            <TableCell>{run.quantityProduced}</TableCell>
+                            <TableCell>
+                              {format(new Date(run.date), "dd-MM-yyyy")}
+                            </TableCell>
+                            <TableCell>
+                              {formatCurrency(Number(run.cost))}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  profitMargin >= 0 ? "default" : "destructive"
+                                }
                               >
-                                <Link to={`/production/${run.id}`}>
-                                  <Eye className="h-3 w-3" />
-                                  View
-                                </Link>
-                              </Button>
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                onClick={() => handleDelete(run.id)}
-                                disabled={deleteMutation.isPending}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                                Delete
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </Card>
+                                {profitMargin.toFixed(1)}%
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                  disabled={deleteMutation.isPending}
+                                >
+                                  <Link to={`/production/${run.id}`}>
+                                    <Eye className="h-3 w-3" />
+                                    View
+                                  </Link>
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => handleDelete(run.id)}
+                                  disabled={deleteMutation.isPending}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </Card>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+                      <PaginationItem>
+                        <PaginationNext
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -503,11 +558,9 @@ const ProductionRuns = () => {
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              No production for {format(date, "MMMM do, yyyy")}
+              No production 
             </h3>
-            <p className="text-muted-foreground mb-4">
-              Get started by creating your first production
-            </p>
+         
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>

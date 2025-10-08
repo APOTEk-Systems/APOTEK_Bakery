@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,21 @@ import { getInventory, deleteInventoryItem, createAdjustment, InventoryItem } fr
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/funcs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 interface InventoryListTabProps {
   type: 'raw_material' | 'supplies';
@@ -34,6 +49,11 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
   const [selectedDeleteId, setSelectedDeleteId] = useState("");
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
   const { toast } = useToast();
 
   const queryClient = useQueryClient();
@@ -90,6 +110,18 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
   const filteredInventory = inventoryData.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Pagination logic
+  const totalItems = filteredInventory.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedInventory = filteredInventory.slice(startIndex, endIndex);
+
+  // Reset to first page when search changes
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const getStatus = (currentQuantity: number, minLevel: number) => {
     if (currentQuantity <= minLevel * 0.5) return "critical";
@@ -170,97 +202,130 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
           </CardContent>
         </Card>
       ) : (
-        <Card className="shadow-warm">
-          <CardHeader>
-            <CardTitle>Materials</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Min Level</TableHead>
-                  <TableHead>Cost</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredInventory.map((item) => {
-                  // Convert display values for kg/l units
-                  let displayUnit = item.unit || 'N/A';
-                  let displayQuantity = item.currentQuantity;
-                  let displayMinLevel = item.minLevel;
-                  let displayCost = item.cost;
+        <>
+          <Card className="shadow-warm">
+            <CardHeader>
+              <CardTitle>Materials</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Min Level</TableHead>
+                    <TableHead>Cost</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedInventory.map((item) => {
+                    // Convert display values for kg/l units
+                    let displayUnit = item.unit || 'N/A';
+                    let displayQuantity = item.currentQuantity;
+                    let displayMinLevel = item.minLevel;
+                    let displayCost = item.cost;
 
-                  if (item.unit.toLowerCase() === 'kg') {
-                    displayUnit = 'kg';
-                    displayQuantity = item.currentQuantity / 1000;
-                    displayCost = item.cost * 1000
-                  } else if (item.unit.toLowerCase() === 'l') {
-                    displayUnit = 'l';
-                    displayQuantity = item.currentQuantity / 1000;
-                    displayCost = item.cost * 1000
-                  } else {
-                    // Leave as is for other units
-                  }
+                    if (item.unit.toLowerCase() === 'kg') {
+                      displayUnit = 'kg';
+                      displayQuantity = item.currentQuantity / 1000;
+                      displayCost = item.cost * 1000
+                    } else if (item.unit.toLowerCase() === 'l') {
+                      displayUnit = 'l';
+                      displayQuantity = item.currentQuantity / 1000;
+                      displayCost = item.cost * 1000
+                    } else {
+                      // Leave as is for other units
+                    }
 
-                  const status = getStatus(displayQuantity, item.minLevel);
+                    const status = getStatus(displayQuantity, item.minLevel);
 
-                  return (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{displayUnit}</TableCell>
-                      <TableCell>{displayQuantity}</TableCell>
-                      <TableCell>{displayMinLevel}</TableCell>
-                      <TableCell>{formatCurrency(displayCost)}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusColor(status)}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link to={`/${type === 'raw_material' ? 'materials' : 'supplies'}/${item.id}/edit`}>
-                              <Edit className="h-3 w-3" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => openDeleteDialog(item.id.toString())}
-                            disabled={deleteMutation.isPending}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                            Delete 
-                          </Button>
+                    return (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell>{displayUnit}</TableCell>
+                        <TableCell>{displayQuantity}</TableCell>
+                        <TableCell>{displayMinLevel}</TableCell>
+                        <TableCell>{formatCurrency(displayCost)}</TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusColor(status)}>
+                            {status.charAt(0).toUpperCase() + status.slice(1)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button variant="outline" size="sm" asChild>
+                              <Link to={`/${type === 'raw_material' ? 'materials' : 'supplies'}/${item.id}/edit`}>
+                                <Edit className="h-3 w-3" />
+                                Edit
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => openDeleteDialog(item.id.toString())}
+                              disabled={deleteMutation.isPending}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                              Delete
+                            </Button>
 
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
 
-            {filteredInventory.length === 0 && !loading && (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-foreground mb-2">No items found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm ? "Try adjusting your search" : `Get started by adding your first ${title.toLowerCase()} item`}
-                </p>
-                <Button asChild>
-                  <Link to={`/${type === 'raw_material' ? 'inventory' : 'supplies'}/new`}>Add {title}</Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {paginatedInventory.length === 0 && !loading && (
+                <div className="text-center py-12">
+                  <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-foreground mb-2">No items found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    {searchTerm ? "Try adjusting your search" : `Get started by adding your first ${title.toLowerCase()} item`}
+                  </p>
+                  <Button asChild>
+                    <Link to={`/${type === 'raw_material' ? 'inventory' : 'supplies'}/new`}>Add {title}</Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      onClick={() => setCurrentPage(page)}
+                      isActive={currentPage === page}
+                      className="cursor-pointer"
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
+        </>
       )}
 
       {/* Quantity Adjustment Dialog */}

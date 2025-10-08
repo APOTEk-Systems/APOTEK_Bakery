@@ -63,7 +63,7 @@ const SaleDetail = () => {
     return (
       <Layout>
         <div className="flex min-h-screen bg-background">
-          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+          <main className="flex-1 p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="mt-2 text-muted-foreground">
@@ -131,7 +131,6 @@ const SaleDetail = () => {
               <h1 className="text-3xl font-bold text-foreground">
                 Sale #{sale.id}
               </h1>
-              <p className="text-muted-foreground">Sale details and items</p>
             </div>
             {sale.status === "unpaid" && (
               <Button
@@ -180,34 +179,15 @@ const SaleDetail = () => {
                   </Label>
                   <p className="font-medium">{sale.isCredit ? "Credit" : "Cash"}</p>
                 </div>
-                {/* <div>
-                  <Label className="text-sm font-medium text-muted-foreground">
-                    Is Credit
-                  </Label>
-                  <p className="font-medium">{sale.isCredit ? "Yes" : "No"}</p>
-                </div> */}
-              </div>
-
-              {sale.customer && (
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">
                     Customer
                   </Label>
-                  <div className="space-y-1">
-                    <p className="font-medium">{sale.customer.name}</p>
-                    {/* {sale.customer.email && (
-                      <p className="text-sm text-muted-foreground">
-                        {sale.customer.email}
-                      </p>
-                    )} */}
-                    {/* {sale.customer.phone && (
-                      <p className="text-sm text-muted-foreground">
-                        {sale.customer.phone}
-                      </p>
-                    )} */}
-                  </div>
+                  <p className="font-medium">{sale.customerName ? sale.customerName : "CASH"}</p>
                 </div>
-              )}
+              </div>
+
+           
 
               {sale.notes && (
                 <div>
@@ -220,7 +200,7 @@ const SaleDetail = () => {
 
               <div className="border-t pt-4">
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total:</span>
+                  <span>Amount:</span>
                   <span>{formatCurrency(sale.total)}</span>
                 </div>
                 {sale.tax > 0 && (
@@ -237,9 +217,7 @@ const SaleDetail = () => {
           <Card>
             <CardHeader>
               <CardTitle>Items Sold</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                {sale.items.length} items
-              </p>
+             
             </CardHeader>
             <CardContent>
               <Table>

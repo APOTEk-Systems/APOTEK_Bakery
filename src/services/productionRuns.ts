@@ -20,8 +20,11 @@ export interface ProductionRun {
 }
 
 export interface ProductionRunsResponse {
-  data: ProductionRun[];
+  productionRuns: ProductionRun[];
   total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
 }
 
 export interface ApiResponse<T> {
@@ -31,12 +34,13 @@ export interface ApiResponse<T> {
 
 // Get all production runs with optional filters
 export const getProductionRuns = async (params?: {
-  productId?: string;
-  date?: string;
+  startDate?: string;
+  endDate?: string;
+  productName?: string;
   page?: number;
   limit?: number;
-}): Promise<ProductionRun[]> => {
-  const response = await api.get<ProductionRun[]>('/production', { params });
+}): Promise<ProductionRunsResponse> => {
+  const response = await api.get<ProductionRunsResponse>('/production', { params });
   console.log('Production runs response:', response.data);
   return response.data;
 };

@@ -159,9 +159,9 @@ const GoodsReceivingView = () => {
               <h1 className="text-3xl font-bold tracking-tight">
                 {hasReceipt ? 'Goods Receipt' : 'Receive Goods'} for PO {po.id}
               </h1>
-              <p className="text-muted-foreground mt-1">
+              {/* <p className="text-muted-foreground mt-1">
                 {hasReceipt ? 'View received goods' : 'Mark delivery as completed'}
-              </p>
+              </p> */}
             </div>
             <Button asChild variant="outline">
               <Link to="/purchases?tab=goods-receiving">Back to Materials Received</Link>
@@ -211,7 +211,7 @@ const GoodsReceivingView = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5" />
+               
                 Ordered Items
               </CardTitle>
             </CardHeader>

@@ -392,53 +392,7 @@ const ProductForm = () => {
                 </CardContent>
               </Card>
 
-              {/* Instructions */}
-              <Card className="shadow-warm">
-                <CardHeader>
-                  <div className="flex justify-between items-center">
-                    <CardTitle>Preparation Instructions</CardTitle>
-                    <Button
-                      type="button"
-                      onClick={addInstruction}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Step
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {formData.instructions.map((instruction, index) => (
-                    <div key={index} className="flex gap-3 items-start">
-                      <span className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium mt-2">
-                        {index + 1}
-                      </span>
-                      <div className="flex-1">
-                        <Textarea
-                          value={instruction}
-                          onChange={(e) =>
-                            handleInstructionChange(index, e.target.value)
-                          }
-                          placeholder="Describe this step..."
-                          rows={2}
-                        />
-                      </div>
-                      {formData.instructions.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeInstruction(index)}
-                          className="text-destructive hover:text-destructive mt-2"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+          
 
               {/* Actions */}
               <Card className="shadow-warm">

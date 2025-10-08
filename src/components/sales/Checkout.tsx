@@ -137,10 +137,11 @@ const Checkout = ({
                         <SelectValue placeholder="Select due days" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="7">7 days</SelectItem>
-                        <SelectItem value="14">14 days</SelectItem>
-                        <SelectItem value="21">21 days</SelectItem>
-                        <SelectItem value="30">30 days</SelectItem>
+                        <SelectItem value="1">1</SelectItem>
+                        <SelectItem value="7">7</SelectItem>
+                        <SelectItem value="14">14</SelectItem>
+                        <SelectItem value="21">21</SelectItem>
+                        <SelectItem value="30">30</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

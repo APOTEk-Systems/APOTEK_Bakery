@@ -12,11 +12,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Save,
   Store,
+  Edit,
+  X,
 } from "lucide-react";
 
 const Information = () => {
   const {toast} = useToast();
   const queryClient = useQueryClient();
+
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Local state for settings forms
   const [informationData, setInformationData] = useState({
@@ -115,6 +120,47 @@ const validatePhone = (phone: string): string | undefined => {
     }
   }, [settingsError, toast]);
 
+  const handleEdit = () => {
+    setIsEditMode(true);
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original settings
+    if (settings) {
+      setInformationData({
+        ...settings.information,
+        phone: settings.information.phone
+          ? settings.information.phone.startsWith("+255")
+            ? settings.information.phone.substring(4)
+            : settings.information.phone
+          : "",
+        tin: settings.information.tin || "",
+      });
+    }
+    setValidationErrors({});
+    setIsEditMode(false);
+  };
+
+  // Helper function to render form field or display value
+  const renderField = (
+    label: string,
+    value: string,
+    field: React.ReactNode,
+    className: string = ""
+  ) => {
+    if (!isEditMode) {
+      return (
+        <div className={className}>
+          <Label>{label}</Label>
+          <p className="text-sm text-muted-foreground mt-1">
+            {value || "Not set"}
+          </p>
+        </div>
+      );
+    }
+    return field;
+  };
+
   const handleSave = (section: string) => {
     // Clear previous validation errors
     setValidationErrors({});
@@ -163,7 +209,11 @@ const validatePhone = (phone: string): string | undefined => {
         return;
     }
 
-    updateSettingsMutation.mutate(updateData);
+    updateSettingsMutation.mutate(updateData, {
+      onSuccess: () => {
+        setIsEditMode(false);
+      }
+    });
   };
 
   return (
@@ -177,180 +227,219 @@ const validatePhone = (phone: string): string | undefined => {
           {/* Bakery Information */}
           <Card className="shadow-warm">
             <CardHeader>
-              {/* <CardTitle className="flex items-center gap-2">
-                <Store className="h-5 w-5" />
-                Bakery Information
-              </CardTitle> */}
+              <div className="flex justify-between items-center">
+                <CardTitle className="flex items-center gap-2">
+                  <Store className="h-5 w-5" />
+                  Bakery Information
+                </CardTitle>
+                {!isEditMode ? (
+                  <Button onClick={handleEdit} variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button onClick={handleCancel} variant="outline">
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => handleSave("Bakery Information")}
+                      disabled={updateSettingsMutation.isPending}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {updateSettingsMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderField(
+                  "Bakery Name",
+                  informationData.bakeryName,
+                  <div>
+                    <Label htmlFor="bakeryName">Bakery Name</Label>
+                    <Input
+                      id="bakeryName"
+                      value={informationData.bakeryName}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          bakeryName: e.target.value,
+                        }))
+                      }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+                {renderField(
+                  "Phone Number",
+                  informationData.phone ? `+255${informationData.phone}` : "",
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <div className="flex items-center">
+                      <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">
+                        +255
+                      </span>
+                      <Input
+                        id="phone"
+                        value={informationData.phone}
+                        onChange={(e) => {
+                          setInformationData((prev) => ({
+                            ...prev,
+                            phone: e.target.value,
+                          }));
+                          // Clear validation error when user starts typing
+                          if (validationErrors.phone) {
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              phone: undefined,
+                            }));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const error = validatePhone(e.target.value);
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            phone: error,
+                          }));
+                        }}
+                        placeholder="enter phone number"
+                        className={`rounded-l-none ${validationErrors.phone ? "border-destructive" : ""}`}
+                        disabled={settingsLoading}
+                      />
+                      {validationErrors.phone && (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {renderField(
+                "Address",
+                informationData.address,
                 <div>
-                  <Label htmlFor="bakeryName">Bakery Name</Label>
-                  <Input
-                    id="bakeryName"
-                    value={informationData.bakeryName}
+                  <Label htmlFor="address">Address</Label>
+                  <Textarea
+                    id="address"
+                    value={informationData.address}
                     onChange={(e) =>
                       setInformationData((prev) => ({
                         ...prev,
-                        bakeryName: e.target.value,
+                        address: e.target.value,
                       }))
                     }
+                    rows={2}
                     disabled={settingsLoading}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <div className="flex items-center">
-                    <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">
-                      +255
-                    </span>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderField(
+                  "Email",
+                  informationData.email,
+                  <div>
+                    <Label htmlFor="email">Email</Label>
                     <Input
-                      id="phone"
-                      value={informationData.phone}
+                      id="email"
+                      type="email"
+                      value={informationData.email}
                       onChange={(e) => {
                         setInformationData((prev) => ({
                           ...prev,
-                          phone: e.target.value,
+                          email: e.target.value,
                         }));
                         // Clear validation error when user starts typing
-                        if (validationErrors.phone) {
+                        if (validationErrors.email) {
                           setValidationErrors((prev) => ({
                             ...prev,
-                            phone: undefined,
+                            email: undefined,
                           }));
                         }
                       }}
                       onBlur={(e) => {
-                        const error = validatePhone(e.target.value);
+                        const error = validateEmail(e.target.value);
                         setValidationErrors((prev) => ({
                           ...prev,
-                          phone: error,
+                          email: error,
                         }));
                       }}
-                      placeholder="enter phone number"
-                      className={`rounded-l-none ${validationErrors.phone ? "border-destructive" : ""}`}
+                      className={
+                        validationErrors.email ? "border-destructive" : ""
+                      }
                       disabled={settingsLoading}
                     />
-                    {validationErrors.phone && (
+                    {validationErrors.email && (
                       <p className="text-sm text-destructive mt-1">
-                        {validationErrors.phone}
+                        {validationErrors.email}
                       </p>
                     )}
                   </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={informationData.address}
-                  onChange={(e) =>
-                    setInformationData((prev) => ({
-                      ...prev,
-                      address: e.target.value,
-                    }))
-                  }
-                  rows={2}
-                  disabled={settingsLoading}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={informationData.email}
-                    onChange={(e) => {
-                      setInformationData((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }));
-                      // Clear validation error when user starts typing
-                      if (validationErrors.email) {
-                        setValidationErrors((prev) => ({
+                )}
+                {renderField(
+                  "Website",
+                  informationData.website,
+                  <div>
+                    <Label htmlFor="website">Website</Label>
+                    <Input
+                      id="website"
+                      value={informationData.website}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
                           ...prev,
-                          email: undefined,
-                        }));
+                          website: e.target.value,
+                        }))
                       }
-                    }}
-                    onBlur={(e) => {
-                      const error = validateEmail(e.target.value);
-                      setValidationErrors((prev) => ({
-                        ...prev,
-                        email: error,
-                      }));
-                    }}
-                    className={
-                      validationErrors.email ? "border-destructive" : ""
-                    }
-                    disabled={settingsLoading}
-                  />
-                  {validationErrors.email && (
-                    <p className="text-sm text-destructive mt-1">
-                      {validationErrors.email}
-                    </p>
-                  )}
-                </div>
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {renderField(
+                "Description",
+                informationData.description,
                 <div>
-                  <Label htmlFor="website">Website</Label>
-                  <Input
-                    id="website"
-                    value={informationData.website}
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={informationData.description}
                     onChange={(e) =>
                       setInformationData((prev) => ({
                         ...prev,
-                        website: e.target.value,
+                        description: e.target.value,
+                      }))
+                    }
+                    rows={3}
+                    disabled={settingsLoading}
+                  />
+                </div>
+              )}
+
+              {renderField(
+                "TIN Number",
+                informationData.tin,
+                <div>
+                  <Label htmlFor="tin">TIN Number</Label>
+                  <Input
+                    id="tin"
+                    value={informationData.tin}
+                    onChange={(e) =>
+                      setInformationData((prev) => ({
+                        ...prev,
+                        tin: e.target.value,
                       }))
                     }
                     disabled={settingsLoading}
                   />
                 </div>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={informationData.description}
-                  onChange={(e) =>
-                    setInformationData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  rows={3}
-                  disabled={settingsLoading}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="tin">TIN Number</Label>
-                <Input
-                  id="tin"
-                  value={informationData.tin}
-                  onChange={(e) =>
-                    setInformationData((prev) => ({
-                      ...prev,
-                      tin: e.target.value,
-                    }))
-                  }
-                  disabled={settingsLoading}
-                />
-              </div>
-
-              <Button
-                onClick={() => handleSave("Bakery Information")}
-                className="w-full md:w-auto"
-                disabled={updateSettingsMutation.isPending}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {updateSettingsMutation.isPending
-                  ? "Saving..."
-                  : "Save Bakery Info"}
-              </Button>
+              )}
             </CardContent>
           </Card>
         </div>
