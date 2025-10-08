@@ -192,7 +192,8 @@ const NewSale = () => {
 
   // totals
   const subtotal = cart.reduce((s, it) => s + it.price * it.cartQuantity, 0);
-  const tax = subtotal * 0 //For Now will be set later;
+  const taxRate = settings?.vatAndTax?.taxRate || 0;
+  const tax = subtotal * (taxRate / 100);
   const total = subtotal + tax;
 
   // validate & open confirm

@@ -88,7 +88,6 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
                 <TableHeader>
                   <TableRow>
                     <TableHead>Category Name</TableHead>
-                    <TableHead>Color</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -96,11 +95,7 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
                   {categories.map((category) => (
                     <TableRow key={category.id}>
                       <TableCell className="font-medium">{toSentenceCase(category.name)}</TableCell>
-                      <TableCell>
-                        <Badge className={getCategoryColor(category.name.toLowerCase())} variant="outline">
-                          {category.name}
-                        </Badge>
-                      </TableCell>
+                   
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" size="sm" onClick={() => { setSelectedCategory(category); setIsEditCategoryModalOpen(true); }}>

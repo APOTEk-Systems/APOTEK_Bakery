@@ -1,25 +1,10 @@
 import Layout from "../components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExpensesTab from "../components/accounting/ExpensesTab";
-import CategoriesTab from "../components/accounting/CategoriesTab";
 // import OverviewTab from "../components/accounting/OverviewTab";
 // import ReportsTab from "../components/accounting/ReportsTab";
 
 
-
-const expenseCategories = [
-  "electricity",
-  "gas",
-  "water",
-  "transportation",
-  "salaries",
-  "rent",
-  "communication",
-  "maintenance",
-  "Raw Materials",
-  "Supplies",
-  "Other",
-];
 
 const Accounting = () => {
 
@@ -120,13 +105,6 @@ const Accounting = () => {
             />
           </TabsContent>
 
-          <TabsContent value="categories">
-            <CategoriesTab
-              expenseCategories={expenseCategories}
-              // expenses={expenses} // Removed as ExpensesTab now manages its own data
-              getCategoryColor={getCategoryColor}
-            />
-          </TabsContent>
 
           {/* <TabsContent value="reports">
             <ReportsTab />

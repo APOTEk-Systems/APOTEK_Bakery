@@ -7,6 +7,14 @@ export interface BusinessHour {
   isOpen: boolean;
 }
 
+export interface AdjustmentReason {
+  id: number;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface SettingsData {
   information: {
     email: string;
@@ -46,5 +54,25 @@ export const settingsService = {
   update: async (data: UpdateSettingsRequest): Promise<any> => {
     const response = await api.put('/settings', data);
     return response.data.data;
+  },
+
+  // Adjustment Reasons
+  getAdjustmentReasons: async (): Promise<AdjustmentReason[]> => {
+    const response = await api.get('/settings/reasons');
+    return response.data;
+  },
+
+  createAdjustmentReason: async (data: { name: string; description: string }): Promise<AdjustmentReason> => {
+    const response = await api.post('/settings/reasons', data);
+    return response.data;
+  },
+
+  updateAdjustmentReason: async (id: number, data: { name?: string; description?: string }): Promise<AdjustmentReason> => {
+    const response = await api.patch(`/settings/reasons/${id}`, data);
+    return response.data;
+  },
+
+  deleteAdjustmentReason: async (id: number): Promise<void> => {
+    await api.delete(`/settings/reasons/${id}`);
   },
 };
