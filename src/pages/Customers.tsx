@@ -6,16 +6,7 @@ import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Input} from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import {useToast} from "@/hooks/use-toast";
 import {Search, Plus, Edit, User, Loader2, Trash} from "lucide-react";
 import {
@@ -34,6 +25,7 @@ const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const {toast} = useToast();
   const queryClient = useQueryClient();
 
@@ -43,7 +35,14 @@ const Customers = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: ({id, hasSales}: {id: number, hasSales: boolean}) => hasSales ? customersService.update(id, { status: "inactive" }) : customersService.delete(id),
+    mutationFn: async ({id, hasSales}: {id: number, hasSales: boolean}) => {
+      if (hasSales) {
+        return customersService.update(id, { status: "inactive" });
+      } else {
+        await customersService.delete(id);
+        return null;
+      }
+    },
     onSuccess: (_, {hasSales}) => {
       queryClient.invalidateQueries({queryKey: ["customers"]});
       toast({
@@ -53,6 +52,7 @@ const Customers = () => {
       });
       setIsDeleteConfirmOpen(false);
       setDeleteItemId(null);
+      setCustomerToDelete(null);
     },
     onError: (err) => {
       toast({
@@ -102,16 +102,16 @@ const Customers = () => {
   };
 
   const handleDeleteCustomer = (customer: any) => {
+    setCustomerToDelete(customer);
     setDeleteItemId(customer.id);
     setIsDeleteConfirmOpen(true);
   };
 
+  const hasSales = customerToDelete ? (customerToDelete.totalOrders || 0) > 0 : false;
+
   const confirmDelete = () => {
-    if (deleteItemId) {
-      const customer = allCustomers.find(c => c.id === deleteItemId);
-      if (customer) {
-        deleteMutation.mutate({id: deleteItemId, hasSales: (customer.totalOrders || 0) > 0});
-      }
+    if (deleteItemId && customerToDelete) {
+      deleteMutation.mutate({id: deleteItemId, hasSales});
     }
   };
 
@@ -308,28 +308,18 @@ const Customers = () => {
         </Card>
 
         {/* Delete Confirmation */}
-        <AlertDialog
+        <ConfirmationDialog
           open={isDeleteConfirmOpen}
           onOpenChange={setIsDeleteConfirmOpen}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Deactivation</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will deactivate the customer. They will no longer appear in the active customers list, but their data will be preserved.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={confirmDelete}
-                disabled={deleteMutation.isPending}
-              >
-                {deleteMutation.isPending ? "Deactivating..." : "Deactivate Customer"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          title={`Confirm ${hasSales ? 'Deactivation' : 'Deletion'}`}
+          message={
+            hasSales
+              ? "This customer has made sales. They will be deactivated but their data will be preserved."
+              : "This customer has no sales history. They will be permanently deleted."
+          }
+          onConfirm={confirmDelete}
+          confirmVariant="destructive"
+        />
       </div>
     </Layout>
   );

@@ -24,7 +24,9 @@ import {
    Bell,
    Utensils,
    UtensilsCrossed,
-   Banknote
+   Banknote,
+   Wrench,
+   Milk
  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -106,7 +108,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         asChild
                       >
                         <Link to="/materials" className="flex items-center gap-2">
-                          <Package className="h-4 w-4" />
+                          <Milk className="h-4 w-4" />
                           {(!collapsed || isMobile) && "Materials"}
                         </Link>
                       </Button>
@@ -208,7 +210,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         asChild
                       >
                         <Link to="/information" className="flex items-center gap-2">
-                          <Settings className="h-4 w-4" />
+                          <Wrench className="h-4 w-4" />
                           {(!collapsed || isMobile) && "Configurations"}
                         </Link>
                       </Button>

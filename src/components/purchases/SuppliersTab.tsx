@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
  import { Label } from "@/components/ui/label";
  import { Textarea } from "@/components/ui/textarea";
  import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
- import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+ import { ConfirmationDialog } from "@/components/ConfirmationDialog";
  import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
  import { Plus, Edit, Trash, Save, Loader2, User } from "lucide-react";
  import { useToast } from "@/hooks/use-toast";
@@ -466,34 +466,20 @@ export default function SuppliersTab() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm {hasPurchases ? 'Deactivation' : 'Deletion'}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {isCheckingPurchases ? (
-                <div className="flex items-center">
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Checking for linked purchases...
-                </div>
-              ) : hasPurchases ? (
-                "This supplier has linked purchases. They will be deactivated but their data will be preserved."
-              ) : (
-                "This supplier has no linked purchases. They will be permanently deleted."
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isCheckingPurchases}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} disabled={isCheckingPurchases || deactivateMutation.isPending || deleteMutation.isPending}>
-              {(deactivateMutation.isPending || deleteMutation.isPending) ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
-              {hasPurchases ? 'Deactivate Supplier' : 'Delete Supplier'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmationDialog
+        open={isDeleteConfirmOpen}
+        onOpenChange={setIsDeleteConfirmOpen}
+        title={`Confirm ${hasPurchases ? 'Deactivation' : 'Deletion'}`}
+        message={
+          isCheckingPurchases
+            ? "Checking for linked purchases..."
+            : hasPurchases
+            ? "This supplier has linked purchases. They will be deactivated but their data will be preserved."
+            : "This supplier has no linked purchases. They will be permanently deleted."
+        }
+        onConfirm={confirmDelete}
+        confirmVariant="destructive"
+      />
     </div>
   );
 }

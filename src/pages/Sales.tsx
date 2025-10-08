@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from "../components/Layout";
 import RecentSales from '@/components/sales/RecentSales';
 import UnpaidSales from '@/components/sales/UnpaidSales';
@@ -11,6 +12,13 @@ import {
 
 
 const Sales: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'recent';
+
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+  };
+
   return (
     <Layout>
       <div className="p-6">
@@ -22,7 +30,7 @@ const Sales: React.FC = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="recent" className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="recent">Recent Sales</TabsTrigger>
             <TabsTrigger value="unpaid">Unpaid Sales</TabsTrigger>

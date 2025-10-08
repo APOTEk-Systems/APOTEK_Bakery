@@ -174,7 +174,7 @@ const ConfirmSaleDialog = ({
           </div>
 
           <div class="info">
-            <p>Sale ID: ${newSale?.id || 'N/A'}</p>
+            <p>Receipt #: ${newSale?.id || 'N/A'}</p>
             <p>Customer: ${customer?.name || customerName || 'Cash'}</p>
             <p>Issued By: ${user.name} </p>
             <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>

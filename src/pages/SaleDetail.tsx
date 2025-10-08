@@ -121,9 +121,9 @@ const SaleDetail = () => {
       <div className="p-6">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link to="/sales">
+            <Link to="/sales?tab=unpaid">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Sales
+              Back to Unpaid Sales
             </Link>
           </Button>
           <div className="flex justify-between items-start">
@@ -195,16 +195,16 @@ const SaleDetail = () => {
                   </Label>
                   <div className="space-y-1">
                     <p className="font-medium">{sale.customer.name}</p>
-                    {sale.customer.email && (
+                    {/* {sale.customer.email && (
                       <p className="text-sm text-muted-foreground">
                         {sale.customer.email}
                       </p>
-                    )}
-                    {sale.customer.phone && (
+                    )} */}
+                    {/* {sale.customer.phone && (
                       <p className="text-sm text-muted-foreground">
                         {sale.customer.phone}
                       </p>
-                    )}
+                    )} */}
                   </div>
                 </div>
               )}
@@ -220,7 +220,7 @@ const SaleDetail = () => {
 
               <div className="border-t pt-4">
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total Amount:</span>
+                  <span>Total:</span>
                   <span>{formatCurrency(sale.total)}</span>
                 </div>
                 {sale.tax > 0 && (
