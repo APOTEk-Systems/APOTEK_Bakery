@@ -192,13 +192,13 @@ const SuppliesListTab = () => {
         <>
           <Card className="shadow-warm">
             <CardHeader>
-              <CardTitle>Supplies Items</CardTitle>
+              <CardTitle>Supplies</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
+                    <TableHead>Item Name</TableHead>
                     <TableHead>Unit</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Min Level</TableHead>
@@ -214,8 +214,8 @@ const SuppliesListTab = () => {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{item.unit || 'N/A'}</TableCell>
-                        <TableCell>{item.currentQuantity}</TableCell>
-                        <TableCell>{item.minLevel}</TableCell>
+                        <TableCell>{item.currentQuantity.toLocaleString()}</TableCell>
+                        <TableCell>{item.minLevel.toLocaleString()}</TableCell>
                         <TableCell>{formatCurrency(item.cost)}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusColor(status)}>

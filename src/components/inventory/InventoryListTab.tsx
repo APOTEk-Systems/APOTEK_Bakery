@@ -246,8 +246,8 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
                         <TableCell>{displayUnit}</TableCell>
-                        <TableCell>{displayQuantity}</TableCell>
-                        <TableCell>{displayMinLevel}</TableCell>
+                        <TableCell>{displayQuantity.toLocaleString()}</TableCell>
+                        <TableCell>{displayMinLevel.toLocaleString()}</TableCell>
                         <TableCell>{formatCurrency(displayCost)}</TableCell>
                         <TableCell>
                           <Badge variant={getStatusColor(status)}>

@@ -25,6 +25,7 @@ import {
 } from "../services/products";
 import {getInventory, InventoryItem} from "../services/inventory";
 import {ConfirmationDialog} from "@/components/ConfirmationDialog";
+import { toSentenceCase } from "@/lib/funcs";
 
 const ProductForm = () => {
   const {id} = useParams<{id: string}>();
@@ -289,11 +290,7 @@ const ProductForm = () => {
               <h1 className="text-3xl font-bold text-foreground">
                 {isEdit ? "Edit Product" : "Add New Product"}
               </h1>
-              <p className="text-muted-foreground">
-                {isEdit
-                  ? "Update product information"
-                  : "Create a new bakery product"}
-              </p>
+           
             </div>
           </div>
         </div>
@@ -320,7 +317,7 @@ const ProductForm = () => {
                       id="name"
                       value={formData.name}
                       onChange={(e) =>
-                        handleInputChange("name", e.target.value)
+                        handleInputChange("name", toSentenceCase(e.target.value))
                       }
                       placeholder="Enter product name"
                       required

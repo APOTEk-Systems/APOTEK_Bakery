@@ -5,17 +5,9 @@ import Layout from "../components/Layout";
 import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {Badge} from "@/components/ui/badge";
 import {useToast} from "@/hooks/use-toast";
-import {Plus, Filter, Package, Edit, Trash2, Loader2, Search} from "lucide-react";
+import {Plus, Package, Edit, Trash2, Loader2, Search} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -190,7 +182,7 @@ const Products = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product</TableHead>
+                      <TableHead>Product Name</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Stock</TableHead>
                       <TableHead>Status</TableHead>

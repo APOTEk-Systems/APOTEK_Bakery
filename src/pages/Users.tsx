@@ -38,6 +38,7 @@ import {
   Edit,
   Trash2,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const Users = () => {
   const {toast} = useToast();
@@ -219,6 +220,9 @@ const Users = () => {
     setDialogOpen(true);
   };
 
+   const getStatusColor = (status: string) => {
+    return status === "active" ? "default" : "secondary";
+  };
   return (
     <Layout>
       <div className="p-6">
@@ -358,15 +362,9 @@ const Users = () => {
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.role.name}</TableCell>
                         <TableCell>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs ${
-                              user.status === "active"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }`}
-                          >
-                            {user.status || "active"}
-                          </span>
+                         <Badge variant={getStatusColor(user.status)}>
+                        {user.status}
+                      </Badge>
                         </TableCell>
                         <TableCell>
                           <Button

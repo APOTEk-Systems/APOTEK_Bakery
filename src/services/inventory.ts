@@ -1,4 +1,5 @@
 import { api } from '../lib/api';
+import { toSentenceCase } from '../lib/funcs';
 
 export interface InventoryItem {
   id: number;
@@ -49,9 +50,11 @@ export interface PaginatedAdjustments {
 export const getAdjustments = async (params?: {
   date?: string;
   type?: string;
-  name?: string;
+  search?: string;
   startDate?: string;
   endDate?: string;
+  page?: number;
+  limit?: number;
 }): Promise<PaginatedAdjustments> => {
   const response = await api.get<PaginatedAdjustments>('/adjustments', { params });
   return response.data;
@@ -61,7 +64,7 @@ export const getAdjustments = async (params?: {
 export const createAdjustment = async (data: {
   inventoryItemId: number;
   amount: number;
-  reason?: string;
+  reasonId?: number;
 }): Promise<{ adjustment: Adjustment; inventoryItem: InventoryItem }> => {
   const response = await api.post<{ adjustment: Adjustment; inventoryItem: InventoryItem }>('/adjustments', data);
   return response.data;
@@ -93,7 +96,8 @@ export const createInventoryItem = async (itemData: {
   maxLevel: number;
   cost: number;
 }): Promise<InventoryItem> => {
-  const response = await api.post<{ success: true; data: InventoryItem }>('/inventory', itemData);
+  const data = { ...itemData, name: toSentenceCase(itemData.name) };
+  const response = await api.post<{ success: true; data: InventoryItem }>('/inventory', data);
   return response.data.data;
 };
 

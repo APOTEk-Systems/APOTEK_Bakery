@@ -35,6 +35,7 @@ import {
   getAdjustments,
   createAdjustment,
 } from "../../services/inventory";
+import { settingsService, AdjustmentReason } from "../../services/settings";
 import {format} from "date-fns";
 
 type AdjustmentAction = "add" | "minus";
@@ -46,7 +47,7 @@ const SuppliesAdjustmentsTab = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
-  const [reason, setReason] = useState("");
+  const [reasonId, setReasonId] = useState("");
   const [action, setAction] = useState<AdjustmentAction>("add");
   const {toast} = useToast();
   const queryClient = useQueryClient();
@@ -63,12 +64,17 @@ const SuppliesAdjustmentsTab = () => {
     queryFn: () => getInventory({type: "supplies"}),
   });
 
+  const reasonsQuery = useQuery({
+    queryKey: ["adjustmentReasons"],
+    queryFn: () => settingsService.getAdjustmentReasons(),
+  });
+
   const adjustmentsQuery = useQuery({
     queryKey: ["adjustments", "supplies", dateRange, debouncedSearchTerm],
     queryFn: () => {
-      const params: any = {type: "supplies"};
+      const params: any = {type: "supplies", page: 1, limit: 100};
       if (debouncedSearchTerm.trim()) {
-        params.name = debouncedSearchTerm.trim();
+        params.search = debouncedSearchTerm.trim();
       } else {
         if (dateRange?.from) {
           params.startDate = dateRange.from.toISOString().split("T")[0];
@@ -93,7 +99,7 @@ const SuppliesAdjustmentsTab = () => {
       setDialogOpen(false);
       setSelectedItemId("");
       setAmount("");
-      setReason("");
+      setReasonId("");
       setAction("add");
     },
     onError: () => {
@@ -114,7 +120,7 @@ const SuppliesAdjustmentsTab = () => {
     createAdjustmentMutation.mutate({
       inventoryItemId: parseInt(selectedItemId),
       amount: adjustmentAmount,
-      reason: reason.trim() || undefined,
+      reasonId: reasonId ? parseInt(reasonId) : undefined,
     });
   };
 
@@ -145,7 +151,7 @@ const SuppliesAdjustmentsTab = () => {
           />
           <Button onClick={() => setDialogOpen(true)} className="shadow-warm">
             <Plus className="h-4 w-4 mr-2" />
-            Add Adjustment
+            New Adjustment
           </Button>
         </div>
       </div>
@@ -153,7 +159,7 @@ const SuppliesAdjustmentsTab = () => {
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Supplies Adjustments</CardTitle>
+            <CardTitle>Adjustments</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -162,6 +168,7 @@ const SuppliesAdjustmentsTab = () => {
               <TableRow>
                 <TableHead>Date</TableHead>
                 <TableHead>Item Name</TableHead>
+                <TableHead>Unit</TableHead>
                 <TableHead>Quantity</TableHead>
                 <TableHead>Reason</TableHead>
               </TableRow>
@@ -175,10 +182,11 @@ const SuppliesAdjustmentsTab = () => {
                   <TableCell>
                     {adjustment.inventoryItem?.name || "Unknown"}
                   </TableCell>
+                  <TableCell>{adjustment.inventoryItem.unit} </TableCell>
                   <TableCell>
                     {adjustment.amount > 0
-                      ? `+${adjustment.amount}`
-                      : adjustment.amount}
+                      ? `+${adjustment.amount.toLocaleString()}`
+                      : adjustment.amount.toLocaleString()}
                   </TableCell>
                   <TableCell>{adjustment.reason}</TableCell>
                 </TableRow>
@@ -260,12 +268,18 @@ const SuppliesAdjustmentsTab = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="reason">Reason</Label>
-              <Input
-                id="reason"
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                placeholder="Reason for adjustment"
-              />
+              <Select value={reasonId} onValueChange={setReasonId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reasonsQuery.data?.map((reason) => (
+                    <SelectItem key={reason.id} value={reason.id.toString()}>
+                      {reason.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter>
               <Button

@@ -268,11 +268,12 @@ const SuppliesForm = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="unit">
-                    Unit {formData.unit.toLowerCase()}
+                    Unit *
                   </Label>
                   <Select
                     value={formData.unit.toLowerCase()}
                     onValueChange={(value) => handleInputChange("unit", value)}
+                    required
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select unit" />
@@ -298,17 +299,20 @@ const SuppliesForm = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div> 
+                <div>
                   <Label htmlFor="currentQuantity">
                     Current Quantity
                   </Label>
                   <Input
                     id="currentQuantity"
                     type="number"
-                    value={formData.currentQuantity}
-                    onChange={(e) =>
-                      handleInputChange("currentQuantity", e.target.value)
-                    }
+                    value={formData.currentQuantity ? parseFloat(formData.currentQuantity).toLocaleString() : ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      if (!isNaN(Number(value)) || value === '') {
+                        handleInputChange("currentQuantity", value);
+                      }
+                    }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder=""
                     min="0"
@@ -339,10 +343,13 @@ const SuppliesForm = () => {
                   <Input
                     id="minLevel"
                     type="number"
-                    value={formData.minLevel}
-                    onChange={(e) =>
-                      handleInputChange("minLevel", e.target.value)
-                    }
+                    value={formData.minLevel ? parseFloat(formData.minLevel).toLocaleString() : ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      if (!isNaN(Number(value)) || value === '') {
+                        handleInputChange("minLevel", value);
+                      }
+                    }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder=""
                     min="0"
@@ -353,10 +360,13 @@ const SuppliesForm = () => {
                   <Input
                     id="maxLevel"
                     type="number"
-                    value={formData.maxLevel}
-                    onChange={(e) =>
-                      handleInputChange("maxLevel", e.target.value)
-                    }
+                    value={formData.maxLevel ? parseFloat(formData.maxLevel).toLocaleString() : ''}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/,/g, '');
+                      if (!isNaN(Number(value)) || value === '') {
+                        handleInputChange("maxLevel", value);
+                      }
+                    }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder=""
                     min="0"
