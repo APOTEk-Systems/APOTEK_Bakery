@@ -5,6 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { getProductionRun } from "../services/productionRuns";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "../lib/funcs";
@@ -124,29 +132,38 @@ const ProductionRunDetail = () => {
               <p className="text-sm text-muted-foreground">{(run as any).ingredientsDeducted?.length || 0} ingredients</p>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                {(run as any).ingredientsDeducted?.map((ingredient: any, index: number) => 
-                  {
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Ingredient Name</TableHead>
+                    <TableHead>Amount Deducted</TableHead>
+                    <TableHead>Cost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(run as any).ingredientsDeducted?.map((ingredient: any) => {
                     let unit = ingredient.unit;
 
-                    if(unit.toLowerCase() === "kg"){
-                      unit = "g"
-                    } else if(unit.toLowerCase() === "l"){
-                      unit = "ml"
+                    if (unit.toLowerCase() === "kg") {
+                      unit = "g";
+                    } else if (unit.toLowerCase() === "l") {
+                      unit = "ml";
                     }
 
-                    return(<div key={ingredient.id} className="flex justify-between items-center p-3 border rounded">
-                    <div className="flex-1">
-                      <span className="font-medium">{ingredient.name}</span>
-                    </div>
-                    <div className="flex space-x-4 text-sm text-muted-foreground">
-                      <span>{ingredient.amountDeducted} {unit}</span>
-                      <span>{formatCurrency(Number(ingredient.cost))}</span>
-                    </div>
-                  </div>)
-                  }
-                ) || <p>No ingredients deducted</p>}
-              </div>
+                    return (
+                      <TableRow key={ingredient.id}>
+                        <TableCell className="font-medium">{ingredient.name}</TableCell>
+                        <TableCell>{ingredient.amountDeducted.toLocaleString()} {unit}</TableCell>
+                        <TableCell>{formatCurrency(Number(ingredient.cost))}</TableCell>
+                      </TableRow>
+                    );
+                  }) || (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center">No ingredients deducted</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </div>
