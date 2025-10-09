@@ -526,7 +526,7 @@ const InventoryForm = () => {
               {isEdit ? "Update Material" : "Add Material"}
             </Button>
             <Button type="button" variant="outline" className="w-full" asChild>
-              <Link to="/inventory">Cancel</Link>
+              <Link to="/materials">Cancel</Link>
             </Button>
           </div>
         </form>
