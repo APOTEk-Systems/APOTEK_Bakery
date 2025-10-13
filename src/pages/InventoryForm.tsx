@@ -155,7 +155,7 @@ const InventoryForm = () => {
             (!isEdit || item.id.toString() !== id)
         );
         if (exists) {
-          setNameError("Material name already exists");
+          setNameError("Material already exists");
         }
       }
     }
@@ -170,11 +170,11 @@ const InventoryForm = () => {
     if (calcUnit === "g") {
       costPerBaseUnit = totalCost / amount;
     } else if (calcUnit === "kg") {
-      costPerBaseUnit = totalCost / (amount * 1000);
+      costPerBaseUnit = totalCost / amount;
     } else if (calcUnit === "ml") {
       costPerBaseUnit = totalCost / amount;
     } else if (calcUnit === "l") {
-      costPerBaseUnit = totalCost / (amount * 1000);
+      costPerBaseUnit = totalCost / amount;
     } else if (calcUnit === "pcs" || calcUnit === "pair") {
       costPerBaseUnit = totalCost / amount;
     }

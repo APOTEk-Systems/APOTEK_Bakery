@@ -53,7 +53,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
   const { isAuthenticated, logout } = useAuth();
   const [inventoryOpen, setInventoryOpen] = useState(location.pathname.startsWith('/inventory') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products'));
   const [salesOpen, setSalesOpen] = useState(location.pathname.startsWith('/sales'));
-  const [settingsOpen, setSettingsOpen] = useState(location.pathname.startsWith('/settings'));
+  const [settingsOpen, setSettingsOpen] = useState(location.pathname.startsWith('/information') || location.pathname.startsWith('/configurations') || location.pathname.startsWith('/adjustment-reasons') || location.pathname.startsWith('/expense-categories') || location.pathname.startsWith('/users') || location.pathname.startsWith('/roles') || location.pathname.startsWith('/notifications'));
   
   const navItems = [
     { icon: Home, label: "Dashboard", path: "/" },
@@ -188,7 +188,7 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                 );
               }
               if (item.label === "Settings") {
-                const isActive = location.pathname.startsWith('/settings');
+                const isActive = location.pathname.startsWith('/information') || location.pathname.startsWith('/configurations') || location.pathname.startsWith('/adjustment-reasons') || location.pathname.startsWith('/expense-categories') || location.pathname.startsWith('/users') || location.pathname.startsWith('/roles') || location.pathname.startsWith('/notifications');
                 return (
                   <Collapsible key={index} open={settingsOpen} onOpenChange={setSettingsOpen}>
                     <CollapsibleTrigger asChild>
@@ -210,8 +210,8 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         asChild
                       >
                         <Link to="/information" className="flex items-center gap-2">
-                          <Wrench className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Configurations"}
+                          <Store className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Business Info"}
                         </Link>
                       </Button>
                       <Button
@@ -246,13 +246,33 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         </Link>
                       </Button>
                       <Button
-                        variant={location.pathname === '/system-settings' ? "secondary" : "ghost"}
+                        variant={location.pathname === '/configurations' ? "secondary" : "ghost"}
                         className="w-full justify-start hover:bg-muted"
                         asChild
                       >
-                        <Link to="/system-settings" className="flex items-center gap-2">
+                        <Link to="/configurations" className="flex items-center gap-2">
+                          <Settings className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Configurations"}
+                        </Link>
+                      </Button>
+                      <Button
+                        variant={location.pathname === '/adjustment-reasons' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/adjustment-reasons" className="flex items-center gap-2">
                           <Shield className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "System Settings"}
+                          {(!collapsed || isMobile) && "Adjustment Reasons"}
+                        </Link>
+                      </Button>
+                      <Button
+                        variant={location.pathname === '/expense-categories' ? "secondary" : "ghost"}
+                        className="w-full justify-start hover:bg-muted"
+                        asChild
+                      >
+                        <Link to="/expense-categories" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          {(!collapsed || isMobile) && "Expense Categories"}
                         </Link>
                       </Button>
                     </CollapsibleContent>

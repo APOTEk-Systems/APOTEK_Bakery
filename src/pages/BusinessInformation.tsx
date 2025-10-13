@@ -16,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 
-const Information = () => {
+const BusinessInformation = () => {
   const {toast} = useToast();
   const queryClient = useQueryClient();
 
@@ -96,14 +96,18 @@ const validatePhone = (phone: string): string | undefined => {
 
   // Populate local state when settings data is loaded
   React.useEffect(() => {
-    if (settings) {
+    if (settings?.information) {
       setInformationData({
-        ...settings.information,
+        bakeryName: settings.information.bakeryName || "",
         phone: settings.information.phone
           ? settings.information.phone.startsWith("+255")
             ? settings.information.phone.substring(4)
             : settings.information.phone
           : "",
+        address: settings.information.address || "",
+        email: settings.information.email || "",
+        website: settings.information.website || "",
+        description: settings.information.description || "",
         tin: settings.information.tin || "",
       });
     }
@@ -126,14 +130,18 @@ const validatePhone = (phone: string): string | undefined => {
 
   const handleCancel = () => {
     // Reset form data to original settings
-    if (settings) {
+    if (settings?.information) {
       setInformationData({
-        ...settings.information,
+        bakeryName: settings.information.bakeryName || "",
         phone: settings.information.phone
           ? settings.information.phone.startsWith("+255")
             ? settings.information.phone.substring(4)
             : settings.information.phone
           : "",
+        address: settings.information.address || "",
+        email: settings.information.email || "",
+        website: settings.information.website || "",
+        description: settings.information.description || "",
         tin: settings.information.tin || "",
       });
     }
@@ -220,7 +228,7 @@ const validatePhone = (phone: string): string | undefined => {
     <Layout>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Configurations</h1>
+          <h1 className="text-3xl font-bold text-foreground">Business Information</h1>
         </div>
 
         <div className="space-y-6">
@@ -277,6 +285,50 @@ const validatePhone = (phone: string): string | undefined => {
                 {renderField(
                   "Phone Number",
                   informationData.phone ? `+255${informationData.phone}` : "",
+                  <div>
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <div className="flex items-center">
+                      <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">
+                        +255
+                      </span>
+                      <Input
+                        id="phone"
+                        value={informationData.phone || ""}
+                        onChange={(e) => {
+                          setInformationData((prev) => ({
+                            ...prev,
+                            phone: e.target.value,
+                          }));
+                          // Clear validation error when user starts typing
+                          if (validationErrors.phone) {
+                            setValidationErrors((prev) => ({
+                              ...prev,
+                              phone: undefined,
+                            }));
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const error = validatePhone(e.target.value);
+                          setValidationErrors((prev) => ({
+                            ...prev,
+                            phone: error,
+                          }));
+                        }}
+                        placeholder="enter phone number"
+                        className={`rounded-l-none ${validationErrors.phone ? "border-destructive" : ""}`}
+                        disabled={settingsLoading}
+                      />
+                      {validationErrors.phone && (
+                        <p className="text-sm text-destructive mt-1">
+                          {validationErrors.phone}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {renderField(
+                  "Address",
+                  informationData.address || "",
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
                     <div className="flex items-center">
@@ -343,7 +395,7 @@ const validatePhone = (phone: string): string | undefined => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderField(
                   "Email",
-                  informationData.email,
+                  informationData.email || "",
                   <div>
                     <Label htmlFor="email">Email</Label>
                     <Input
@@ -384,7 +436,7 @@ const validatePhone = (phone: string): string | undefined => {
                 )}
                 {renderField(
                   "Website",
-                  informationData.website,
+                  informationData.website || "",
                   <div>
                     <Label htmlFor="website">Website</Label>
                     <Input
@@ -404,7 +456,7 @@ const validatePhone = (phone: string): string | undefined => {
 
               {renderField(
                 "Description",
-                informationData.description,
+                informationData.description || "",
                 <div>
                   <Label htmlFor="description">Description</Label>
                   <Textarea
@@ -424,7 +476,7 @@ const validatePhone = (phone: string): string | undefined => {
 
               {renderField(
                 "TIN Number",
-                informationData.tin,
+                informationData.tin || "",
                 <div>
                   <Label htmlFor="tin">TIN Number</Label>
                   <Input
@@ -448,4 +500,4 @@ const validatePhone = (phone: string): string | undefined => {
   );
 };
 
-export default Information;
+export default BusinessInformation;

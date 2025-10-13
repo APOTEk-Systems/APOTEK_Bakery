@@ -36,7 +36,7 @@ const PurchaseOrderView = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role.toLowerCase() === "admin";
   const [showDialog, setShowDialog] = useState(false);
   const [dialogAction, setDialogAction] = useState<"approve" | "cancel" | null>(
     null

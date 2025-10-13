@@ -34,9 +34,12 @@ const Accounting = lazy(() => import("./pages/Accounting"));
 const Reports = lazy(() => import("./pages/Reports"));
 const Users = lazy(() => import("./pages/Users"));
 const Roles = lazy(() => import("./pages/Roles"));
-const Information = lazy(() => import("./pages/Information"));
+const RoleForm = lazy(() => import("./pages/RoleForm"));
+const BusinessInformation = lazy(() => import("./pages/BusinessInformation"));
+const Configurations = lazy(() => import("./pages/Configurations"));
+const AdjustmentReasons = lazy(() => import("./pages/AdjustmentReasons"));
+const ExpenseCategories = lazy(() => import("./pages/ExpenseCategories"));
 const Notifications = lazy(() => import("./pages/Notifications"));
-const SystemSettings = lazy(() => import("./pages/SystemSettings"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -197,9 +200,24 @@ const App = () => (
                   <Roles />
                 </ProtectedRoute>
               } />
+              <Route path="/roles/new" element={
+                <ProtectedRoute>
+                  <RoleForm />
+                </ProtectedRoute>
+              } />
+              <Route path="/roles/:id/edit" element={
+                <ProtectedRoute>
+                  <RoleForm />
+                </ProtectedRoute>
+              } />
               <Route path="/information" element={
                 <ProtectedRoute>
-                  <Information />
+                  <BusinessInformation />
+                </ProtectedRoute>
+              } />
+              <Route path="/configurations" element={
+                <ProtectedRoute>
+                  <Configurations />
                 </ProtectedRoute>
               } />
               <Route path="/notifications" element={
@@ -207,9 +225,19 @@ const App = () => (
                   <Notifications />
                 </ProtectedRoute>
               } />
-              <Route path="/system-settings" element={
+              <Route path="/configurations" element={
                 <ProtectedRoute>
-                  <SystemSettings />
+                  <Configurations />
+                </ProtectedRoute>
+              } />
+              <Route path="/adjustment-reasons" element={
+                <ProtectedRoute>
+                  <AdjustmentReasons />
+                </ProtectedRoute>
+              } />
+              <Route path="/expense-categories" element={
+                <ProtectedRoute>
+                  <ExpenseCategories />
                 </ProtectedRoute>
               } />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

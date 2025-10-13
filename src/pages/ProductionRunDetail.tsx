@@ -44,7 +44,7 @@ const ProductionRunDetail = () => {
         <div className="p-6 flex items-center justify-center">
           <Card className="max-w-md w-full">
             <CardContent className="p-6 text-center">
-              <p className="text-destructive mb-4">Production run not found or error loading details.</p>
+              <p className="text-destructive mb-4">Production not found or error loading details.</p>
               <Button asChild>
                 <Link to="/production">
                   <ArrowLeft className="mr-2 h-4 w-4" />
@@ -70,8 +70,7 @@ const ProductionRunDetail = () => {
           </Button>
           <div className="flex justify-between items-start">
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Production Run #{run.id}</h1>
-              <p className="text-muted-foreground">Production run details and breakdown</p>
+              <h1 className="text-3xl font-bold text-foreground">Production #{run.id}</h1>
             </div>
           </div>
         </div>

@@ -226,11 +226,7 @@ const InventoryAdjustmentsTab = ({
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No adjustments found
               </h3>
-              <p className="text-muted-foreground mb-4">
-                {dateRange
-                  ? "No adjustments for selected date range"
-                  : "Get started by adding your first adjustment"}
-              </p>
+              
               <Button onClick={() => setDialogOpen(true)}>
                 Add Adjustment
               </Button>

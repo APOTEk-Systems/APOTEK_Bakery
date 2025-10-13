@@ -25,6 +25,12 @@ export interface SettingsData {
     description: string;
     tin:string;
   };
+  configuration?: {
+    vat: number;
+    receiptSize: string;
+    printReceipt: boolean;
+    allowCreditSales: boolean;
+  };
   businessHours: {data:BusinessHour[]};
   notifications: {
     dailySalesSummary: boolean;
@@ -40,7 +46,7 @@ export interface SettingsData {
 }
 
 export interface UpdateSettingsRequest {
-  key: 'information' | 'businessHours' | 'notifications' | 'vatAndTax';
+  key: 'information' | 'configuration' | 'businessHours' | 'notifications' | 'vatAndTax';
   data?: BusinessHour[];
   [key: string]: any;
 }
