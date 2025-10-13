@@ -412,7 +412,7 @@ const Dashboard = () => {
     return null; // Handled by ProtectedRoute
   }
 
-  const isAdmin = user?.role.toLoweCase() === "admin";
+  const isAdmin = user?.role.toLowerCase() === "admin";
 
   return (
     <div className="min-h-screen bg-background">
