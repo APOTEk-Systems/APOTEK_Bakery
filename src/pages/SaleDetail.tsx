@@ -1,4 +1,4 @@
-import {useParams, Link} from "react-router-dom";
+import {useParams, Link, useLocation} from "react-router-dom";
 import {useState} from "react";
 import {useMutation, useQueryClient} from "@tanstack/react-query";
 import {useQuery} from "@tanstack/react-query";
@@ -24,10 +24,25 @@ import { format } from 'date-fns';
 
 const SaleDetail = () => {
   const {id} = useParams<{id: string}>();
+  const location = useLocation();
   const saleId = parseInt(id || "0");
   const queryClient = useQueryClient();
   const {toast} = useToast();
   const [isConfirmOpen, setConfirmOpen] = useState(false);
+
+  // Determine back navigation based on referrer
+  const getBackLink = () => {
+    const searchParams = new URLSearchParams(location.search);
+    const tab = searchParams.get('tab');
+    if (tab === 'recent') {
+      return { to: '/sales?tab=recent', label: 'Back to Recent Sales' };
+    } else if (tab === 'unpaid') {
+      return { to: '/sales?tab=unpaid', label: 'Back to Unpaid Sales' };
+    }
+    return { to: '/sales', label: 'Back to Sales' };
+  };
+
+  const backLink = getBackLink();
 
   const payMutation = useMutation({
     mutationFn: (saleId: number) => salesService.paySale(saleId),
@@ -121,9 +136,9 @@ const SaleDetail = () => {
       <div className="p-6">
         <div className="mb-6">
           <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link to="/sales?tab=unpaid">
+            <Link to={backLink.to}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Unpaid Sales
+              {backLink.label}
             </Link>
           </Button>
           <div className="flex justify-between items-start">

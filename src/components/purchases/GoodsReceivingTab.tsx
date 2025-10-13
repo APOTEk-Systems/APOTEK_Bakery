@@ -179,7 +179,7 @@ export default function GoodsReceivingTab() {
                     </TableCell>
                     <TableCell>
                       <Button variant="outline" size="sm" >
-                        <Link to={`/purchases/${gr.id}/receive`} className="flex justify-between items-center"><Eye className="h-4 w-4 mr-1" />
+                        <Link to={`/purchases/${gr.purchaseOrderId}/receive`} className="flex justify-between items-center"><Eye className="h-4 w-4 mr-1" />
                         View</Link>
                       </Button>
                     </TableCell>

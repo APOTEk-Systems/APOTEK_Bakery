@@ -250,11 +250,7 @@ const CustomerForm = () => {
             <h1 className="text-3xl font-bold text-foreground">
               {isEdit ? "Edit Customer" : "Add New Customer"}
             </h1>
-            <p className="text-muted-foreground">
-              {isEdit
-                ? "Update customer information"
-                : "Add a new customer to your database"}
-            </p>
+         
           </div>
         </div>
 

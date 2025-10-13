@@ -64,31 +64,31 @@ const RoleForm = () => {
       "delete:suppliers",
     ],
     "Inventory": [
-      "view:products",
-      "create:products",
-      "update:products",
-      "delete:products",
-      "update:quantity",
+     // "update:quantity",
       "view:inventory",
       "create:inventory",
       "update:inventory",
       "delete:inventory",
       "view:adjustments",
       "create:adjustments",
-      "update:adjustments",
+     // "update:adjustments",
+      "view:products",
+      "create:products",
+      "update:products",
+      "delete:products",
     ],
     "Accounting": [
       "view:expenses",
       "create:expenses",
       "update:expenses",
-      "approve:expenses",
+     // "approve:expenses",
       "delete:expenses",
-      "view:reports",
+    //  "view:reports",
     ],
     "Production": [
       "view:production",
       "create:production",
-      "update:production",
+     // "update:production",
       "delete:production",
     ],
     "Reporting": [
@@ -275,9 +275,7 @@ const RoleForm = () => {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <Label className="text-base font-semibold">Permissions</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Select the permissions for this role. Permissions are organized by modules.
-                  </p>
+               
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox

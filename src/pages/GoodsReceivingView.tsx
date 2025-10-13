@@ -16,6 +16,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Truck, Loader2, CheckCircle } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { purchasesService, type PurchaseOrder, type GoodsReceipt, type GoodsReceiptItem } from "@/services/purchases";
 import { suppliersService } from "@/services/suppliers";
@@ -157,7 +158,7 @@ const GoodsReceivingView = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold tracking-tight">
-                {hasReceipt ? 'Goods Receipt' : 'Receive Goods'} for PO {po.id}
+                {hasReceipt ? 'Goods Receipt' : 'Purchase Order #'} {po.id}
               </h1>
               {/* <p className="text-muted-foreground mt-1">
                 {hasReceipt ? 'View received goods' : 'Mark delivery as completed'}
@@ -171,7 +172,7 @@ const GoodsReceivingView = () => {
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
-                Goods Received Summary
+                Material Receving Summary
                 <div className="flex items-center gap-2">
                   <Badge variant={getStatusVariant(po.status)}>{capitalizeStatus(po.status)}</Badge>
                   {po.status === "approved" && !hasReceipt && (
@@ -216,24 +217,35 @@ const GoodsReceivingView = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {po.items.map((item, index) => {
-                  const inventoryItem = inventory.find(i => i.id === item.inventoryItemId);
-                  return (
-                    <div key={index} className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <div>
-                        <p className="font-medium">{inventoryItem?.name || 'Unknown Item'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.quantity} {inventoryItem?.unit || 'units'} × {formatCurrency(item.price)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(item.quantity * item.price)}</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item Name</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Unit Price</TableHead>
+                    <TableHead>Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {po.items.map((item, index) => {
+                    const inventoryItem = inventory.find(i => i.id === item.inventoryItemId);
+                    return (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          {inventoryItem?.name || 'Unknown Item'}
+                        </TableCell>
+                        <TableCell>
+                          {item.quantity} {inventoryItem?.unit || 'units'}
+                        </TableCell>
+                        <TableCell>{formatCurrency(item.price)}</TableCell>
+                        <TableCell className="font-semibold">
+                          {formatCurrency(item.quantity * item.price)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
 

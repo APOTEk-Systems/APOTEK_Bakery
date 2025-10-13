@@ -186,10 +186,10 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                             Edit
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
                             onClick={() => handleDeleteExpense(expense)}
-                            className="text-destructive hover:text-destructive"
+                            className=""
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete

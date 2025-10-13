@@ -346,7 +346,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                 </TableCell>
                 <TableCell className="py-1">
                   <Button variant="outline" size="sm" asChild className="mr-2">
-                    <Link to={`/sales/${sale.id}`}>
+                    <Link to={`/sales/${sale.id}${isUnpaid ? '?tab=unpaid' : '?tab=recent'}`}>
                     <Eye className='w-4 h-4' />
                       View
                     </Link>

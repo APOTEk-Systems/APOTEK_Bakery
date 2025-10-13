@@ -99,7 +99,7 @@ const Notifications = () => {
                 </p>
               </div>
               <Switch
-                checked={notificationsData.lowInventoryAlerts}
+                checked={notificationsData?.lowInventoryAlerts}
                 onCheckedChange={(checked) =>
                   setNotificationsData(prev => ({ ...prev, lowInventoryAlerts: checked }))
                 }
@@ -115,7 +115,7 @@ const Notifications = () => {
                 </p>
               </div>
               <Switch
-                checked={notificationsData.newOrderNotifications}
+                checked={notificationsData?.newOrderNotifications}
                 onCheckedChange={(checked) =>
                   setNotificationsData(prev => ({ ...prev, newOrderNotifications: checked }))
                 }
@@ -131,7 +131,7 @@ const Notifications = () => {
                 </p>
               </div>
               <Switch
-                checked={notificationsData.dailySalesSummary}
+                checked={notificationsData?.dailySalesSummary}
                 onCheckedChange={(checked) =>
                   setNotificationsData(prev => ({ ...prev, dailySalesSummary: checked }))
                 }
@@ -139,21 +139,7 @@ const Notifications = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Customer Birthday Reminders</Label>
-                <p className="text-sm text-muted-foreground">
-                  Reminder to send birthday offers
-                </p>
-              </div>
-              <Switch
-                checked={notificationsData.customerBirthdayReminders}
-                onCheckedChange={(checked) =>
-                  setNotificationsData(prev => ({ ...prev, customerBirthdayReminders: checked }))
-                }
-                disabled={settingsLoading}
-              />
-            </div>
+        
 
             <Button
               onClick={handleSave}

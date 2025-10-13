@@ -361,10 +361,13 @@ const ProductForm = () => {
                       <Input
                         id="prepTime"
                         type="number"
-                        value={formData.prepTime}
-                        onChange={(e) =>
-                          handleInputChange("prepTime", e.target.value)
-                        }
+                        value={formData.prepTime ? Number(formData.prepTime).toLocaleString() : ""}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/,/g, "");
+                          if (!isNaN(Number(value)) || value === "") {
+                            handleInputChange("prepTime", value);
+                          }
+                        }}
                         placeholder="30"
                       />
                     </div>
@@ -431,10 +434,13 @@ const ProductForm = () => {
                     <Input
                       id="batchSize"
                       type="number"
-                      value={formData.batchSize}
-                      onChange={(e) =>
-                        handleInputChange("batchSize", e.target.value)
-                      }
+                      value={formData.batchSize ? Number(formData.batchSize).toLocaleString() : ""}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/,/g, "");
+                        if (!isNaN(Number(value)) || value === "") {
+                          handleInputChange("batchSize", value);
+                        }
+                      }}
                       placeholder="1"
                     />
                   </div>

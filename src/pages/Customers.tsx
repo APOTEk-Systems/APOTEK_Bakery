@@ -29,6 +29,7 @@ const Customers = () => {
   const {toast} = useToast();
   const queryClient = useQueryClient();
 
+  console.log("Customer", customerToDelete);
   const customersQuery = useQuery({
     queryKey: ["customers"],
     queryFn: () => customersService.getAll(),
@@ -107,7 +108,7 @@ const Customers = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const hasSales = customerToDelete ? (customerToDelete.totalOrders || 0) > 0 : false;
+  const hasSales = customerToDelete ? (customerToDelete.sales?.length || 0) > 0 : false;
 
   const confirmDelete = () => {
     if (deleteItemId && customerToDelete) {
@@ -292,7 +293,7 @@ const Customers = () => {
                             onClick={() =>
                               handleDeleteCustomer(customer)
                             }
-                            disabled={deleteMutation.isPending}
+                            disabled={deleteMutation.isPending || customer.status === "inactive"}
                           >
                             <Trash className="h-4 w-4" />
                             Delete

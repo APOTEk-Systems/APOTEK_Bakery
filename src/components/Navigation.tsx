@@ -204,77 +204,113 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
-                      <Button
-                        variant={location.pathname === '/information' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/information" className="flex items-center gap-2">
-                          <Store className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Business Info"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/users' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/users" className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Users"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/roles' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/roles" className="flex items-center gap-2">
-                          <Shield className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Roles"}
-                        </Link>
-                      </Button>
-                    
-                      <Button
-                        variant={location.pathname === '/notifications' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/notifications" className="flex items-center gap-2">
-                          <Bell className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Notifications"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/configurations' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/configurations" className="flex items-center gap-2">
-                          <Settings className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Configurations"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/adjustment-reasons' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/adjustment-reasons" className="flex items-center gap-2">
-                          <Shield className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Adjustment Reasons"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/expense-categories' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/expense-categories" className="flex items-center gap-2">
-                          <Shield className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Expense Categories"}
-                        </Link>
-                      </Button>
+                      {/* General */}
+                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        General
+                      </div>
+                      <div className="ml-2 space-y-1">
+                        <Button
+                          variant={location.pathname === '/information' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/information" className="flex items-center gap-2">
+                            <Store className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Business Details"}
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname === '/configurations' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/configurations" className="flex items-center gap-2">
+                            <Settings className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Configurations"}
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname === '/adjustment-reasons' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/adjustment-reasons" className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Adjustment Reasons"}
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname === '/expense-categories' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/expense-categories" className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Expense Categories"}
+                          </Link>
+                        </Button>
+                      </div>
+
+                      {/* Security */}
+                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Security
+                      </div>
+                      <div className="ml-2 space-y-1">
+                        <Button
+                          variant={location.pathname === '/users' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/users" className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Users"}
+                          </Link>
+                        </Button>
+                        <Button
+                          variant={location.pathname === '/roles' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/roles" className="flex items-center gap-2">
+                            <Shield className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Roles"}
+                          </Link>
+                        </Button>
+                      </div>
+
+                      {/* Notifications */}
+                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Notifications
+                      </div>
+                      <div className="ml-2 space-y-1">
+                        <Button
+                          variant={location.pathname === '/notifications' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/notifications" className="flex items-center gap-2">
+                            <Bell className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Alerts"}
+                          </Link>
+                        </Button>
+                      </div>
+
+                      {/* Tools */}
+                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Tools
+                      </div>
+                      <div className="ml-2 space-y-1">
+                        <Button
+                          variant={location.pathname === '/export' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/export" className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Export to Excel"}
+                          </Link>
+                        </Button>
+                      </div>
                     </CollapsibleContent>
                   </Collapsible>
                 );
