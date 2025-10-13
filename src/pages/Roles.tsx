@@ -296,7 +296,7 @@ const Roles = () => {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>Description</TableHead>
-                    <TableHead>Permissions</TableHead>
+                    {/* <TableHead>Permissions</TableHead> */}
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -318,7 +318,7 @@ const Roles = () => {
                       <TableRow key={role.id}>
                         <TableCell>{role.name}</TableCell>
                         <TableCell>{role.description || "N/A"}</TableCell>
-                        <TableCell>
+                        {/* <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {role.permissions.map((perm) => (
                               <span key={perm} className="px-2 py-1 bg-muted rounded text-xs">
@@ -326,7 +326,7 @@ const Roles = () => {
                               </span>
                             ))}
                           </div>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
                           <Button
                             variant="outline"

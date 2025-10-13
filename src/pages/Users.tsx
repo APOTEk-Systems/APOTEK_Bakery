@@ -45,10 +45,12 @@ const Users = () => {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState<Omit<CreateUserData, 'permissions'>>({
+  const [formData, setFormData] = useState<Omit<CreateUserData, 'permissions'> & { confirmPassword: string }>({
     name: "",
     email: "",
     password: "",
+    phoneNumber: "",
+    confirmPassword: "",
     roleId: 2, // default to cashier
   });
 
@@ -92,6 +94,8 @@ const Users = () => {
         name: "",
         email: "",
         password: "",
+        phoneNumber: "",
+        confirmPassword: "",
         roleId: 2,
       });
     },
@@ -120,6 +124,8 @@ const Users = () => {
         name: "",
         email: "",
         password: "",
+        phoneNumber: "",
+        confirmPassword: "",
         roleId: 2,
       });
     },
@@ -183,8 +189,16 @@ const Users = () => {
   };
 
   const handleCreateUser = () => {
-    const finalData = { ...formData } as CreateUserData;
-    createUserMutation.mutate(finalData);
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+    const { confirmPassword, ...finalData } = formData;
+    createUserMutation.mutate(finalData as CreateUserData);
   };
 
   const handleEditUser = (user: User) => {
@@ -193,6 +207,8 @@ const Users = () => {
       name: user.name || "",
       email: user.email,
       password: "", // Don't prefill password for security
+      phoneNumber: "",
+      confirmPassword: "",
       roleId: Number(user.role?.id) || 2,
     });
     setDialogOpen(true);
@@ -215,6 +231,8 @@ const Users = () => {
       name: "",
       email: "",
       password: "",
+      phoneNumber: "",
+      confirmPassword: "",
       roleId: 2,
     });
     setDialogOpen(true);
@@ -283,21 +301,50 @@ const Users = () => {
                         className="col-span-3"
                       />
                     </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="phoneNumber" className="text-right">
+                        Phone Number
+                      </Label>
+                      <Input
+                        id="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={(e) =>
+                          setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))
+                        }
+                        className="col-span-3"
+                      />
+                    </div>
                     {!editingUser && (
-                      <div className="grid grid-cols-4 items-center gap-4">
-                        <Label htmlFor="password" className="text-right">
-                          Password
-                        </Label>
-                        <Input
-                          id="password"
-                          type="password"
-                          value={formData.password}
-                          onChange={(e) =>
-                            setFormData((prev) => ({ ...prev, password: e.target.value }))
-                          }
-                          className="col-span-3"
-                        />
-                      </div>
+                      <>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="password" className="text-right">
+                            Password
+                          </Label>
+                          <Input
+                            id="password"
+                            type="password"
+                            value={formData.password}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, password: e.target.value }))
+                            }
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="confirmPassword" className="text-right">
+                            Confirm Password
+                          </Label>
+                          <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={formData.confirmPassword}
+                            onChange={(e) =>
+                              setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                            }
+                            className="col-span-3"
+                          />
+                        </div>
+                      </>
                     )}
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="role" className="text-right">

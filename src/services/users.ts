@@ -1,10 +1,11 @@
-import { api } from '@/lib/api';
+; import { api } from '@/lib/api';
 import { User } from './auth';
 
 export interface CreateUserData {
   name: string;
   email: string;
   password: string;
+  phoneNumber?: string;
   roleId: number;
   permissions?: string[];
 }
