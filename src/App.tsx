@@ -40,6 +40,7 @@ const Configurations = lazy(() => import("./pages/Configurations"));
 const AdjustmentReasons = lazy(() => import("./pages/AdjustmentReasons"));
 const ExpenseCategories = lazy(() => import("./pages/ExpenseCategories"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -223,6 +224,11 @@ const App = () => (
               <Route path="/notifications" element={
                 <ProtectedRoute>
                   <Notifications />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               } />
               <Route path="/configurations" element={

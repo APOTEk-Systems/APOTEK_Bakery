@@ -14,12 +14,38 @@ import Cart from "../components/sales/Cart";
 import Checkout from "../components/sales/Checkout";
 import ConfirmSaleDialog from "../components/sales/ConfirmSaleDialog";
 import NewCustomerDialog from "../components/sales/NewCustomerDialog";
+import { useAuth } from "@/contexts/AuthContext";
+
+// Helper function to check permissions
+const hasPermission = (user: any, permission: string): boolean => {
+  if (!user) return false;
+  if (user.permissions?.includes("all")) return true;
+  return user.permissions?.includes(permission) || false;
+};
 
 interface CartItem extends Product {
   cartQuantity: number;
 }
 
 const NewSale = () => {
+  const { user } = useAuth();
+
+  // Check permissions
+  const hasCreateSales = hasPermission(user, "create:sales");
+
+  if (!hasCreateSales) {
+    return (
+      <Layout>
+        <div className="p-6">
+          <div className="flex flex-col items-center justify-center min-h-[400px]">
+            <h1 className="text-2xl font-bold text-muted-foreground mb-2">Access Denied</h1>
+            <p className="text-muted-foreground">You don't have permission to create sales.</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   // basic data
   const [searchTerm, setSearchTerm] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);

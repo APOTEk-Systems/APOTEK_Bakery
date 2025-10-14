@@ -29,6 +29,13 @@ import {
 } from "lucide-react";
 import { formatCurrency } from "@/lib/funcs";
 
+// Helper function to check permissions
+const hasPermission = (user: any, permission: string): boolean => {
+  if (!user) return false;
+  if (user.permissions?.includes("all")) return true;
+  return user.permissions?.includes(permission) || false;
+};
+
 const SalesSummaryTab = () => {
   const { data: dashboardData, isPending: loading } = useQuery({
     queryKey: ['salesDashboard'],
@@ -412,7 +419,11 @@ const Dashboard = () => {
     return null; // Handled by ProtectedRoute
   }
 
-  const isAdmin = user?.role.toLowerCase() === "admin";
+  const hasAllPermissions = hasPermission(user, "all");
+  const hasSalesDashboard = hasPermission(user, "view:salesDashboard");
+  const hasPurchasesDashboard = hasPermission(user, "view:purchasesDashboard");
+  const hasInventoryDashboard = hasPermission(user, "view:inventoryDashboard");
+  const hasAccountingDashboard = hasPermission(user, "view:accountingDashboard");
 
   return (
     <div className="min-h-screen bg-background">
@@ -420,40 +431,46 @@ const Dashboard = () => {
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
         <Tabs defaultValue="sales" className="w-full">
           <TabsList className="w-full">
-            <TabsTrigger value="sales" className="w-full">
-              Sales
-            </TabsTrigger>
-            {isAdmin && (
+            {(hasAllPermissions || hasSalesDashboard) && (
+              <TabsTrigger value="sales" className="w-full">
+                Sales
+              </TabsTrigger>
+            )}
+            {(hasAllPermissions || hasPurchasesDashboard) && (
               <TabsTrigger value="purchases" className="w-full">
                 Purchases
               </TabsTrigger>
             )}
-            {isAdmin && (
+            {(hasAllPermissions || hasInventoryDashboard) && (
               <TabsTrigger value="material" className="w-full">
                 Inventory
               </TabsTrigger>
             )}
-            {isAdmin && (
+            {(hasAllPermissions || hasAccountingDashboard) && (
               <TabsTrigger value="accounting" className="w-full">
                 Accounting
               </TabsTrigger>
             )}
           </TabsList>
-          <TabsContent value="sales">
-            <SalesSummaryTab />
-          </TabsContent>
-          {isAdmin && (
-            <>
-              <TabsContent value="purchases">
-                <PurchasesSummaryTab />
-              </TabsContent>
-              <TabsContent value="material">
-                <InventorySummaryTab />
-              </TabsContent>
-              <TabsContent value="accounting">
-                <AccountingSummaryTab />
-              </TabsContent>
-            </>
+          {(hasAllPermissions || hasSalesDashboard) && (
+            <TabsContent value="sales">
+              <SalesSummaryTab />
+            </TabsContent>
+          )}
+          {(hasAllPermissions || hasPurchasesDashboard) && (
+            <TabsContent value="purchases">
+              <PurchasesSummaryTab />
+            </TabsContent>
+          )}
+          {(hasAllPermissions || hasInventoryDashboard) && (
+            <TabsContent value="material">
+              <InventorySummaryTab />
+            </TabsContent>
+          )}
+          {(hasAllPermissions || hasAccountingDashboard) && (
+            <TabsContent value="accounting">
+              <AccountingSummaryTab />
+            </TabsContent>
           )}
         </Tabs>
       </div>

@@ -4,18 +4,19 @@ import { api } from '../lib/api';
 export interface User {
   id: number;
   email: string;
-  role?: UserRole;
+  role?: UserRole | string; // Can be role object or role name string
   name?: string;
   status?: string;
+  permissions?: string[]; // Permissions can be at user level
   createdAt?: string;
   updatedAt?: string;
 }
 
 export interface UserRole{
-  id:Number;
-  name: String;
-  description?: String;
-  permissions: String[]
+  id:number;
+  name: string;
+  description?: string;
+  permissions: string[]
 
 }
 
@@ -78,6 +79,12 @@ export const refreshToken = async (): Promise<RefreshResponse> => {
 export const logout = () => {
   localStorage.removeItem("token");
   // Optionally call api.post("/auth/logout") to invalidate server-side
+};
+
+// Update user profile
+export const updateProfile = async (data: { name?: string; currentPassword?: string; newPassword?: string }): Promise<User> => {
+  const response = await api.put<{ user: User }>("/auth/me", data);
+  return response.data.user;
 };
 
 // Get current user (sync, returns null; use getMe for async)

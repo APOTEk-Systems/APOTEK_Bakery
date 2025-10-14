@@ -26,9 +26,17 @@ import {
    UtensilsCrossed,
    Banknote,
    Wrench,
-   Milk
+   Milk,
+   User
  } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Helper function to check permissions
+const hasPermission = (user: any, permission: string): boolean => {
+  if (!user) return false;
+  if (user.permissions?.includes("all")) return true;
+  return user.permissions?.includes(permission) || false;
+};
 import {
   Collapsible,
   CollapsibleContent,
@@ -50,7 +58,7 @@ interface NavigationProps {
 
 const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobile }: NavigationProps) => {
   const location = useLocation();
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const [inventoryOpen, setInventoryOpen] = useState(location.pathname.startsWith('/inventory') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products'));
   const [salesOpen, setSalesOpen] = useState(location.pathname.startsWith('/sales'));
   const [settingsOpen, setSettingsOpen] = useState(location.pathname.startsWith('/information') || location.pathname.startsWith('/configurations') || location.pathname.startsWith('/adjustment-reasons') || location.pathname.startsWith('/expense-categories') || location.pathname.startsWith('/users') || location.pathname.startsWith('/roles') || location.pathname.startsWith('/notifications'));
@@ -85,7 +93,24 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
           <>
             {navItems.map((item, index) => {
               const Icon = item.icon;
+
+              // Check permissions for Dashboard
+              if (item.label === "Dashboard") {
+                const hasAnyDashboardPermission = hasPermission(user, "view:salesDashboard") ||
+                                                hasPermission(user, "view:purchasesDashboard") ||
+                                                hasPermission(user, "view:inventoryDashboard") ||
+                                                hasPermission(user, "view:accountingDashboard");
+                if (!hasAnyDashboardPermission) return null;
+              }
               if (item.label === "Inventory") {
+                const hasViewInventory = hasPermission(user, "view:inventory");
+                const hasViewProducts = hasPermission(user, "view:products");
+
+                // Only show inventory section if user has at least one inventory permission
+                if (!hasViewInventory && !hasViewProducts) {
+                  return null;
+                }
+
                 const isActive = location.pathname.startsWith('/materials') || location.pathname.startsWith('/supplies') || location.pathname.startsWith('/products');
                 return (
                   <Collapsible key={index} open={inventoryOpen} onOpenChange={setInventoryOpen}>
@@ -102,41 +127,56 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
-                      <Button
-                        variant={location.pathname.startsWith('/materials') ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/materials" className="flex items-center gap-2">
-                          <Milk className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Materials"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname.startsWith('/supplies') ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/supplies" className="flex items-center gap-2">
-                          <UtensilsCrossed  className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Supplies"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname.startsWith('/products') ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/products" className="flex items-center gap-2">
-                          <Cookie className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Products"}
-                        </Link>
-                      </Button>
+                      {hasViewInventory && (
+                        <Button
+                          variant={location.pathname.startsWith('/materials') ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/materials" className="flex items-center gap-2">
+                            <Milk className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Materials"}
+                          </Link>
+                        </Button>
+                      )}
+                      {hasViewInventory && (
+                        <Button
+                          variant={location.pathname.startsWith('/supplies') ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/supplies" className="flex items-center gap-2">
+                            <UtensilsCrossed  className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Supplies"}
+                          </Link>
+                        </Button>
+                      )}
+                      {hasViewProducts && (
+                        <Button
+                          variant={location.pathname.startsWith('/products') ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/products" className="flex items-center gap-2">
+                            <Cookie className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Products"}
+                          </Link>
+                        </Button>
+                      )}
                     </CollapsibleContent>
                   </Collapsible>
                 );
               }
               if (item.label === "Sales") {
+                const hasViewSales = hasPermission(user, "view:sales");
+                const hasCreateSales = hasPermission(user, "create:sales");
+                const hasViewCustomers = hasPermission(user, "view:customers");
+
+                // Only show sales section if user has at least one sales permission
+                if (!hasViewSales && !hasCreateSales && !hasViewCustomers) {
+                  return null;
+                }
+
                 const isActive = location.pathname.startsWith('/sales');
                 return (
                   <Collapsible key={index} open={salesOpen} onOpenChange={setSalesOpen}>
@@ -153,36 +193,42 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1 ml-3">
-                      <Button
-                        variant={location.pathname === '/sales/new' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/sales/new" className="flex items-center gap-2">
-                          <Banknote className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "New Sale"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/sales' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/sales" className="flex items-center gap-2">
-                          <BarChart2 className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Sales History"}
-                        </Link>
-                      </Button>
-                      <Button
-                        variant={location.pathname === '/customers' ? "secondary" : "ghost"}
-                        className="w-full justify-start hover:bg-muted"
-                        asChild
-                      >
-                        <Link to="/customers" className="flex items-center gap-2">
-                          <Users className="h-4 w-4" />
-                          {(!collapsed || isMobile) && "Customers"}
-                        </Link>
-                      </Button>
+                      {hasCreateSales && (
+                        <Button
+                          variant={location.pathname === '/sales/new' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/sales/new" className="flex items-center gap-2">
+                            <Banknote className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "New Sale"}
+                          </Link>
+                        </Button>
+                      )}
+                      {hasViewSales && (
+                        <Button
+                          variant={location.pathname === '/sales' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/sales" className="flex items-center gap-2">
+                            <BarChart2 className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Sales History"}
+                          </Link>
+                        </Button>
+                      )}
+                      {hasViewCustomers && (
+                        <Button
+                          variant={location.pathname === '/customers' ? "secondary" : "ghost"}
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/customers" className="flex items-center gap-2">
+                            <Users className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Customers"}
+                          </Link>
+                        </Button>
+                      )}
                     </CollapsibleContent>
                   </Collapsible>
                 );
@@ -209,46 +255,54 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         General
                       </div>
                       <div className="ml-2 space-y-1">
-                        <Button
-                          variant={location.pathname === '/information' ? "secondary" : "ghost"}
-                          className="w-full justify-start hover:bg-muted"
-                          asChild
-                        >
-                          <Link to="/information" className="flex items-center gap-2">
-                            <Store className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Business Details"}
-                          </Link>
-                        </Button>
-                        <Button
-                          variant={location.pathname === '/configurations' ? "secondary" : "ghost"}
-                          className="w-full justify-start hover:bg-muted"
-                          asChild
-                        >
-                          <Link to="/configurations" className="flex items-center gap-2">
-                            <Settings className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Configurations"}
-                          </Link>
-                        </Button>
-                        <Button
-                          variant={location.pathname === '/adjustment-reasons' ? "secondary" : "ghost"}
-                          className="w-full justify-start hover:bg-muted"
-                          asChild
-                        >
-                          <Link to="/adjustment-reasons" className="flex items-center gap-2">
-                            <Shield className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Adjustment Reasons"}
-                          </Link>
-                        </Button>
-                        <Button
-                          variant={location.pathname === '/expense-categories' ? "secondary" : "ghost"}
-                          className="w-full justify-start hover:bg-muted"
-                          asChild
-                        >
-                          <Link to="/expense-categories" className="flex items-center gap-2">
-                            <Shield className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Expense Categories"}
-                          </Link>
-                        </Button>
+                        {(hasPermission(user, "view:business-information") || hasPermission(user, "update:business-information")) && (
+                          <Button
+                            variant={location.pathname === '/information' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/information" className="flex items-center gap-2">
+                              <Store className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Business Details"}
+                            </Link>
+                          </Button>
+                        )}
+                        {(hasPermission(user, "view:configurations") || hasPermission(user, "update:configurations")) && (
+                          <Button
+                            variant={location.pathname === '/configurations' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/configurations" className="flex items-center gap-2">
+                              <Settings className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Configurations"}
+                            </Link>
+                          </Button>
+                        )}
+                        {(hasPermission(user, "view:adjustment-reasons") || hasPermission(user, "update:adjustment-reasons")) && (
+                          <Button
+                            variant={location.pathname === '/adjustment-reasons' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/adjustment-reasons" className="flex items-center gap-2">
+                              <Shield className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Adjustment Reasons"}
+                            </Link>
+                          </Button>
+                        )}
+                        {(hasPermission(user, "view:expense-categories") || hasPermission(user, "update:expense-categories")) && (
+                          <Button
+                            variant={location.pathname === '/expense-categories' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/expense-categories" className="flex items-center gap-2">
+                              <Shield className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Expense Categories"}
+                            </Link>
+                          </Button>
+                        )}
                       </div>
 
                       {/* Security */}
@@ -257,25 +311,39 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                       </div>
                       <div className="ml-2 space-y-1">
                         <Button
-                          variant={location.pathname === '/users' ? "secondary" : "ghost"}
+                          variant={location.pathname === '/profile' ? "secondary" : "ghost"}
                           className="w-full justify-start hover:bg-muted"
                           asChild
                         >
-                          <Link to="/users" className="flex items-center gap-2">
-                            <Users className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Users"}
+                          <Link to="/profile" className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Profile"}
                           </Link>
                         </Button>
-                        <Button
-                          variant={location.pathname === '/roles' ? "secondary" : "ghost"}
-                          className="w-full justify-start hover:bg-muted"
-                          asChild
-                        >
-                          <Link to="/roles" className="flex items-center gap-2">
-                            <Shield className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Roles"}
-                          </Link>
-                        </Button>
+                        {(hasPermission(user, "view:users") || hasPermission(user, "create:users") || hasPermission(user, "update:users") || hasPermission(user, "delete:users")) && (
+                          <Button
+                            variant={location.pathname === '/users' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/users" className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Users"}
+                            </Link>
+                          </Button>
+                        )}
+                        {(hasPermission(user, "view:roles") || hasPermission(user, "create:roles") || hasPermission(user, "update:roles") || hasPermission(user, "delete:roles")) && (
+                          <Button
+                            variant={location.pathname === '/roles' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/roles" className="flex items-center gap-2">
+                              <Shield className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Roles"}
+                            </Link>
+                          </Button>
+                        )}
                       </div>
 
                       {/* Notifications */}
@@ -283,16 +351,18 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
                         Notifications
                       </div>
                       <div className="ml-2 space-y-1">
-                        <Button
-                          variant={location.pathname === '/notifications' ? "secondary" : "ghost"}
-                          className="w-full justify-start hover:bg-muted"
-                          asChild
-                        >
-                          <Link to="/notifications" className="flex items-center gap-2">
-                            <Bell className="h-4 w-4" />
-                            {(!collapsed || isMobile) && "Alerts"}
-                          </Link>
-                        </Button>
+                        {(hasPermission(user, "view:notifications") || hasPermission(user, "update:notifications")) && (
+                          <Button
+                            variant={location.pathname === '/notifications' ? "secondary" : "ghost"}
+                            className="w-full justify-start hover:bg-muted"
+                            asChild
+                          >
+                            <Link to="/notifications" className="flex items-center gap-2">
+                              <Bell className="h-4 w-4" />
+                              {(!collapsed || isMobile) && "Alerts"}
+                            </Link>
+                          </Button>
+                        )}
                       </div>
 
                       {/* Tools */}
@@ -317,6 +387,45 @@ const Navigation = ({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobi
               }
               const isActive = location.pathname === item.path ||
                 (item.path !== "/" && location.pathname.startsWith(item.path));
+
+              // Check permissions for specific pages
+              if (item.label === "Production") {
+                if (!hasPermission(user, "view:production")) return null;
+              }
+              if (item.label === "Accounting") {
+                if (!hasPermission(user, "view:expenses")) return null;
+              }
+              if (item.label === "Reports") {
+                const hasAnyReportPermission = hasPermission(user, "view:sales-reports") ||
+                                             hasPermission(user, "view:purchases-reports") ||
+                                             hasPermission(user, "view:inventory-reports") ||
+                                             hasPermission(user, "view:production-reports") ||
+                                             hasPermission(user, "view:accounting-reports") ||
+                                             hasPermission(user, "view:audit");
+                if (!hasAnyReportPermission) return null;
+              }
+              if (item.label === "Settings") {
+                const hasAnySettingsPermission = hasPermission(user, "view:business-information") ||
+                                               hasPermission(user, "update:business-information") ||
+                                               hasPermission(user, "view:configurations") ||
+                                               hasPermission(user, "update:configurations") ||
+                                               hasPermission(user, "view:adjustment-reasons") ||
+                                               hasPermission(user, "update:adjustment-reasons") ||
+                                               hasPermission(user, "view:expense-categories") ||
+                                               hasPermission(user, "update:expense-categories") ||
+                                               hasPermission(user, "view:users") ||
+                                               hasPermission(user, "create:users") ||
+                                               hasPermission(user, "update:users") ||
+                                               hasPermission(user, "delete:users") ||
+                                               hasPermission(user, "view:roles") ||
+                                               hasPermission(user, "create:roles") ||
+                                               hasPermission(user, "update:roles") ||
+                                               hasPermission(user, "delete:roles") ||
+                                               hasPermission(user, "view:notifications") ||
+                                               hasPermission(user, "update:notifications");
+                if (!hasAnySettingsPermission) return null;
+              }
+
               return (
                 <Button
                   key={index}

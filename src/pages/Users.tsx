@@ -31,6 +31,7 @@ import {useToast} from "@/hooks/use-toast";
 import { usersService, CreateUserData } from "@/services/users";
 import { rolesService } from "@/services/roles";
 import { User } from "@/services/auth";
+import { useAuth } from "@/contexts/AuthContext";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -43,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 const Users = () => {
   const {toast} = useToast();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<Omit<CreateUserData, 'permissions'> & { confirmPassword: string }>({
@@ -209,7 +211,7 @@ const Users = () => {
       password: "", // Don't prefill password for security
       phoneNumber: "",
       confirmPassword: "",
-      roleId: Number(user.role?.id) || 2,
+      roleId: typeof user.role === 'object' ? Number(user.role?.id) || 2 : 2,
     });
     setDialogOpen(true);
   };
@@ -221,6 +223,15 @@ const Users = () => {
   };
 
   const handleDeleteUser = (userId: number) => {
+    // Prevent deleting the current user
+    if (currentUser && currentUser.id === userId) {
+      toast({
+        title: "Error",
+        description: "You cannot delete your own account.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (!confirm("Are you sure you want to delete this user?")) return;
     deleteUserMutation.mutate(userId);
   };
@@ -407,7 +418,7 @@ const Users = () => {
                       <TableRow key={user.id}>
                         <TableCell>{user.name || "N/A"}</TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell>{user.role.name}</TableCell>
+                        <TableCell>{typeof user.role === 'object' ? user.role.name : user.role}</TableCell>
                         <TableCell>
                          <Badge variant={getStatusColor(user.status)}>
                         {user.status}

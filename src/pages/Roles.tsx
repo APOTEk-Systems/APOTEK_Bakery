@@ -11,7 +11,9 @@ import {
 } from "@/components/ui/table";
 import {useToast} from "@/hooks/use-toast";
 import { rolesService, Role, CreateRoleData } from "@/services/roles";
-import React, { useState } from "react";
+import { usersService } from "@/services/users";
+import { User } from "@/services/auth";
+import React from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Shield,
@@ -20,15 +22,23 @@ import {
   Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Roles = () => {
   const {toast} = useToast();
   const queryClient = useQueryClient();
+  const { user: currentUser } = useAuth();
 
   // Fetch roles with React Query
   const { data: roles = [], isLoading: rolesLoading, error: rolesError } = useQuery<Role[]>({
     queryKey: ['roles'],
     queryFn: () => rolesService.getAll(),
+  });
+
+  // Fetch users to check role assignments
+  const { data: allUsers = [] } = useQuery<User[]>({
+    queryKey: ['users'],
+    queryFn: () => usersService.getAll(),
   });
 
 
@@ -63,6 +73,27 @@ const Roles = () => {
   }, [rolesError, toast]);
 
   const handleDeleteRole = (roleId: number) => {
+    // Prevent deleting the current user's role
+    if (currentUser && currentUser.role && typeof currentUser.role === 'object' && currentUser.role.id === roleId) {
+      toast({
+        title: "Error",
+        description: "You cannot delete your own role.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if any users are assigned to this role
+    const usersWithRole = allUsers.filter(user => typeof user.role === 'object' && user.role?.id === roleId);
+    if (usersWithRole.length > 0) {
+      toast({
+        title: "Cannot Delete Role",
+        description: `This role cannot be deleted because ${usersWithRole.length} user(s) are currently assigned to it. Deleting this role would affect system access for these users.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!confirm("Are you sure you want to delete this role?")) return;
     deleteRoleMutation.mutate(roleId);
   };

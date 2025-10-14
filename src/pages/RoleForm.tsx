@@ -92,23 +92,36 @@ const RoleForm = () => {
       "delete:production",
     ],
     "Reporting": [
-      "view:reports",
+      "view:sales-reports",
+      "view:purchases-reports",
+      "view:inventory-reports",
+      "view:production-reports",
+      "view:accounting-reports",
       "view:audit",
     ],
-     "Users & Role Management": [
-      "view:users",
-      "create:users",
-      "update:users",
-      "delete:users",
-      "manage:roles",
-    ],
-    "Settings": [
-      "view:settings",
-      "update:settings",
-    ],
+     "Settings": [
+       "view:business-information",
+       "update:business-information",
+       "view:configurations",
+       "update:configurations",
+       "view:adjustment-reasons",
+       "update:adjustment-reasons",
+       "view:expense-categories",
+       "update:expense-categories",
+       "view:users",
+       "create:users",
+       "update:users",
+       "delete:users",
+       "view:roles",
+       "create:roles",
+       "update:roles",
+       "delete:roles",
+       "view:notifications",
+       "update:notifications",
+     ],
   };
 
-  const allPermissions = Object.values(permissionModules).flat();
+  const allPermissions = [...Object.values(permissionModules).flat(), "view:settings", "update:settings", "view:reports"];
 
   // Fetch role if editing
   const { data: role, isLoading: roleLoading } = useQuery<Role>({
@@ -181,10 +194,45 @@ const RoleForm = () => {
       return;
     }
 
-    if (isEdit && id) {
-      updateRoleMutation.mutate({ id: Number(id), data: roleFormData });
+    let permissionsToSave = [...roleFormData.permissions];
+
+    // If all permissions are selected, just pass ["all"]
+    if (permissionsToSave.length === allPermissions.length) {
+      permissionsToSave = ["all"];
     } else {
-      createRoleMutation.mutate(roleFormData);
+      // Add default permissions based on specific permissions checked
+      // Settings defaults
+      const settingsSpecificPermissions = [
+        "view:business-information", "update:business-information",
+        "view:configurations", "update:configurations",
+        "view:adjustment-reasons", "update:adjustment-reasons",
+        "view:expense-categories", "update:expense-categories",
+        "view:users", "create:users", "update:users", "delete:users",
+        "view:roles", "create:roles", "update:roles", "delete:roles",
+        "view:notifications", "update:notifications"
+      ];
+      const hasSettingsSpecific = settingsSpecificPermissions.some(perm => permissionsToSave.includes(perm));
+      if (hasSettingsSpecific) {
+        permissionsToSave = [...new Set([...permissionsToSave, "view:settings", "update:settings"])];
+      }
+
+      // Reports defaults
+      const reportsSpecificPermissions = [
+        "view:sales-reports", "view:purchases-reports", "view:inventory-reports",
+        "view:production-reports", "view:accounting-reports", "view:audit"
+      ];
+      const hasReportsSpecific = reportsSpecificPermissions.some(perm => permissionsToSave.includes(perm));
+      if (hasReportsSpecific) {
+        permissionsToSave = [...new Set([...permissionsToSave, "view:reports"])];
+      }
+    }
+
+    const dataToSave = { ...roleFormData, permissions: permissionsToSave };
+
+    if (isEdit && id) {
+      updateRoleMutation.mutate({ id: Number(id), data: dataToSave });
+    } else {
+      createRoleMutation.mutate(dataToSave);
     }
   };
 
@@ -347,6 +395,10 @@ const RoleForm = () => {
             </div>
 
             <div className="flex gap-3 pt-4">
+              
+              <Button variant="outline" asChild className="flex-1">
+                <Link to="/roles">Cancel</Link>
+              </Button>
               <Button
                 onClick={handleSave}
                 disabled={createRoleMutation.isPending || updateRoleMutation.isPending}
@@ -358,9 +410,6 @@ const RoleForm = () => {
                   <Save className="h-4 w-4 mr-2" />
                 )}
                 {isEdit ? "Update Role" : "Create Role"}
-              </Button>
-              <Button variant="outline" asChild className="flex-1">
-                <Link to="/roles">Cancel</Link>
               </Button>
             </div>
           </CardContent>
