@@ -8,7 +8,16 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import * as authService from "@/services/auth";
-import { User, UserCheck } from "lucide-react";
+import { User, UserCheck, Edit, Key } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -28,6 +37,10 @@ const Profile = () => {
     newPassword?: string;
     confirmPassword?: string;
   }>({});
+
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [editNameDialogOpen, setEditNameDialogOpen] = useState(false);
 
   // Use user data from auth context instead of separate query
   const userData = user;
@@ -85,31 +98,50 @@ const Profile = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm()) return;
-
-    const updateData: any = {};
-
-    if (formData.name !== userData?.name) {
-      updateData.name = formData.name;
-    }
-
-    if (formData.newPassword) {
-      updateData.currentPassword = formData.currentPassword;
-      updateData.newPassword = formData.newPassword;
-    }
-
-    if (Object.keys(updateData).length === 0) {
-      toast({
-        title: "No Changes",
-        description: "No changes were made to your profile.",
-      });
+  const handleUpdateName = () => {
+    if (!formData.name.trim()) {
+      setValidationErrors({ name: "Name is required" });
       return;
     }
 
-    updateProfileMutation.mutate(updateData);
+    updateProfileMutation.mutate({ name: formData.name });
+    setIsEditingName(false);
+  };
+
+  const handleUpdatePassword = () => {
+    if (!validatePasswordForm()) return;
+
+    updateProfileMutation.mutate({
+      currentPassword: formData.currentPassword,
+      newPassword: formData.newPassword
+    });
+
+    setPasswordDialogOpen(false);
+    setFormData(prev => ({
+      ...prev,
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    }));
+  };
+
+  const validatePasswordForm = () => {
+    const errors: typeof validationErrors = {};
+
+    if (!formData.currentPassword) {
+      errors.currentPassword = "Current password is required";
+    }
+    if (!formData.newPassword) {
+      errors.newPassword = "New password is required";
+    } else if (formData.newPassword.length < 6) {
+      errors.newPassword = "Password must be at least 6 characters";
+    }
+    if (formData.newPassword !== formData.confirmPassword) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -161,103 +193,170 @@ const Profile = () => {
                 Profile Information
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Name</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => handleInputChange("name", e.target.value)}
-                        placeholder="Enter your full name"
-                      />
-                      {validationErrors.name && (
-                        <p className="text-sm text-destructive">{validationErrors.name}</p>
-                      )}
-                    </div>
-  
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={userData?.email || user?.email || ""}
-                        disabled
-                        className="bg-muted"
-                      />
-                    </div>
-  
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Input
-                        id="role"
-                        value={typeof userData?.role === 'string' ? userData.role : userData?.role?.name || "N/A"}
-                        disabled
-                        className="bg-muted"
-                      />
+            <CardContent className="space-y-6">
+              {/* Profile Information */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Profile Information</h3>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm flex-1">
+                        {userData?.name || "Not set"}
+                      </span>
+                      <Dialog open={editNameDialogOpen} onOpenChange={setEditNameDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, name: userData?.name || "" }));
+                              setEditNameDialogOpen(true);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[425px]">
+                          <DialogHeader>
+                            <DialogTitle>Edit Name</DialogTitle>
+                            <DialogDescription>
+                              Update your display name.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-4 py-4">
+                            <div className="grid gap-2">
+                              <Label htmlFor="editName">Full Name</Label>
+                              <Input
+                                id="editName"
+                                value={formData.name}
+                                onChange={(e) => handleInputChange("name", e.target.value)}
+                                placeholder="Enter your full name"
+                              />
+                              {validationErrors.name && (
+                                <p className="text-sm text-destructive">{validationErrors.name}</p>
+                              )}
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              onClick={() => {
+                                setEditNameDialogOpen(false);
+                                setFormData(prev => ({ ...prev, name: userData?.name || "" }));
+                                setValidationErrors({});
+                              }}
+                              variant="outline"
+                            >
+                              Cancel
+                            </Button>
+                            <Button
+                              onClick={() => {
+                                handleUpdateName();
+                                setEditNameDialogOpen(false);
+                              }}
+                              disabled={updateProfileMutation.isPending}
+                            >
+                              {updateProfileMutation.isPending ? "Saving..." : "Save Changes"}
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email:</Label>
+                    <span className="text-sm text-muted-foreground ml-1">
+                      {userData?.email || "Not set"}
+                    </span>
+                  </div>
 
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Change Password</h3>
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="currentPassword">Current Password</Label>
-                      <Input
-                        id="currentPassword"
-                        type="password"
-                        value={formData.currentPassword}
-                        onChange={(e) => handleInputChange("currentPassword", e.target.value)}
-                        placeholder="Enter current password"
-                      />
-                      {validationErrors.currentPassword && (
-                        <p className="text-sm text-destructive">{validationErrors.currentPassword}</p>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="newPassword">New Password</Label>
-                        <Input
-                          id="newPassword"
-                          type="password"
-                          value={formData.newPassword}
-                          onChange={(e) => handleInputChange("newPassword", e.target.value)}
-                          placeholder="Enter new password"
-                        />
-                        {validationErrors.newPassword && (
-                          <p className="text-sm text-destructive">{validationErrors.newPassword}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                        <Input
-                          id="confirmPassword"
-                          type="password"
-                          value={formData.confirmPassword}
-                          onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                          placeholder="Confirm new password"
-                        />
-                        {validationErrors.confirmPassword && (
-                          <p className="text-sm text-destructive">{validationErrors.confirmPassword}</p>
-                        )}
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="role">Role:</Label>
+                    <span className="text-sm text-muted-foreground ml-1">
+                      {typeof userData?.role === 'string' ? userData.role : userData?.role?.name || "N/A"}
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={updateProfileMutation.isPending}
-                  >
-                    {updateProfileMutation.isPending ? "Updating..." : "Update Profile"}
-                  </Button>
+              {/* Change Password Section */}
+              <div className="border-t pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Security</h3>
+                  <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">
+                        <Key className="h-4 w-4 mr-2" />
+                        Change Password
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Change Password</DialogTitle>
+                        <DialogDescription>
+                          Enter your current password and choose a new one.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                          <Label htmlFor="currentPassword">Current Password</Label>
+                          <Input
+                            id="currentPassword"
+                            type="password"
+                            value={formData.currentPassword}
+                            onChange={(e) => handleInputChange("currentPassword", e.target.value)}
+                            placeholder="Enter current password"
+                          />
+                          {validationErrors.currentPassword && (
+                            <p className="text-sm text-destructive">{validationErrors.currentPassword}</p>
+                          )}
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label htmlFor="newPassword">New Password</Label>
+                          <Input
+                            id="newPassword"
+                            type="password"
+                            value={formData.newPassword}
+                            onChange={(e) => handleInputChange("newPassword", e.target.value)}
+                            placeholder="Enter new password"
+                          />
+                          {validationErrors.newPassword && (
+                            <p className="text-sm text-destructive">{validationErrors.newPassword}</p>
+                          )}
+                        </div>
+
+                        <div className="grid gap-2">
+                          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+                          <Input
+                            id="confirmPassword"
+                            type="password"
+                            value={formData.confirmPassword}
+                            onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                            placeholder="Confirm new password"
+                          />
+                          {validationErrors.confirmPassword && (
+                            <p className="text-sm text-destructive">{validationErrors.confirmPassword}</p>
+                          )}
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          onClick={handleUpdatePassword}
+                          disabled={updateProfileMutation.isPending}
+                        >
+                          {updateProfileMutation.isPending ? "Updating..." : "Update Password"}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
-              </form>
+              </div>
             </CardContent>
           </Card>
         </div>
