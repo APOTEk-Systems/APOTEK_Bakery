@@ -64,7 +64,7 @@ export const getAdjustments = async (params?: {
 export const createAdjustment = async (data: {
   inventoryItemId: number;
   amount: number;
-  reasonId?: number;
+  reason?: string;
 }): Promise<{ adjustment: Adjustment; inventoryItem: InventoryItem }> => {
   const response = await api.post<{ adjustment: Adjustment; inventoryItem: InventoryItem }>('/adjustments', data);
   return response.data;

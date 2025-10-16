@@ -57,7 +57,7 @@ const InventoryAdjustmentsTab = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItemId, setSelectedItemId] = useState("");
   const [amount, setAmount] = useState("");
-  const [reasonId, setReasonId] = useState("");
+  const [reason, setReason] = useState("");
   const [action, setAction] = useState<AdjustmentAction>("add");
   const [unit, setUnit] = useState("kg");
   const {toast} = useToast();
@@ -110,7 +110,7 @@ const InventoryAdjustmentsTab = ({
       setDialogOpen(false);
       setSelectedItemId("");
       setAmount("");
-      setReasonId("");
+      setReason("");
       setAction("add");
       setUnit("kg");
     },
@@ -138,7 +138,7 @@ const InventoryAdjustmentsTab = ({
     createAdjustmentMutation.mutate({
       inventoryItemId: parseInt(selectedItemId),
       amount: adjustmentAmount, // stored in base unit
-      reasonId: reasonId ? parseInt(reasonId) : undefined,
+      reason: reason,
     });
   };
 
@@ -306,13 +306,13 @@ const InventoryAdjustmentsTab = ({
             </div>
             <div className="space-y-2">
               <Label htmlFor="reason">Reason</Label>
-              <Select value={reasonId} onValueChange={setReasonId}>
+              <Select value={reason} onValueChange={setReason}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select reason" />
                 </SelectTrigger>
                 <SelectContent>
                   {reasonsQuery.data?.map((reason) => (
-                    <SelectItem key={reason.id} value={reason.id.toString()}>
+                    <SelectItem key={reason.id} value={reason.name}>
                       {reason.name}
                     </SelectItem>
                   ))}

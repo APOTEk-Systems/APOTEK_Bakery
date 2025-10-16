@@ -28,6 +28,7 @@ import {
   Wrench,
   Milk,
   User,
+  ClipboardMinus,
 } from "lucide-react";
 import {
   Popover,
@@ -429,7 +430,7 @@ const Navigation = ({
                               to="/adjustment-reasons"
                               className="flex items-center gap-2"
                             >
-                              <Shield className="h-4 w-4" />
+                              <ClipboardMinus className="h-4 w-4" />
                               {(!collapsed || isMobile) && "Adjustment Reasons"}
                             </Link>
                           </Button>

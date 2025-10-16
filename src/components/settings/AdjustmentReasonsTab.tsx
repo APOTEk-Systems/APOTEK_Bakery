@@ -168,13 +168,8 @@ const AdjustmentReasonsTab = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Adjustment Reasons</h2>
-          <p className="text-muted-foreground">
-            Manage predefined reasons for inventory and supply adjustments
-          </p>
-        </div>
+      <div className="flex justify-end items-center">
+       
         <Button onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Add Reason
@@ -234,12 +229,12 @@ const AdjustmentReasonsTab = () => {
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No adjustment reasons found
               </h3>
-              <p className="text-muted-foreground mb-4">
+              {/* <p className="text-muted-foreground mb-4">
                 Get started by adding your first adjustment reason
               </p>
               <Button onClick={() => setDialogOpen(true)}>
                 Add Reason
-              </Button>
+              </Button> */}
             </div>
           )}
         </CardContent>
@@ -252,11 +247,11 @@ const AdjustmentReasonsTab = () => {
             <DialogTitle>
               {editingReason ? "Edit Adjustment Reason" : "Add Adjustment Reason"}
             </DialogTitle>
-            <DialogDescription>
+            {/* <DialogDescription>
               {editingReason
                 ? "Update the adjustment reason details"
                 : "Create a new adjustment reason for inventory adjustments"}
-            </DialogDescription>
+            </DialogDescription> */}
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
