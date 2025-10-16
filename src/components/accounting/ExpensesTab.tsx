@@ -13,6 +13,7 @@ import {
   Edit,
   Trash2,
   Plus,
+  Loader2,
 } from "lucide-react";
 import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
@@ -72,8 +73,13 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   const categories = categoriesQuery.data?.data || [];
   const expenses = Array.isArray(expensesQuery.data) ? expensesQuery.data : expensesQuery.data?.dailyBreakdown || [];
 
-  if (expensesQuery.isLoading) {
-    return <div className="text-center py-8">Loading expenses...</div>;
+
+    if (expensesQuery.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   if (expensesQuery.error) {

@@ -1,12 +1,12 @@
-import {useState, useEffect} from "react";
-import {Link, useParams, useNavigate} from "react-router-dom";
-import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
-import {Textarea} from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -14,24 +14,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
-import {useToast} from "@/hooks/use-toast";
-import {ArrowLeft, Save, Plus, Trash2, Loader2} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { ArrowLeft, Save, Plus, Trash2, Loader2 } from "lucide-react";
 import {
   createProduct,
   updateProduct,
   getProduct,
   Product,
 } from "../services/products";
-import {getInventory, InventoryItem} from "../services/inventory";
-import {ConfirmationDialog} from "@/components/ConfirmationDialog";
+import { getInventory, InventoryItem } from "../services/inventory";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 import { toSentenceCase } from "@/lib/funcs";
 
 const ProductForm = () => {
-  const {id} = useParams<{id: string}>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const {toast} = useToast();
+  const { toast } = useToast();
   const isEdit = Boolean(id);
   const [formData, setFormData] = useState<{
     name: string;
@@ -52,7 +52,7 @@ const ProductForm = () => {
   });
 
   const [productRecipes, setProductRecipes] = useState<
-    {inventoryItemId: string; amount: string; unit: string}[]
+    { inventoryItemId: string; amount: string; unit: string }[]
   >([]);
   const [activeTab, setActiveTab] = useState("details");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -61,12 +61,12 @@ const ProductForm = () => {
   const isDetailsComplete = formData.name.trim() && formData.price.trim();
 
   const unitOptions = [
-    {value: "kg", label: "kilograms (kg)"},
-    {value: "g", label: "grams (g)"},
-    {value: "l", label: "liters (l)"},
-    {value: "ml", label: "milliliters (ml)"},
-    {value: "pcs", label: "piece (pcs)"},
-    {value: "pair", label: "pair"},
+    { value: "kg", label: "kilograms (kg)" },
+    { value: "g", label: "grams (g)" },
+    { value: "l", label: "liters (l)" },
+    { value: "ml", label: "milliliters (ml)" },
+    { value: "pcs", label: "piece (pcs)" },
+    { value: "pair", label: "pair" },
   ];
 
   const productQuery = useQuery({
@@ -77,7 +77,7 @@ const ProductForm = () => {
 
   const inventoryQuery = useQuery({
     queryKey: ["inventory"],
-    queryFn: () => getInventory({type: "raw_material"}),
+    queryFn: () => getInventory({ type: "raw_material" }),
   });
 
   const createMutation = useMutation({
@@ -85,13 +85,13 @@ const ProductForm = () => {
       name: string;
       price: number;
       instructions: string[];
-      productRecipes: {inventoryItemId: number; amountRequired: number}[];
+      productRecipes: { inventoryItemId: number; amountRequired: number }[];
       description?: string;
       prepTime?: number;
       status?: "active" | "inactive";
     }) => createProduct(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["products"]});
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
         title: "Product Created",
         description: `${formData.name} has been created successfully.`,
@@ -108,10 +108,10 @@ const ProductForm = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({id, data}: {id: string; data: Partial<Product>}) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Product> }) =>
       updateProduct(Number(id), data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["products"]});
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       toast({
         title: "Product Updated",
         description: `${formData.name} has been updated successfully.`,
@@ -152,13 +152,13 @@ const ProductForm = () => {
   }, [productQuery.data]);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({...prev, [field]: value}));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleInstructionChange = (index: number, value: string) => {
     const newInstructions = [...formData.instructions];
     newInstructions[index] = value;
-    setFormData((prev) => ({...prev, instructions: newInstructions}));
+    setFormData((prev) => ({ ...prev, instructions: newInstructions }));
   };
 
   const addInstruction = () => {
@@ -179,14 +179,14 @@ const ProductForm = () => {
 
   const handleRecipeChange = (index: number, field: string, value: string) => {
     const newRecipes = [...productRecipes];
-    newRecipes[index] = {...newRecipes[index], [field]: value};
+    newRecipes[index] = { ...newRecipes[index], [field]: value };
     setProductRecipes(newRecipes);
   };
 
   const addRecipe = () => {
     setProductRecipes([
       ...productRecipes,
-      {inventoryItemId: "", amount: "", unit: ""},
+      { inventoryItemId: "", amount: "", unit: "" },
     ]);
   };
 
@@ -250,7 +250,7 @@ const ProductForm = () => {
     if (!pendingProductData) return;
 
     if (isEdit && id) {
-      updateMutation.mutate({id, data: pendingProductData});
+      updateMutation.mutate({ id, data: pendingProductData });
     } else {
       createMutation.mutate(pendingProductData);
     }
@@ -290,7 +290,6 @@ const ProductForm = () => {
               <h1 className="text-3xl font-bold text-foreground">
                 {isEdit ? "Edit Product" : "Add New Product"}
               </h1>
-           
             </div>
           </div>
         </div>
@@ -317,7 +316,10 @@ const ProductForm = () => {
                       id="name"
                       value={formData.name}
                       onChange={(e) =>
-                        handleInputChange("name", toSentenceCase(e.target.value))
+                        handleInputChange(
+                          "name",
+                          toSentenceCase(e.target.value)
+                        )
                       }
                       placeholder="Enter product name"
                       required
@@ -360,8 +362,13 @@ const ProductForm = () => {
                       <Label htmlFor="prepTime">Prep Time (minutes)</Label>
                       <Input
                         id="prepTime"
-                        type="number"
-                        value={formData.prepTime ? Number(formData.prepTime).toLocaleString() : ""}
+                        type="text"
+                        inputMode="numeric"
+                        value={
+                          formData.prepTime
+                            ? Number(formData.prepTime).toLocaleString()
+                            : ""
+                        }
                         onChange={(e) => {
                           const value = e.target.value.replace(/,/g, "");
                           if (!isNaN(Number(value)) || value === "") {
@@ -391,8 +398,6 @@ const ProductForm = () => {
                   </div>
                 </CardContent>
               </Card>
-
-          
 
               {/* Actions */}
               <Card className="shadow-warm">
@@ -434,7 +439,11 @@ const ProductForm = () => {
                     <Input
                       id="batchSize"
                       type="number"
-                      value={formData.batchSize ? Number(formData.batchSize).toLocaleString() : ""}
+                      value={
+                        formData.batchSize
+                          ? Number(formData.batchSize).toLocaleString()
+                          : ""
+                      }
                       onChange={(e) => {
                         const value = e.target.value.replace(/,/g, "");
                         if (!isNaN(Number(value)) || value === "") {
@@ -537,9 +546,10 @@ const ProductForm = () => {
               {/* Actions */}
               <Card className="shadow-warm">
                 <CardContent className="pt-6 space-y-3">
-                  <Button
+                 <div className="flex flex-row-reverse gap-3">
+                   <Button
                     type="submit"
-                    className="w-full"
+                    className="flex-1"
                     disabled={
                       createMutation.isPending || updateMutation.isPending
                     }
@@ -554,11 +564,12 @@ const ProductForm = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="flex-1"
                     asChild
                   >
                     <Link to="/products">Cancel</Link>
                   </Button>
+                 </div>
                 </CardContent>
               </Card>
             </form>

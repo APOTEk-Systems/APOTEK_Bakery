@@ -376,10 +376,13 @@ const SuppliesForm = () => {
             </CardContent>
           </Card>
 
-          <div className="space-y-4 lg:col-span-2">
+          <div className="flex gap-4 lg:col-span-2">
+            <Button type="button" variant="outline" className="flex-1" asChild>
+              <Link to="/supplies">Cancel</Link>
+            </Button>
             <Button
               type="submit"
-              className="w-full"
+              className="flex-1"
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending ? (
@@ -388,9 +391,6 @@ const SuppliesForm = () => {
                 <Save className="h-4 w-4 mr-2" />
               )}
               {isEdit ? "Update Supplies" : "Add Supplies"}
-            </Button>
-            <Button type="button" variant="outline" className="w-full" asChild>
-              <Link to="/supplies">Cancel</Link>
             </Button>
           </div>
         </form>

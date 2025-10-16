@@ -91,13 +91,13 @@ const RoleForm = () => {
      // "update:production",
       "delete:production",
     ],
-    "Reporting": [
+    "Reports": [
       "view:sales-reports",
       "view:purchases-reports",
       "view:inventory-reports",
       "view:production-reports",
       "view:accounting-reports",
-      "view:audit",
+      //"view:audit",
     ],
      "Settings": [
        "view:business-information",
@@ -320,12 +320,8 @@ const RoleForm = () => {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <Label className="text-base font-semibold">Permissions</Label>
-               
-                </div>
-                <div className="flex items-center space-x-2">
+              <div className="flex flex-col mb-4">
+                <div className="flex items-center space-x-2 mb-4">
                   <Checkbox
                     id="check-all"
                     checked={roleFormData.permissions.length === allPermissions.length}
@@ -342,6 +338,11 @@ const RoleForm = () => {
                     Check All
                   </Label>
                 </div>
+                <div>
+                  <Label className="text-base font-semibold">Permissions</Label>
+               
+                </div>
+                
               </div>
 
               <div className="space-y-6">
@@ -383,7 +384,9 @@ const RoleForm = () => {
                               htmlFor={`perm-${permission}`}
                               className={`text-sm font-normal ${isEditingAdmin ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                             >
-                              {permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase()).replace(/Inventory/g, "Materials & Supplies").replace(/Adjustment/g, "Materials & Supplies Adjustment")}
+                              {permissionModules["Dashboard"].includes(permission)
+                                ? permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase()).replace(/Dashboard/g, "")
+                                : permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase()).replace(/Inventory/g, "Materials & Supplies").replace(/Adjustment/g, "Materials & Supplies Adjustment").replace(/Dashboard/g, "")}
                             </Label>
                           </div>
                         ))}

@@ -48,7 +48,7 @@ const ProductionRunDetail = () => {
               <Button asChild>
                 <Link to="/production">
                   <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Production Runs
+                  Back to Production
                 </Link>
               </Button>
             </CardContent>
@@ -65,7 +65,7 @@ const ProductionRunDetail = () => {
           <Button variant="ghost" size="sm" asChild className="mb-4">
             <Link to="/production">
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Production Runs
+              Back to Production
             </Link>
           </Button>
           <div className="flex justify-between items-start">
@@ -79,7 +79,7 @@ const ProductionRunDetail = () => {
           {/* Main Run Info */}
           <Card>
             <CardHeader>
-              <CardTitle>Production Run Information</CardTitle>
+              <CardTitle>Production Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -128,7 +128,7 @@ const ProductionRunDetail = () => {
           <Card>
             <CardHeader>
               <CardTitle>Ingredients Deducted</CardTitle>
-              <p className="text-sm text-muted-foreground">{(run as any).ingredientsDeducted?.length || 0} ingredients</p>
+              {/* <p className="text-sm text-muted-foreground">{(run as any).ingredientsDeducted?.length || 0} ingredients</p> */}
             </CardHeader>
             <CardContent>
               <Table>

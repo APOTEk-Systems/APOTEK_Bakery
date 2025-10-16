@@ -222,10 +222,33 @@ const PurchasesSummaryTab = () => {
 };
 
 const InventorySummaryTab = () => {
-  const { data: summary, isPending: loading } = useQuery({
-    queryKey: ['inventorySummary'],
-    queryFn: () => inventoryService.getInventorySummary(),
+  const { data: rawMaterials, isPending: rawMaterialsLoading } = useQuery({
+    queryKey: ['inventory', 'raw_material'],
+    queryFn: () => inventoryService.getInventory({ type: 'raw_material' }),
   });
+
+  const { data: supplies, isPending: suppliesLoading } = useQuery({
+    queryKey: ['inventory', 'supplies'],
+    queryFn: () => inventoryService.getInventory({ type: 'supplies' }),
+  });
+
+  const loading = rawMaterialsLoading || suppliesLoading;
+
+  const getStatus = (currentQuantity: number, minLevel: number) => {
+    if (currentQuantity <= minLevel * 0.5) return "critical";
+    if (currentQuantity <= minLevel) return "low";
+    return "in-stock";
+  };
+
+  const getLowStockItems = (items: any[]) => {
+    return items.filter(item => {
+      const status = getStatus(item.currentQuantity, item.minLevel);
+      return status === "critical" || status === "low";
+    });
+  };
+
+  const lowStockRawMaterials = rawMaterials ? getLowStockItems(rawMaterials) : [];
+  const lowStockSupplies = supplies ? getLowStockItems(supplies) : [];
 
   if(loading){
     return(
@@ -249,21 +272,26 @@ const InventorySummaryTab = () => {
           {/* Low Stock Raw Materials */}
           <div className="flex-1 space-y-2">
             <h4 className="font-semibold">Raw Materials</h4>
-            {summary?.lowStockRawMaterials.length > 0 ? (
-              summary.lowStockRawMaterials.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Minimum level: {item.minLevel}
-                    </p>
+            {lowStockRawMaterials.length > 0 ? (
+              lowStockRawMaterials.map((item: any) => {
+                const status = getStatus(item.currentQuantity, item.minLevel);
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Current: {item.currentQuantity} | Min: {item.minLevel}
+                      </p>
+                    </div>
+                    <Badge variant={status === "critical" ? "destructive" : "secondary"}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </Badge>
                   </div>
-                  <Badge variant="destructive">Alert</Badge>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-muted-foreground">No low materials</p>
             )}
@@ -272,21 +300,26 @@ const InventorySummaryTab = () => {
           {/* Low Stock Supplies */}
           <div className="flex-1 space-y-2">
             <h4 className="font-semibold">Supplies</h4>
-            {summary?.lowStockSupplies.length > 0 ? (
-              summary.lowStockSupplies.map((item: any) => (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">{item.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Minimum level: {item.minLevel}
-                    </p>
+            {lowStockSupplies.length > 0 ? (
+              lowStockSupplies.map((item: any) => {
+                const status = getStatus(item.currentQuantity, item.minLevel);
+                return (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                  >
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Current: {item.currentQuantity} | Min: {item.minLevel}
+                      </p>
+                    </div>
+                    <Badge variant={status === "critical" ? "destructive" : "secondary"}>
+                      {status.charAt(0).toUpperCase() + status.slice(1)}
+                    </Badge>
                   </div>
-                  <Badge variant="destructive">Alert</Badge>
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="text-muted-foreground">No low supplies</p>
             )}

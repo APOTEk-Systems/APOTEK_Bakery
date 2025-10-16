@@ -522,10 +522,13 @@ const InventoryForm = () => {
             </CardContent>
           </Card>
 
-          <div className="space-y-4 lg:col-span-2">
+          <div className="flex gap-4 lg:col-span-2">
+            <Button type="button" variant="outline" className="flex-1" asChild>
+              <Link to="/materials">Cancel</Link>
+            </Button>
             <Button
               type="submit"
-              className="w-full"
+              className="flex-1"
               disabled={createMutation.isPending || updateMutation.isPending}
             >
               {createMutation.isPending || updateMutation.isPending ? (
@@ -534,9 +537,6 @@ const InventoryForm = () => {
                 <Save className="h-4 w-4 mr-2" />
               )}
               {isEdit ? "Update Material" : "Add Material"}
-            </Button>
-            <Button type="button" variant="outline" className="w-full" asChild>
-              <Link to="/materials">Cancel</Link>
             </Button>
           </div>
         </form>

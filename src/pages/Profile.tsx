@@ -183,7 +183,7 @@ const Profile = () => {
         <div className="max-w-2xl mx-auto space-y-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-            <p className="text-muted-foreground">Manage your account settings and preferences.</p>
+           
           </div>
 
           <Card>
@@ -196,10 +196,7 @@ const Profile = () => {
             <CardContent className="space-y-6">
               {/* Profile Information */}
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Profile Information</h3>
-                </div>
-
+               
                 <div className="grid grid-cols-1 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Name</Label>
