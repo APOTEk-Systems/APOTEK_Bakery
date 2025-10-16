@@ -240,9 +240,9 @@ const InventoryAdjustmentsTab = ({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Add Adjustment</DialogTitle>
-            <DialogDescription>
+            {/* <DialogDescription>
               Create a new adjustment for {title.toLowerCase()} inventory.
-            </DialogDescription>
+            </DialogDescription> */}
           </DialogHeader>
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
             <div className="space-y-2">

@@ -278,11 +278,11 @@ const Users = () => {
                     <DialogTitle>
                       {editingUser ? "Edit User" : "Create New User"}
                     </DialogTitle>
-                    <DialogDescription>
+                    {/* <DialogDescription>
                       {editingUser
                         ? "Update user information."
                         : "Add a new user to the system with appropriate role."}
-                    </DialogDescription>
+                    </DialogDescription> */}
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">

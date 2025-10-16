@@ -521,8 +521,7 @@ const UserManual = () => {
                             <div className="flex items-start gap-3">
                               <ArrowRight className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                               <p className="text-sm text-muted-foreground"><strong className="text-foreground">Process:</strong> Verify quantities → Confirm receipt → Update inventory</p>
-                            </div>
-                          
+                            </div>                 
                           </div>
                         </div>
 

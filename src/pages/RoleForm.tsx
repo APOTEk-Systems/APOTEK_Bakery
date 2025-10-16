@@ -7,7 +7,7 @@ import {Textarea} from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {useToast} from "@/hooks/use-toast";
 import { rolesService, Role, CreateRoleData } from "@/services/roles";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
@@ -16,6 +16,98 @@ import {
   ArrowLeft,
   Loader2,
 } from "lucide-react";
+
+// Comprehensive permissions organized by modules
+const permissionModules = {
+  "Dashboard": [
+    "view:salesDashboard",
+    "view:purchasesDashboard",
+    "view:inventoryDashboard",
+    "view:accountingDashboard",
+  ],
+ 
+  "Sales": [
+    "create:sales",
+    "view:sales",
+  //  "update:sales",
+  //  "delete:sales",
+    "update:payment",
+    "view:customers",
+    "create:customers",
+    "update:customers",
+    "delete:customers",
+   // "update:credit",
+  ],
+  "Purchases": [
+    "view:purchases",
+    "create:purchases",
+    "update:purchases",
+    "approve:purchases",
+    "receive:goods",
+    "view:suppliers",
+    "create:suppliers",
+    "update:suppliers",
+    "delete:suppliers",
+  ],
+  "Inventory": [
+   // "update:quantity",
+    "view:inventory",
+    "create:inventory",
+    "update:inventory",
+    "delete:inventory",
+    "view:adjustments",
+    "create:adjustments",
+   // "update:adjustments",
+    "view:products",
+    "create:products",
+    "update:products",
+    "delete:products",
+  ],
+  "Accounting": [
+    "view:expenses",
+    "create:expenses",
+    "update:expenses",
+   // "approve:expenses",
+    "delete:expenses",
+  //  "view:reports",
+  ],
+  "Production": [
+    "view:production",
+    "create:production",
+   // "update:production",
+    "delete:production",
+  ],
+  "Reports": [
+    "view:sales-reports",
+    "view:purchases-reports",
+    "view:inventory-reports",
+    "view:production-reports",
+    "view:accounting-reports",
+    //"view:audit",
+  ],
+   "Settings": [
+     "view:business-information",
+     "update:business-information",
+     "view:configurations",
+     "update:configurations",
+     "view:adjustment-reasons",
+     "update:adjustment-reasons",
+     "view:expense-categories",
+     "update:expense-categories",
+     "view:users",
+     "create:users",
+     "update:users",
+     "delete:users",
+     "view:roles",
+     "create:roles",
+     "update:roles",
+     "delete:roles",
+     "view:notifications",
+     "update:notifications",
+   ],
+};
+
+const allPermissions = [...Object.values(permissionModules).flat(), "view:settings", "update:settings", "view:reports"];
 
 const RoleForm = () => {
   const { id } = useParams<{ id: string }>();
@@ -29,99 +121,6 @@ const RoleForm = () => {
     description: "",
     permissions: [],
   });
-  const [isEditingAdmin, setIsEditingAdmin] = useState(false);
-
-  // Comprehensive permissions organized by modules
-  const permissionModules = {
-    "Dashboard": [
-      "view:salesDashboard",
-      "view:purchasesDashboard",
-      "view:inventoryDashboard",
-      "view:accountingDashboard",
-    ],
-   
-    "Sales": [
-      "create:sales",
-      "view:sales",
-    //  "update:sales",
-    //  "delete:sales",
-      "update:payment",
-      "view:customers",
-      "create:customers",
-      "update:customers",
-      "delete:customers",
-     // "update:credit",
-    ],
-    "Purchases": [
-      "view:purchases",
-      "create:purchases",
-      "update:purchases",
-      "approve:purchases",
-      "receive:goods",
-      "view:suppliers",
-      "create:suppliers",
-      "update:suppliers",
-      "delete:suppliers",
-    ],
-    "Inventory": [
-     // "update:quantity",
-      "view:inventory",
-      "create:inventory",
-      "update:inventory",
-      "delete:inventory",
-      "view:adjustments",
-      "create:adjustments",
-     // "update:adjustments",
-      "view:products",
-      "create:products",
-      "update:products",
-      "delete:products",
-    ],
-    "Accounting": [
-      "view:expenses",
-      "create:expenses",
-      "update:expenses",
-     // "approve:expenses",
-      "delete:expenses",
-    //  "view:reports",
-    ],
-    "Production": [
-      "view:production",
-      "create:production",
-     // "update:production",
-      "delete:production",
-    ],
-    "Reports": [
-      "view:sales-reports",
-      "view:purchases-reports",
-      "view:inventory-reports",
-      "view:production-reports",
-      "view:accounting-reports",
-      //"view:audit",
-    ],
-     "Settings": [
-       "view:business-information",
-       "update:business-information",
-       "view:configurations",
-       "update:configurations",
-       "view:adjustment-reasons",
-       "update:adjustment-reasons",
-       "view:expense-categories",
-       "update:expense-categories",
-       "view:users",
-       "create:users",
-       "update:users",
-       "delete:users",
-       "view:roles",
-       "create:roles",
-       "update:roles",
-       "delete:roles",
-       "view:notifications",
-       "update:notifications",
-     ],
-  };
-
-  const allPermissions = [...Object.values(permissionModules).flat(), "view:settings", "update:settings", "view:reports"];
 
   // Fetch role if editing
   const { data: role, isLoading: roleLoading } = useQuery<Role>({
@@ -175,14 +174,14 @@ const RoleForm = () => {
   useEffect(() => {
     if (isEdit && role) {
       const isAdmin = role.name.toLowerCase() === "admin";
-      setIsEditingAdmin(isAdmin);
+      const hasAllPermissions = role.permissions.includes("all");
       setRoleFormData({
         name: role.name,
         description: role.description || "",
-        permissions: isAdmin ? allPermissions : role.permissions,
+        permissions: isAdmin || hasAllPermissions ? allPermissions : role.permissions,
       });
     }
-  }, [role, isEdit, allPermissions]);
+  }, [role, isEdit]);
 
   const handleSave = () => {
     if (!roleFormData.name.trim()) {
@@ -236,23 +235,23 @@ const RoleForm = () => {
     }
   };
 
-  const handlePermissionChange = (permission: string, checked: boolean) => {
+  const handlePermissionChange = useCallback((permission: string, checked: boolean) => {
     setRoleFormData((prev) => ({
       ...prev,
       permissions: checked
-        ? [...prev.permissions, permission]
+        ? [...new Set([...prev.permissions, permission])]
         : prev.permissions.filter(p => p !== permission),
     }));
-  };
+  }, []);
 
-  const handleModuleToggle = (modulePermissions: string[], checked: boolean) => {
+  const handleModuleToggle = useCallback((modulePermissions: string[], checked: boolean) => {
     setRoleFormData((prev) => ({
       ...prev,
       permissions: checked
         ? [...new Set([...prev.permissions, ...modulePermissions])]
         : prev.permissions.filter(p => !modulePermissions.includes(p)),
     }));
-  };
+  }, []);
 
   if (isEdit && roleLoading) {
     return (
@@ -300,7 +299,7 @@ const RoleForm = () => {
                   onChange={(e) =>
                     setRoleFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  disabled={isEditingAdmin}
+                  disabled={isEdit && role?.name.toLowerCase() === "admin"}
                   placeholder="Enter role name"
                 />
               </div>
@@ -312,7 +311,7 @@ const RoleForm = () => {
                   onChange={(e) =>
                     setRoleFormData((prev) => ({ ...prev, description: e.target.value }))
                   }
-                  disabled={isEditingAdmin}
+                  disabled={isEdit && role?.name.toLowerCase() === "admin"}
                   placeholder="Enter role description"
                   rows={2}
                 />
@@ -323,17 +322,16 @@ const RoleForm = () => {
               <div className="flex flex-col mb-4">
                 <div className="flex items-center space-x-2 mb-4">
                   <Checkbox
-                    id="check-all"
-                    checked={roleFormData.permissions.length === allPermissions.length}
-                    disabled={isEditingAdmin}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setRoleFormData((prev) => ({ ...prev, permissions: allPermissions }));
-                      } else {
-                        setRoleFormData((prev) => ({ ...prev, permissions: [] }));
-                      }
-                    }}
-                  />
+                     id="check-all"
+                     checked={roleFormData.permissions.length === allPermissions.length}
+                     onCheckedChange={(checked) => {
+                       if (checked) {
+                         setRoleFormData((prev) => ({ ...prev, permissions: allPermissions }));
+                       } else {
+                         setRoleFormData((prev) => ({ ...prev, permissions: [] }));
+                       }
+                     }}
+                   />
                   <Label htmlFor="check-all" className="text-sm font-medium">
                     Check All
                   </Label>
@@ -354,13 +352,12 @@ const RoleForm = () => {
                     <div key={moduleName} className="border rounded-lg p-4">
                       <div className="flex items-center space-x-2 mb-3">
                         <Checkbox
-                          id={`module-${moduleName}`}
-                          checked={moduleChecked}
-                          disabled={isEditingAdmin}
-                          onCheckedChange={(checked) =>
-                            handleModuleToggle(permissions, checked as boolean)
-                          }
-                        />
+                           id={`module-${moduleName}`}
+                           checked={moduleChecked}
+                           onCheckedChange={(checked) =>
+                             handleModuleToggle(permissions, checked as boolean)
+                           }
+                         />
                         <Label
                           htmlFor={`module-${moduleName}`}
                           className="text-lg font-semibold"
@@ -373,16 +370,15 @@ const RoleForm = () => {
                         {permissions.map((permission) => (
                           <div key={permission} className="flex items-center space-x-2">
                             <Checkbox
-                              id={`perm-${permission}`}
-                              checked={roleFormData.permissions.includes(permission)}
-                              disabled={isEditingAdmin}
-                              onCheckedChange={(checked) =>
-                                handlePermissionChange(permission, checked as boolean)
-                              }
-                            />
+                               id={`perm-${permission}`}
+                               checked={roleFormData.permissions.includes(permission)}
+                               onCheckedChange={(checked) =>
+                                 handlePermissionChange(permission, checked as boolean)
+                               }
+                             />
                             <Label
                               htmlFor={`perm-${permission}`}
-                              className={`text-sm font-normal ${isEditingAdmin ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                              className="text-sm font-normal cursor-pointer"
                             >
                               {permissionModules["Dashboard"].includes(permission)
                                 ? permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase()).replace(/Dashboard/g, "")

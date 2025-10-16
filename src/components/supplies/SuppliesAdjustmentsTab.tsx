@@ -215,9 +215,9 @@ const SuppliesAdjustmentsTab = () => {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>New Supplies Adjustment</DialogTitle>
-            <DialogDescription>
+            {/* <DialogDescription>
               Create a new supplies adjustment.
-            </DialogDescription>
+            </DialogDescription> */}
           </DialogHeader>
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
             <div className="space-y-2">
