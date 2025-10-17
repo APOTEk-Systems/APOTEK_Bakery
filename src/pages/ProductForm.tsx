@@ -347,7 +347,7 @@ const ProductForm = () => {
                         type="text"
                         value={
                           formData.price
-                            ? Number(formData.price).toLocaleString("en-US")
+                            ? Number(formData.price).toLocaleString()
                             : ""
                         }
                         onChange={(e) => {

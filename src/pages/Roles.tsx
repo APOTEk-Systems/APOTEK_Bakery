@@ -13,7 +13,7 @@ import {useToast} from "@/hooks/use-toast";
 import { rolesService, Role, CreateRoleData } from "@/services/roles";
 import { usersService } from "@/services/users";
 import { User } from "@/services/auth";
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Shield,
@@ -23,11 +23,14 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 const Roles = () => {
   const {toast} = useToast();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<number | null>(null);
 
   // Fetch roles with React Query
   const { data: roles = [], isLoading: rolesLoading, error: rolesError } = useQuery<Role[]>({
@@ -94,8 +97,16 @@ const Roles = () => {
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this role?")) return;
-    deleteRoleMutation.mutate(roleId);
+    setRoleToDelete(roleId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteRole = () => {
+    if (roleToDelete) {
+      deleteRoleMutation.mutate(roleToDelete);
+      setDeleteDialogOpen(false);
+      setRoleToDelete(null);
+    }
   };
 
   return (
@@ -186,6 +197,14 @@ const Roles = () => {
             </div>
           </CardContent>
         </Card>
+
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete Role"
+          message="Are you sure you want to delete this role? This action cannot be undone."
+          onConfirm={confirmDeleteRole}
+        />
       </div>
     </Layout>
   );

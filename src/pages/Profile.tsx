@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import * as authService from "@/services/auth";
+import { useNavigate } from "react-router-dom";
 import { User, UserCheck, Edit, Key } from "lucide-react";
 import {
   Dialog,
@@ -20,9 +21,10 @@ import {
 } from "@/components/ui/dialog";
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -50,11 +52,22 @@ const Profile = () => {
   const updateProfileMutation = useMutation({
     mutationFn: (data: { name?: string; currentPassword?: string; newPassword?: string }) =>
       authService.updateProfile(data),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      // Check if password was changed
+      const isPasswordChange = variables.currentPassword && variables.newPassword;
+
       toast({
         title: "Success",
-        description: "Profile updated successfully.",
+        description: isPasswordChange ? "Password updated successfully. You will be logged out for security." : "Profile updated successfully.",
       });
+
+      if (isPasswordChange) {
+        // Logout user after password change
+        logout();
+        navigate('/login');
+        return;
+      }
+
       queryClient.invalidateQueries({ queryKey: ['user-profile'] });
       // Reset password fields
       setFormData(prev => ({

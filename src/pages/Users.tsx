@@ -40,6 +40,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 const Users = () => {
   const {toast} = useToast();
@@ -59,6 +60,8 @@ const Users = () => {
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
   }>({});
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
   // Validation functions
   const validateEmail = (email: string): string | undefined => {
@@ -232,8 +235,16 @@ const Users = () => {
       });
       return;
     }
-    if (!confirm("Are you sure you want to delete this user?")) return;
-    deleteUserMutation.mutate(userId);
+    setUserToDelete(userId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete);
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
   };
 
   const openCreateDialog = () => {
@@ -452,6 +463,14 @@ const Users = () => {
             </div>
           </CardContent>
         </Card>
+
+        <ConfirmationDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          title="Delete User"
+          message="Are you sure you want to delete this user? This action cannot be undone."
+          onConfirm={confirmDeleteUser}
+        />
       </div>
     </Layout>
   );
