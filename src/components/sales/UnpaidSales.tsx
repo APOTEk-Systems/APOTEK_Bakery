@@ -121,7 +121,7 @@ const UnpaidSales: React.FC = () => {
             }}
           />
         </div>
-        <SalesTable sales={filteredSales} loading={loading} error={error?.message || null} isUnpaid={true} />
+        <SalesTable sales={filteredSales} loading={loading} error={error?.message || null} isUnpaid={true} onPaymentRecorded={refetch} />
         {totalPages > 1 && (
           <div className="mt-4">
             <Pagination>

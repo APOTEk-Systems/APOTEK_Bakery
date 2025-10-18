@@ -306,6 +306,38 @@ const Navigation = ({
                           </Link>
                         </Button>
                       )}
+                      {hasViewSales && (
+                        <Button
+                          variant={
+                            location.pathname === "/sales/outstanding"
+                              ? "secondary"
+                              : "ghost"
+                          }
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/sales/outstanding" className="flex items-center gap-2">
+                            <CreditCard className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Outstanding Payments"}
+                          </Link>
+                        </Button>
+                      )}
+                      {hasViewSales && (
+                        <Button
+                          variant={
+                            location.pathname === "/sales/payments"
+                              ? "secondary"
+                              : "ghost"
+                          }
+                          className="w-full justify-start hover:bg-muted"
+                          asChild
+                        >
+                          <Link to="/sales/payments" className="flex items-center gap-2">
+                            <Banknote className="h-4 w-4" />
+                            {(!collapsed || isMobile) && "Payment History"}
+                          </Link>
+                        </Button>
+                      )}
                       {hasViewCustomers && (
                         <Button
                           variant={

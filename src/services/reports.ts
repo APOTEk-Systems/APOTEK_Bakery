@@ -170,6 +170,14 @@ export interface ExpenseBreakdownReport {
   };
 }
 
+export interface ProductsReport {
+  data: Array<{
+    id: number;
+    name: string;
+    price: number;
+  }>;
+}
+
 export const reportsService = {
   // Helper function to add company header to PDFs
   addCompanyHeader: (
@@ -458,6 +466,23 @@ export const reportsService = {
     return response.data;
   },
 
+  // Products Report
+  getProductsReport: async (): Promise<ProductsReport> => {
+    const response = await api.get('/products');
+    return { data: response.data };
+  },
+
+  // Goods Received Report
+  getGoodsReceivedReport: async (startDate?: string, endDate?: string, supplierId?: number): Promise<any> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+    if (supplierId) params.append("supplierId", supplierId.toString());
+    params.append("limit", "1000");
+    const response = await api.get(`/purchases/receiving?${params.toString()}`);
+    return response.data;
+  },
+
   // Client-side PDF generation methods
   exportSalesReport: async (
     startDate?: string,
@@ -598,29 +623,94 @@ export const reportsService = {
     }
   },
 
-  exportCustomerSalesReport: async (
+  exportProductsReport: async (): Promise<Blob> => {
+    console.log("📊 Starting products report export...");
+    try {
+      const data = await reportsService.getProductsReport();
+      console.log("✅ Products data fetched successfully:", data);
+      const pdfBlob = reportsService.generateProductsPDF(data);
+      console.log("📄 Products PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting products report:", error);
+      throw error;
+    }
+  },
+
+  exportGoodsReceivedReport: async (startDate?: string, endDate?: string, supplierId?: number): Promise<Blob> => {
+    console.log("📊 Starting goods received report export...", {startDate, endDate, supplierId});
+    try {
+      const data = await reportsService.getGoodsReceivedReport(startDate, endDate, supplierId);
+      console.log("✅ Goods received data fetched successfully:", data);
+      const pdfBlob = reportsService.generateGoodsReceivedPDF(data, startDate, endDate);
+      console.log("📄 Goods received PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting goods received report:", error);
+      throw error;
+    }
+  },
+
+  exportCashSalesReport: async (
     startDate?: string,
     endDate?: string
   ): Promise<Blob> => {
-    console.log("📊 Starting customer sales report export...", {
+    console.log("📊 Starting cash sales report export...", {
       startDate,
       endDate,
     });
     try {
-      const data = await reportsService.getCustomerSalesReport(
+      const data = await reportsService.getSalesReport(startDate, endDate);
+      // Filter for cash sales only
+      const cashSalesData = {
+        ...data,
+        data: {
+          ...data.data,
+          sales: data.data.sales.filter(sale => !sale.isCredit)
+        }
+      };
+      console.log("✅ Cash sales data filtered successfully:", cashSalesData);
+      const pdfBlob = reportsService.generateCashSalesPDF(
+        cashSalesData,
         startDate,
         endDate
       );
-      console.log("✅ Customer sales data fetched successfully:", data);
-      const pdfBlob = reportsService.generateCustomerSalesPDF(
-        data,
-        startDate,
-        endDate
-      );
-      console.log("📄 Customer sales PDF generated successfully");
+      console.log("📄 Cash sales PDF generated successfully");
       return pdfBlob;
     } catch (error) {
-      console.error("❌ Error exporting customer sales report:", error);
+      console.error("❌ Error exporting cash sales report:", error);
+      throw error;
+    }
+  },
+
+  exportCreditSalesReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    console.log("📊 Starting credit sales report export...", {
+      startDate,
+      endDate,
+    });
+    try {
+      const data = await reportsService.getSalesReport(startDate, endDate);
+      // Filter for credit sales only
+      const creditSalesData = {
+        ...data,
+        data: {
+          ...data.data,
+          sales: data.data.sales.filter(sale => sale.isCredit)
+        }
+      };
+      console.log("✅ Credit sales data filtered successfully:", creditSalesData);
+      const pdfBlob = reportsService.generateCreditSalesPDF(
+        creditSalesData,
+        startDate,
+        endDate
+      );
+      console.log("📄 Credit sales PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting credit sales report:", error);
       throw error;
     }
   },
@@ -766,19 +856,19 @@ export const reportsService = {
       );
 
       // Sales table
-      const tableData = data.data.sales.map((sale) => [
+      const tableData = data.data.sales.map((sale, index) => [
+        (index + 1).toString(),
         sale.id.toString(),
-        sale.customer?.name || "Cash",
         format(sale.createdAt, "dd-MM-yyyy"),
-        `TSH ${sale.total.toLocaleString()}`,
-        sale.status,
-        sale.isCredit ? "Yes" : "No",
+        sale.customer?.name || "Cash",
+        "System", // Sold By placeholder
+        sale.total.toLocaleString(),
       ]);
 
       console.log("📋 Sales table data prepared:", tableData.length, "rows");
 
       autoTable(doc, {
-        head: [["ID", "Customer", "Date", "Total", "Status", "Credit"]],
+        head: [["S/N", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
         body: tableData,
         startY: yPos,
         theme: "grid",
@@ -798,13 +888,13 @@ export const reportsService = {
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
       doc.text(
-        `Total Sales: TZS ${data.data.totalSales.toLocaleString()}`,
+        `Total Sales: ${data.data.totalSales.toLocaleString()}`,
         20,
         yPos
       );
       yPos += 8;
       doc.text(
-        `Credit Outstanding: TZS ${data.data.creditOutstanding.toLocaleString()}`,
+        `Credit Outstanding: ${data.data.creditOutstanding.toLocaleString()}`,
         20,
         yPos
       );
@@ -828,22 +918,24 @@ export const reportsService = {
     // Add company header
     let yPos = reportsService.addCompanyHeader(
       doc,
-      "Purchases Report",
+      "All Purchases Report",
       startDate,
       endDate
     );
 
-    // Purchases table
+    // Purchases table - need to get goods receiving data for the detailed view
+    // For now, using basic purchase order data
     const tableData = data.data.purchaseOrders.map((order) => [
-      order.id.toString(),
       order.supplier.name,
-      format(order.createdAt, "dd-MM-yyyy"),
+      "1", // Placeholder for Qty - would need to get from goods receiving
+      "0", // Placeholder for Price - would need to get from goods receiving
       `TZS ${order.totalCost.toLocaleString()}`,
-      order.status,
+      format(order.createdAt, "dd-MM-yyyy"), // Received Date
+      "System", // Received By - placeholder
     ]);
 
     autoTable(doc, {
-      head: [["ID", "Supplier", "Date", "Total Cost", "Status"]],
+      head: [["Item Name", "Qty", "Price", "Total", "Received Date", "Received By"]],
       body: tableData,
       startY: yPos,
       theme: "grid",
@@ -1304,6 +1396,210 @@ export const reportsService = {
     doc.setFontSize(12);
     doc.setFont("helvetica", "bold");
     doc.text(`Total Expenses: TZS ${data.data.totalExpenses.toLocaleString()}`, 20, totalY);
+
+    return doc.output("blob");
+  },
+
+  generateProductsPDF: (data: ProductsReport): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(doc, "Price List");
+
+    // Products table
+    const tableData = data.data.map((product, index) => [
+      (index + 1).toString(),
+      product.name,
+      product.price.toLocaleString(),
+    ]);
+
+    autoTable(doc, {
+      head: [["S/N", "Product Name", "Price"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    return doc.output("blob");
+  },
+
+  generateCashSalesPDF: (
+    data: SalesReport,
+    startDate?: string,
+    endDate?: string
+  ): Blob => {
+    console.log("🎨 Generating cash sales PDF...", {
+      salesCount: data.data.sales.length,
+    });
+    const doc = new jsPDF();
+
+    try {
+      // Add company header
+      let yPos = reportsService.addCompanyHeader(
+        doc,
+        "Cash Sales Report",
+        startDate,
+        endDate
+      );
+
+      // Cash sales table
+      const tableData = data.data.sales.map((sale, index) => [
+        (index + 1).toString(),
+        sale.id.toString(),
+        format(sale.createdAt, "dd-MM-yyyy"),
+        sale.customer?.name || "Cash",
+        "System", // Sold By placeholder
+        sale.total.toLocaleString(),
+      ]);
+
+      console.log("📋 Cash sales table data prepared:", tableData.length, "rows");
+
+      autoTable(doc, {
+        head: [["S/N", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
+        body: tableData,
+        startY: yPos,
+        theme: "grid",
+        styles: {fontSize: 8},
+        headStyles: {fillColor: [41, 128, 185]},
+      });
+
+      // Summary (after table)
+      const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+      yPos = finalY + 15;
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Summary", 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        `Total Cash Sales: ${data.data.totalSales.toLocaleString()}`,
+        20,
+        yPos
+      );
+
+      const blob = doc.output("blob");
+      console.log("✅ Cash sales PDF blob created, size:", blob.size, "bytes");
+      return blob;
+    } catch (error) {
+      console.error("❌ Error generating cash sales PDF:", error);
+      throw error;
+    }
+  },
+
+  generateCreditSalesPDF: (
+    data: SalesReport,
+    startDate?: string,
+    endDate?: string
+  ): Blob => {
+    console.log("🎨 Generating credit sales PDF...", {
+      salesCount: data.data.sales.length,
+    });
+    const doc = new jsPDF();
+
+    try {
+      // Add company header
+      let yPos = reportsService.addCompanyHeader(
+        doc,
+        "Credit Sales Report",
+        startDate,
+        endDate
+      );
+
+      // Credit sales table
+      const tableData = data.data.sales.map((sale, index) => [
+        (index + 1).toString(),
+        sale.id.toString(),
+        format(sale.createdAt, "dd-MM-yyyy"),
+        sale.customer?.name || "Cash",
+        "System", // Sold By placeholder
+        sale.total.toLocaleString(),
+        sale.status,
+      ]);
+
+      console.log("📋 Credit sales table data prepared:", tableData.length, "rows");
+
+      autoTable(doc, {
+        head: [["S/N", "Receipt #", "Date", "Customer", "Sold By", "Total", "Status"]],
+        body: tableData,
+        startY: yPos,
+        theme: "grid",
+        styles: {fontSize: 8},
+        headStyles: {fillColor: [41, 128, 185]},
+      });
+
+      // Summary (after table)
+      const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+      yPos = finalY + 15;
+
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Summary", 20, yPos);
+      yPos += 10;
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        `Total Credit Sales: ${data.data.totalSales.toLocaleString()}`,
+        20,
+        yPos
+      );
+      yPos += 8;
+      doc.text(
+        `Credit Outstanding: ${data.data.creditOutstanding.toLocaleString()}`,
+        20,
+        yPos
+      );
+
+      const blob = doc.output("blob");
+      console.log("✅ Credit sales PDF blob created, size:", blob.size, "bytes");
+      return blob;
+    } catch (error) {
+      console.error("❌ Error generating credit sales PDF:", error);
+      throw error;
+    }
+  },
+
+  generateGoodsReceivedPDF: (data: any, startDate?: string, endDate?: string): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Material Receiving Report",
+      startDate,
+      endDate
+    );
+
+    // Goods received table with detailed item information
+    const tableData: any[] = [];
+
+    data.goodsReceipts.forEach((receipt: any, index: number) => {
+      // For each goods receipt, we need to get the detailed items
+      // Since the API returns summary data, we'll use what's available
+      tableData.push([
+        (index + 1).toString(),
+        receipt.supplierName || "Unknown Supplier",
+        "Material", // Item Name placeholder - would need detailed API
+        "1", // Placeholder for quantity - would need detailed API
+        receipt.total.toLocaleString(),
+        format(receipt.receivedDate || receipt.createdAt, "dd-MM-yyyy"),
+        "System", // Received By placeholder
+      ]);
+    });
+
+    autoTable(doc, {
+      head: [["S/N", "Supplier", "Item Name", "Qty", "Price", "Received Date", "Received By"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
 
     return doc.output("blob");
   },

@@ -40,6 +40,7 @@ export interface Sale {
   tax: number;
   paymentMethod?: 'cash' | 'card' | 'mobile' | 'credit';
   status: 'completed' | 'unpaid';
+  paymentStatus?: 'PAID' | 'PARTIALLY_PAID' | 'UNPAID';
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -50,6 +51,18 @@ export interface Sale {
     email?: string;
     phone?: string;
   };
+  soldBy?: string;
+  outstandingBalance?: number;
+  paid?: number;
+}
+
+export interface Payment {
+  id: number;
+  amount: number;
+  customerId: number;
+  saleId: number;
+  paymentDate: string;
+  notes?: string;
 }
 
 export interface OrderItem {
@@ -170,6 +183,22 @@ export const salesService = {
 
   getSalesDashboard: async () => {
     const response = await api.get('/sales/dashboard');
+    return response.data;
+  },
+
+  // Payments
+  createPayment: async (saleId: number, amount: number): Promise<Payment> => {
+    const response = await api.post(`/sales/${saleId}/payments`, { amount });
+    return response.data;
+  },
+
+  getAllPayments: async (): Promise<Payment[]> => {
+    const response = await api.get('/sales/payments');
+    return response.data;
+  },
+
+  getPaymentsForSale: async (saleId: number): Promise<Payment[]> => {
+    const response = await api.get(`/sales/${saleId}/payments`);
     return response.data;
   },
 };

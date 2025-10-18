@@ -24,7 +24,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Eye, Loader2, Receipt, ReceiptText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -38,14 +40,17 @@ interface SalesTableProps {
   loading: boolean;
   error: string | null;
   isUnpaid?: boolean;
+  onPaymentRecorded?: () => void;
 }
 
-const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid = false }) => {
+const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid = false, onPaymentRecorded }) => {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
   const [printSale, setPrintSale] = useState<Sale | null>(null);
   const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -92,11 +97,61 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
     },
   });
 
+  const createPaymentMutation = useMutation({
+    mutationFn: ({ saleId, amount }: { saleId: number; amount: number }) =>
+      salesService.createPayment(saleId, amount),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Payment recorded successfully",
+      });
+      setIsPaymentDialogOpen(false);
+      setPaymentAmount('');
+      setSelectedSale(null);
+      queryClient.invalidateQueries({ queryKey: ['unpaidSales'] });
+      queryClient.invalidateQueries({ queryKey: ['outstanding-payments'] });
+      onPaymentRecorded?.();
+    },
+    onError: (error) => {
+      console.error('Error making payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to record payment",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCompleteSale = (sale: Sale) => {
     if (!sale.id) return;
     payMutation.mutate(sale.id);
     setOpen(false);
     setSelectedSale(null);
+  };
+
+  const handleMakePayment = () => {
+    if (!selectedSale || !paymentAmount) return;
+
+    const amount = parseFloat(paymentAmount);
+    if (amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Payment amount must be greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (amount > (selectedSale.outstandingBalance || 0)) {
+      toast({
+        title: "Invalid Amount",
+        description: "Payment amount cannot exceed outstanding balance",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createPaymentMutation.mutate({ saleId: selectedSale.id, amount });
   };
 
   const handlePrintReceipt = () => {
@@ -357,20 +412,62 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                   </Button>
                   {isUnpaid && (
                     sale.status === 'unpaid' ? (
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setSelectedSale(sale);
-                          setOpen(true);
-                        }}
-                        disabled={payMutation.isPending}
-                        className="mr-2"
-                      >
-                        {payMutation.isPending ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : null}
-                        Pay
-                      </Button>
+                      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedSale(sale);
+                              setIsPaymentDialogOpen(true);
+                            }}
+                            disabled={createPaymentMutation.isPending}
+                            className="mr-2"
+                          >
+                            {createPaymentMutation.isPending ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : null}
+                            Record Payment
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Record Payment for Sale #{selectedSale?.id}</DialogTitle>
+                          </DialogHeader>
+                          <div className="space-y-4">
+                            <div>
+                              <Label htmlFor="amount">Payment Amount</Label>
+                              <Input
+                                id="amount"
+                                type="number"
+                                step="0.01"
+                                value={paymentAmount}
+                                onChange={(e) => setPaymentAmount(e.target.value)}
+                                placeholder="Enter payment amount"
+                              />
+                              {selectedSale && (
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Outstanding balance: {formatCurrency(selectedSale.outstandingBalance || 0)}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex justify-end space-x-2">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setIsPaymentDialogOpen(false);
+                                  setPaymentAmount('');
+                                  setSelectedSale(null);
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <Button onClick={handleMakePayment}>
+                                Record Payment
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     ) : null
                   )}
                 </TableCell>

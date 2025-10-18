@@ -14,6 +14,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { reportsService } from "../services/reports";
+import { suppliersService, Supplier } from "../services/suppliers";
+
 
 const Reports = () => {
   const [activeTab, setActiveTab] = useState("sales");
@@ -23,7 +25,14 @@ const Reports = () => {
   const [selectedInventoryReport, setSelectedInventoryReport] = useState("");
   const [selectedProductionReport, setSelectedProductionReport] = useState("");
   const [selectedAccountingReport, setSelectedAccountingReport] = useState("");
+  const [selectedSupplier, setSelectedSupplier] = useState("");
   const { toast } = useToast();
+
+  // Fetch suppliers for filtering
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ['suppliers'],
+    queryFn: suppliersService.getAll,
+  });
 
   // Export mutations for each report type
   const exportSalesMutation = useMutation({
@@ -32,10 +41,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('sales'));
+      previewBlob(blob, generateFilename('sales'));
       toast({
         title: "Success",
-        description: "Sales report exported successfully",
+        description: "Sales report generated successfully",
       });
     },
     onError: () => {
@@ -47,22 +56,43 @@ const Reports = () => {
     },
   });
 
-  const exportCustomerSalesMutation = useMutation({
-    mutationFn: () => reportsService.exportCustomerSalesReport(
+  const exportCashSalesMutation = useMutation({
+    mutationFn: () => reportsService.exportCashSalesReport(
       dateRange?.from?.toISOString().split('T')[0],
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('customer-sales'));
+      previewBlob(blob, generateFilename('cash-sales'));
       toast({
         title: "Success",
-        description: "Customer sales report exported successfully",
+        description: "Cash sales report generated successfully",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to export customer sales report",
+        description: "Failed to generate cash sales report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportCreditSalesMutation = useMutation({
+    mutationFn: () => reportsService.exportCreditSalesReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('credit-sales'));
+      toast({
+        title: "Success",
+        description: "Credit sales report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to generate credit sales report",
         variant: "destructive",
       });
     },
@@ -74,10 +104,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('purchases'));
+      previewBlob(blob, generateFilename('purchases'));
       toast({
         title: "Success",
-        description: "Purchases report exported successfully",
+        description: "Purchases report generated successfully",
       });
     },
     onError: () => {
@@ -95,10 +125,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('supplier-purchases'));
+      previewBlob(blob, generateFilename('supplier-purchases'));
       toast({
         title: "Success",
-        description: "Supplier-wise purchases report exported successfully",
+        description: "Supplier-wise purchases report generated successfully",
       });
     },
     onError: () => {
@@ -116,10 +146,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('ingredient-trend'));
+      previewBlob(blob, generateFilename('ingredient-trend'));
       toast({
         title: "Success",
-        description: "Ingredient purchase trend report exported successfully",
+        description: "Ingredient purchase trend report generated successfully",
       });
     },
     onError: () => {
@@ -137,10 +167,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('finished-goods'));
+      previewBlob(blob, generateFilename('finished-goods'));
       toast({
         title: "Success",
-        description: "Finished goods summary report exported successfully",
+        description: "Finished goods summary report generated successfully",
       });
     },
     onError: () => {
@@ -158,10 +188,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('ingredient-usage'));
+      previewBlob(blob, generateFilename('ingredient-usage'));
       toast({
         title: "Success",
-        description: "Ingredient usage report exported successfully",
+        description: "Ingredient usage report generated successfully",
       });
     },
     onError: () => {
@@ -179,10 +209,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('production'));
+      previewBlob(blob, generateFilename('production'));
       toast({
         title: "Success",
-        description: "Production report exported successfully",
+        description: "Production report generated successfully",
       });
     },
     onError: () => {
@@ -197,10 +227,10 @@ const Reports = () => {
   const exportInventoryMutation = useMutation({
     mutationFn: () => reportsService.exportInventoryReport(),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('material'));
+      previewBlob(blob, generateFilename('material'));
       toast({
         title: "Success",
-        description: "Inventory report exported successfully",
+        description: "Inventory report generated successfully",
       });
     },
     onError: () => {
@@ -218,10 +248,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('financial'));
+      previewBlob(blob, generateFilename('financial'));
       toast({
         title: "Success",
-        description: "Financial report exported successfully",
+        description: "Financial report generated successfully",
       });
     },
     onError: () => {
@@ -239,10 +269,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('profit-loss'));
+      previewBlob(blob, generateFilename('profit-loss'));
       toast({
         title: "Success",
-        description: "Profit and Loss report exported successfully",
+        description: "Profit and Loss report generated successfully",
       });
     },
     onError: () => {
@@ -260,10 +290,10 @@ const Reports = () => {
       dateRange?.to?.toISOString().split('T')[0]
     ),
     onSuccess: (blob) => {
-      downloadBlob(blob, generateFilename('expense-breakdown'));
+      previewBlob(blob, generateFilename('expense-breakdown'));
       toast({
         title: "Success",
-        description: "Expense breakdown report exported successfully",
+        description: "Expense breakdown report generated successfully",
       });
     },
     onError: () => {
@@ -275,23 +305,56 @@ const Reports = () => {
     },
   });
 
+  const exportProductsMutation = useMutation({
+    mutationFn: () => reportsService.exportProductsReport(),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('products'));
+      toast({
+        title: "Success",
+        description: "Products report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export products report",
+        variant: "destructive",
+      });
+    },
+  });
 
-  const downloadBlob = (blob: Blob, filename: string) => {
-    console.log('💾 Creating download for blob:', { size: blob.size, type: blob.type, filename });
+  const exportGoodsReceivedMutation = useMutation({
+    mutationFn: () => reportsService.exportGoodsReceivedReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0],
+      selectedSupplier && selectedSupplier !== "all" ? parseInt(selectedSupplier) : undefined
+    ),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('goods-received'));
+      toast({
+        title: "Success",
+        description: "Goods received report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export goods received report",
+        variant: "destructive",
+      });
+    },
+  });
+
+
+  const previewBlob = (blob: Blob, filename: string) => {
+    console.log('💾 Creating preview for blob:', { size: blob.size, type: blob.type, filename });
     try {
       const url = window.URL.createObjectURL(blob);
       console.log('🔗 Blob URL created:', url);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      console.log('📎 Triggering download...');
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-      console.log('✅ Download completed');
+      window.open(url, '_blank');
+      console.log('✅ Preview opened in new tab');
     } catch (error) {
-      console.error('❌ Error in downloadBlob:', error);
+      console.error('❌ Error in previewBlob:', error);
     }
   };
 
@@ -299,8 +362,8 @@ const Reports = () => {
     console.log('🧪 Testing PDF generation...');
     try {
       const blob = reportsService.testPDFGeneration();
-      downloadBlob(blob, 'test-report.pdf');
-      console.log('✅ Test PDF download initiated');
+      previewBlob(blob, 'test-report.pdf');
+      console.log('✅ Test PDF preview initiated');
     } catch (error) {
       console.error('❌ Test PDF failed:', error);
     }
@@ -315,17 +378,14 @@ const Reports = () => {
       case 'sales':
         exportSalesMutation.mutate();
         break;
-      case 'customer-sales':
-        exportCustomerSalesMutation.mutate();
+      case 'cash-sales':
+        exportCashSalesMutation.mutate();
         break;
-      case 'purchases':
-        exportPurchasesMutation.mutate();
+      case 'credit-sales':
+        exportCreditSalesMutation.mutate();
         break;
-      case 'supplier-purchases':
-        exportSupplierWisePurchasesMutation.mutate();
-        break;
-      case 'ingredient-trend':
-        exportIngredientPurchaseTrendMutation.mutate();
+      case 'products':
+        exportProductsMutation.mutate();
         break;
       case 'production':
         exportProductionMutation.mutate();
@@ -364,6 +424,12 @@ const Reports = () => {
       case 'expense-breakdown':
         exportExpenseBreakdownMutation.mutate();
         break;
+      case 'products':
+        exportProductsMutation.mutate();
+        break;
+      case 'goods-received':
+        exportGoodsReceivedMutation.mutate();
+        break;
     }
   };
 
@@ -385,17 +451,17 @@ const Reports = () => {
   };
 
   const isExporting = exportSalesMutation.isPending ||
-                      exportCustomerSalesMutation.isPending ||
-                      exportPurchasesMutation.isPending ||
-                      exportSupplierWisePurchasesMutation.isPending ||
-                      exportIngredientPurchaseTrendMutation.isPending ||
+                      exportCashSalesMutation.isPending ||
+                      exportCreditSalesMutation.isPending ||
                       exportProductionMutation.isPending ||
                       exportFinishedGoodsSummaryMutation.isPending ||
                       exportIngredientUsageMutation.isPending ||
                       exportInventoryMutation.isPending ||
                       exportFinancialMutation.isPending ||
                       exportProfitAndLossMutation.isPending ||
-                      exportExpenseBreakdownMutation.isPending;
+                      exportExpenseBreakdownMutation.isPending ||
+                      exportProductsMutation.isPending ||
+                      exportGoodsReceivedMutation.isPending;
 
   return (
     <Layout>
@@ -434,7 +500,9 @@ const Reports = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="sales">Sales Report</SelectItem>
-                        <SelectItem value="customer-sales">Customer Sales Report</SelectItem>
+                        <SelectItem value="cash-sales">Cash Report</SelectItem>
+                        <SelectItem value="credit-sales">Credit Report</SelectItem>
+                        <SelectItem value="products">Price List</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -456,7 +524,7 @@ const Reports = () => {
                     disabled={isExporting || !selectedSalesReport}
                     className="shadow-warm"
                   >
-                    {(exportSalesMutation.isPending || exportCustomerSalesMutation.isPending) ? (
+                    {(exportSalesMutation.isPending || exportCashSalesMutation.isPending || exportCreditSalesMutation.isPending || exportProductsMutation.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...
@@ -464,7 +532,7 @@ const Reports = () => {
                     ) : (
                       <>
                         <Download className="h-4 w-4 mr-2" />
-                        Export PDF
+                        Generate PDF
                       </>
                     )}
                   </Button>
@@ -488,9 +556,7 @@ const Reports = () => {
                         <SelectValue placeholder="Select purchases report type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="purchases">Purchases Report</SelectItem>
-                        <SelectItem value="supplier-purchases">Supplier-wise Purchases</SelectItem>
-                        <SelectItem value="ingredient-trend">Ingredient Purchase Trend</SelectItem>
+                        <SelectItem value="goods-received">Material Receiving Report</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -503,6 +569,22 @@ const Reports = () => {
                     />
                   </div>
                 </div>
+                <div className="mt-4">
+                  <Label className="text-sm font-medium">Supplier Filter (Optional)</Label>
+                  <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+                    <SelectTrigger className="my-1">
+                      <SelectValue placeholder="All Suppliers" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Suppliers</SelectItem>
+                      {suppliers.map((supplier) => (
+                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                          {supplier.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-end">
@@ -511,7 +593,7 @@ const Reports = () => {
                     disabled={isExporting || !selectedPurchasesReport}
                     className="shadow-warm"
                   >
-                    {(exportPurchasesMutation.isPending || exportSupplierWisePurchasesMutation.isPending || exportIngredientPurchaseTrendMutation.isPending) ? (
+                    {exportGoodsReceivedMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...
@@ -519,7 +601,7 @@ const Reports = () => {
                     ) : (
                       <>
                         <Download className="h-4 w-4 mr-2" />
-                        Export PDF
+                        Generate PDF
                       </>
                     )}
                   </Button>
@@ -546,6 +628,7 @@ const Reports = () => {
                         <SelectItem value="material">Current Material Levels</SelectItem>
                         <SelectItem value="low-stock">Low Stock Alert Report</SelectItem>
                         <SelectItem value="stock-adjustment">Stock Adjustment Report</SelectItem>
+                        <SelectItem value="products">Price List</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -576,7 +659,7 @@ const Reports = () => {
                     ) : (
                       <>
                         <Download className="h-4 w-4 mr-2" />
-                        Export PDF
+                        Generate PDF
                       </>
                     )}
                   </Button>
