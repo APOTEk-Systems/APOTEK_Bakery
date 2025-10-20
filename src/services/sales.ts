@@ -63,6 +63,12 @@ export interface Payment {
   saleId: number;
   paymentDate: string;
   notes?: string;
+  customer?: {
+    id: number;
+    name: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 export interface OrderItem {

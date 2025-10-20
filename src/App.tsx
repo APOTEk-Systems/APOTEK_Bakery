@@ -24,8 +24,6 @@ const Customers = lazy(() => import("./pages/Customers"));
 const CustomerDetail = lazy(() => import("./pages/CustomerDetail"));
 const CustomerForm = lazy(() => import("./pages/CustomerForm"));
 const Sales = lazy(() => import("./pages/Sales"));
-const OutstandingPayments = lazy(() => import("./pages/OutstandingPayments"));
-const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const NewSale = lazy(() => import("./pages/NewSale"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
@@ -173,16 +171,6 @@ const App = () => (
               <Route path="/sales/:id" element={
                 <ProtectedRoute>
                   <SaleDetail />
-                </ProtectedRoute>
-              } />
-              <Route path="/sales/outstanding" element={
-                <ProtectedRoute>
-                  <OutstandingPayments />
-                </ProtectedRoute>
-              } />
-              <Route path="/sales/payments" element={
-                <ProtectedRoute>
-                  <PaymentHistory />
                 </ProtectedRoute>
               } />
               <Route path="/production" element={

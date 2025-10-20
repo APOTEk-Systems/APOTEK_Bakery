@@ -96,7 +96,7 @@ const Checkout = ({
                     <SelectValue placeholder="Cash" />
                   </SelectTrigger>
                   <SelectContent>
-                    {customers.map((c) => (
+                    {customers.filter(c => c.status === 'active').map((c) => (
                       <SelectItem key={c.id} value={c.id.toString()}>
                         {c.name}
                       </SelectItem>

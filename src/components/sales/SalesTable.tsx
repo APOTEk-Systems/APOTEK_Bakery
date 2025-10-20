@@ -371,35 +371,34 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
 
   return (
     <>
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {/* <TableHead>Sale ID</TableHead> */}
-              <TableHead>Recepit #</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Amount</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
-              
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {salesToRender.map((sale, index) => (
-              <TableRow key={sale.id} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                {/* <TableCell>{sale.id}</TableCell> */}
-                <TableCell> {sale.id} </TableCell>
-                <TableCell className='font-medium py-1'>{sale.customer?.name || 'Cash'}</TableCell>
-                <TableCell className="py-1">{format(new Date(sale.createdAt), 'dd-MM-yyyy')}</TableCell>
-               
-                <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
-                <TableCell className="py-1">
-                  <Badge variant={getStatusVariant(sale.status)}>
-                    {sale.status.toUpperCase()}
-                  </Badge>
-                </TableCell>
-                <TableCell className="py-1">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            {/* <TableHead>Sale ID</TableHead> */}
+            <TableHead>Recepit #</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Date</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Actions</TableHead>
+
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {salesToRender.map((sale, index) => (
+            <TableRow key={sale.id} className={index % 2 === 0 ? 'bg-muted/50' : ''}>
+              {/* <TableCell>{sale.id}</TableCell> */}
+              <TableCell> {sale.id} </TableCell>
+              <TableCell className='font-medium py-1'>{sale.customer?.name || 'Cash'}</TableCell>
+              <TableCell className="py-1">{format(new Date(sale.createdAt), 'dd-MM-yyyy')}</TableCell>
+
+              <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
+              <TableCell className="py-1">
+                <Badge variant={getStatusVariant(sale.status)}>
+                  {sale.status.toUpperCase()}
+                </Badge>
+              </TableCell>
+              <TableCell className="py-1">
                   <Button variant="outline" size="sm" asChild className="mr-2">
                     <Link to={`/sales/${sale.id}${isUnpaid ? '?tab=unpaid' : '?tab=recent'}`}>
                     <Eye className='w-4 h-4' />
@@ -474,9 +473,8 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                 
               </TableRow>
             ))}
-          </TableBody>
-        </Table>
-      </div>
+        </TableBody>
+      </Table>
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>

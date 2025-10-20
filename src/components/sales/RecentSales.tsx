@@ -109,7 +109,7 @@ const RecentSales: React.FC = () => {
               <SelectValue placeholder="Filter by customer" />
             </SelectTrigger>
             <SelectContent>
-              
+
               {customersWithCash.map(customer => (
                 <SelectItem key={customer.id} value={customer.name}>
                   {customer.name}
@@ -155,12 +155,12 @@ const RecentSales: React.FC = () => {
                   <PaginationNext
                     onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
                     className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-        )}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
       </CardContent>
     </Card>
   );

@@ -2,7 +2,8 @@ import React from 'react';
 import { useSearchParams } from 'react-router-dom';
 import Layout from "../components/Layout";
 import RecentSales from '@/components/sales/RecentSales';
-import UnpaidSales from '@/components/sales/UnpaidSales';
+import OutstandingPaymentsTab from '@/components/sales/OutstandingPaymentsTab';
+import PaymentHistoryTab from '@/components/sales/PaymentHistoryTab';
 import {
   Tabs,
   TabsContent,
@@ -55,17 +56,21 @@ const Sales: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="recent">Recent Sales</TabsTrigger>
-            <TabsTrigger value="unpaid">Unpaid Sales</TabsTrigger>
-          </TabsList>
-          <TabsContent value="recent">
-            <RecentSales />
-          </TabsContent>
-          <TabsContent value="unpaid">
-            <UnpaidSales />
-          </TabsContent>
-        </Tabs>
+           <TabsList className="grid w-full grid-cols-3">
+             <TabsTrigger value="recent">Recent Sales</TabsTrigger>
+             <TabsTrigger value="unpaid">Outstanding Payments</TabsTrigger>
+             <TabsTrigger value="payments">Payment History</TabsTrigger>
+           </TabsList>
+           <TabsContent value="recent">
+             <RecentSales />
+           </TabsContent>
+           <TabsContent value="unpaid">
+             <OutstandingPaymentsTab />
+           </TabsContent>
+           <TabsContent value="payments">
+             <PaymentHistoryTab />
+           </TabsContent>
+         </Tabs>
       </div>
       </Layout>
   );
