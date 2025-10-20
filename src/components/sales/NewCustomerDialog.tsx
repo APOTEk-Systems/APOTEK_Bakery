@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
+import { toSentenceCase } from "@/lib/funcs";
 
 interface NewCustomerDialogProps {
   isNewCustomerOpen: boolean;
@@ -69,7 +70,7 @@ const NewCustomerDialog = ({
               placeholder="Customer name"
               value={newCustomerForm.name}
               onChange={(e) =>
-                setNewCustomerForm({...newCustomerForm, name: e.target.value})
+                setNewCustomerForm({...newCustomerForm, name: toSentenceCase(e.target.value)})
               }
             />
           </div>

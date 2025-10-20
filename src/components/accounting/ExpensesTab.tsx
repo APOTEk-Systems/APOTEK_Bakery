@@ -166,6 +166,7 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                     <TableHead>Date</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Amount</TableHead>
+                    <TableHead>Payment Method</TableHead>
                     <TableHead>Notes</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -173,14 +174,15 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                 <TableBody>
                   {expenses.map((expense) => (
                     <TableRow key={expense.id}>
-                      <TableCell>{format(new Date(expense.date), "dd-MM-yyyy")}</TableCell>
-                      <TableCell>
-                        <Badge className={getCategoryColor(expense.expenseCategory?.name.toLowerCase() || 'other')} variant="outline">
-                          {expense.expenseCategory?.name || 'Unknown'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{formatCurrency(expense?.amount).replace("TSH", "")}</TableCell>
-                      <TableCell>{expense.notes}</TableCell>
+                        <TableCell>{format(new Date(expense.date), "dd-MM-yyyy")}</TableCell>
+                        <TableCell>
+                          <Badge className={getCategoryColor(expense.expenseCategory?.name.toLowerCase() || 'other')} variant="outline">
+                            {expense.expenseCategory?.name || 'Unknown'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{formatCurrency(expense?.amount).replace("TSH", "")}</TableCell>
+                        <TableCell>{expense.paymentMethod ? expense.paymentMethod.replace('_', ' ').toUpperCase() : 'CASH'}</TableCell>
+                        <TableCell>{expense.notes}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" size="sm" onClick={() => {

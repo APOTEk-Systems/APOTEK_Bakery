@@ -5,6 +5,7 @@ export interface Expense {
   amount: number;
   date: string;
   status: string;
+  paymentMethod?: 'cash' | 'mobile' | 'bank_transfer';
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -42,6 +43,7 @@ export const expensesService = {
   createExpense: async (expenseData: {
     amount: number;
     date: string;
+    paymentMethod?: 'cash' | 'mobile' | 'bank_transfer';
     notes: string | null;
     expenseCategoryId: number;
   }): Promise<Expense> => {

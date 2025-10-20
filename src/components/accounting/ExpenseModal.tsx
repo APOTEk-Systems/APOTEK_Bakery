@@ -27,6 +27,7 @@ interface Expense {
   amount: number;
   date: string;
   status: string;
+  paymentMethod?: 'cash' | 'mobile' | 'bank_transfer';
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -44,6 +45,7 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
   const [date, setDate] = useState<Date | undefined>(mode === 'add' ? new Date() : undefined);
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mobile' | 'bank_transfer'>("cash");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,11 +70,13 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
       setDate(new Date(expense.date));
       setCategory(expense.expenseCategoryId.toString());
       setAmount(expense.amount.toString());
+      setPaymentMethod(expense.paymentMethod || "cash");
       setNotes(expense.notes || "");
     } else if (mode === 'add' && isOpen) {
       setDate(new Date());
       setCategory(categories.length > 0 ? categories[0].id.toString() : "");
       setAmount("");
+      setPaymentMethod("cash");
       setNotes("");
     }
   }, [expense, mode, isOpen, categories]);
@@ -91,6 +95,7 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
     const expenseData = {
       amount: parseFloat(amount),
       date: date.toISOString(),
+      paymentMethod,
       notes: notes.trim() || null,
       expenseCategoryId: parseInt(category),
     };
@@ -192,6 +197,21 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
                 placeholder="0.00"
                 step="0.01"
               />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="paymentMethod" className="text-right">
+                Payment Method
+              </Label>
+              <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'cash' | 'mobile' | 'bank_transfer')}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select payment method" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="mobile">Mobile</SelectItem>
+                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="notes" className="text-right">

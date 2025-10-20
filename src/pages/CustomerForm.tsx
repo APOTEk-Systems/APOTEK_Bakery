@@ -18,6 +18,7 @@ import {useToast} from "@/hooks/use-toast";
 import {ArrowLeft, Save, User, Loader2} from "lucide-react";
 import {PastryProSpinner} from "@/components/ui/PastryProSpinner";
 import {customersService, type Customer} from "../services/customers";
+import { toSentenceCase } from "../lib/funcs";
 
 const CustomerForm = () => {
   const {id} = useParams();
@@ -270,7 +271,7 @@ const CustomerForm = () => {
                       id="name"
                       value={formData.name}
                       onChange={(e) =>
-                        handleInputChange("name", e.target.value)
+                        handleInputChange("name", toSentenceCase(e.target.value))
                       }
                       placeholder="Enter customer's full name"
                       required
