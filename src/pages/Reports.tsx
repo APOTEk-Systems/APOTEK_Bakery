@@ -224,20 +224,208 @@ const Reports = () => {
     },
   });
 
-  const exportInventoryMutation = useMutation({
-    mutationFn: () => reportsService.exportInventoryReport(),
+  const exportMaterialsInventoryMutation = useMutation({
+    mutationFn: () => reportsService.exportInventoryReport('raw_material'),
     onSuccess: (blob) => {
-      previewBlob(blob, generateFilename('material'));
+      previewBlob(blob, generateFilename('materials-current'));
       toast({
         title: "Success",
-        description: "Inventory report generated successfully",
+        description: "Materials current stock report generated successfully",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to export inventory report",
+        description: "Failed to export materials current stock report",
         variant: "destructive",
+      });
+    },
+  });
+
+  const exportSuppliesInventoryMutation = useMutation({
+    mutationFn: () => reportsService.exportInventoryReport('supplies'),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('supplies-current'));
+      toast({
+        title: "Success",
+        description: "Supplies current stock report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export supplies current stock report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportMaterialsAdjustmentsMutation = useMutation({
+    mutationFn: () => reportsService.exportInventoryAdjustmentsReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0],
+      'raw_material'
+    ),
+    onSuccess: (blob) => {
+      if (blob) {
+        previewBlob(blob, generateFilename('materials-adjustment'));
+        toast({
+          title: "Success",
+          description: "Materials adjustments report generated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No adjustments found for materials",
+          variant: "default",
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error.message || "Failed to export materials adjustments report";
+      toast({
+        title: "Info",
+        description: errorMessage,
+        variant: errorMessage.includes("No adjustments found") ? "default" : "destructive",
+      });
+    },
+  });
+
+  const exportSuppliesAdjustmentsMutation = useMutation({
+    mutationFn: () => reportsService.exportInventoryAdjustmentsReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0],
+      'supplies'
+    ),
+    onSuccess: (blob) => {
+      if (blob) {
+        previewBlob(blob, generateFilename('supplies-adjustment'));
+        toast({
+          title: "Success",
+          description: "Supplies adjustments report generated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No adjustments found for supplies",
+          variant: "default",
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error.message || "Failed to export supplies adjustments report";
+      toast({
+        title: "Info",
+        description: errorMessage,
+        variant: errorMessage.includes("No adjustments found") ? "default" : "destructive",
+      });
+    },
+  });
+
+  const exportMaterialsLowStockMutation = useMutation({
+    mutationFn: () => reportsService.exportLowStockReport('raw_material'),
+    onSuccess: (blob) => {
+      if (blob) {
+        previewBlob(blob, generateFilename('materials-low-stock'));
+        toast({
+          title: "Success",
+          description: "Materials low stock report generated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No items found below minimum stock level for materials",
+          variant: "default",
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error.message || "Failed to export materials low stock report";
+      toast({
+        title: "Info",
+        description: errorMessage,
+        variant: errorMessage.includes("No items found") ? "default" : "destructive",
+      });
+    },
+  });
+
+  const exportSuppliesLowStockMutation = useMutation({
+    mutationFn: () => reportsService.exportLowStockReport('supplies'),
+    onSuccess: (blob) => {
+      if (blob) {
+        previewBlob(blob, generateFilename('supplies-low-stock'));
+        toast({
+          title: "Success",
+          description: "Supplies low stock report generated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No items found below minimum stock level for supplies",
+          variant: "default",
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error.message || "Failed to export supplies low stock report";
+      toast({
+        title: "Info",
+        description: errorMessage,
+        variant: errorMessage.includes("No items found") ? "default" : "destructive",
+      });
+    },
+  });
+
+  const exportMaterialsOutOfStockMutation = useMutation({
+    mutationFn: () => reportsService.exportOutOfStockReport('raw_material'),
+    onSuccess: (blob) => {
+      if (blob) {
+        previewBlob(blob, generateFilename('materials-out-of-stock'));
+        toast({
+          title: "Success",
+          description: "Materials out of stock report generated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No out of stock items found for materials",
+          variant: "default",
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error.message || "Failed to export materials out of stock report";
+      toast({
+        title: "Info",
+        description: errorMessage,
+        variant: errorMessage.includes("No out of stock items found") ? "default" : "destructive",
+      });
+    },
+  });
+
+  const exportSuppliesOutOfStockMutation = useMutation({
+    mutationFn: () => reportsService.exportOutOfStockReport('supplies'),
+    onSuccess: (blob) => {
+      if (blob) {
+        previewBlob(blob, generateFilename('supplies-out-of-stock'));
+        toast({
+          title: "Success",
+          description: "Supplies out of stock report generated successfully",
+        });
+      } else {
+        toast({
+          title: "Info",
+          description: "No out of stock items found for supplies",
+          variant: "default",
+        });
+      }
+    },
+    onError: (error) => {
+      const errorMessage = error.message || "Failed to export supplies out of stock report";
+      toast({
+        title: "Info",
+        description: errorMessage,
+        variant: errorMessage.includes("No out of stock items found") ? "default" : "destructive",
       });
     },
   });
@@ -323,6 +511,24 @@ const Reports = () => {
     },
   });
 
+  const exportProductDetailsMutation = useMutation({
+    mutationFn: () => reportsService.exportProductDetailsReport(),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('product-details'));
+      toast({
+        title: "Success",
+        description: "Product details report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export product details report",
+        variant: "destructive",
+      });
+    },
+  });
+
   const exportGoodsReceivedMutation = useMutation({
     mutationFn: () => reportsService.exportGoodsReceivedReport(
       dateRange?.from?.toISOString().split('T')[0],
@@ -397,23 +603,31 @@ const Reports = () => {
         exportIngredientUsageMutation.mutate();
         break;
       case 'material':
-        exportInventoryMutation.mutate();
+        exportMaterialsInventoryMutation.mutate();
         break;
-      case 'low-stock':
-        // Placeholder - not implemented yet
-        toast({
-          title: "Not Implemented",
-          description: "Low stock alert report is not yet implemented",
-          variant: "destructive",
-        });
+      case 'materials-low-stock':
+        exportMaterialsLowStockMutation.mutate();
         break;
-      case 'stock-adjustment':
-        // Placeholder - not implemented yet
-        toast({
-          title: "Not Implemented",
-          description: "Stock adjustment report is not yet implemented",
-          variant: "destructive",
-        });
+      case 'supplies-low-stock':
+        exportSuppliesLowStockMutation.mutate();
+        break;
+      case 'materials-adjustment':
+        exportMaterialsAdjustmentsMutation.mutate();
+        break;
+      case 'supplies-adjustment':
+        exportSuppliesAdjustmentsMutation.mutate();
+        break;
+      case 'materials-out-of-stock':
+        exportMaterialsOutOfStockMutation.mutate();
+        break;
+      case 'supplies-out-of-stock':
+        exportSuppliesOutOfStockMutation.mutate();
+        break;
+      case 'materials-current':
+        exportMaterialsInventoryMutation.mutate();
+        break;
+      case 'supplies-current':
+        exportSuppliesInventoryMutation.mutate();
         break;
       case 'financial':
         exportFinancialMutation.mutate();
@@ -429,6 +643,9 @@ const Reports = () => {
         break;
       case 'goods-received':
         exportGoodsReceivedMutation.mutate();
+        break;
+      case 'product-details':
+        exportProductDetailsMutation.mutate();
         break;
     }
   };
@@ -451,17 +668,25 @@ const Reports = () => {
   };
 
   const isExporting = exportSalesMutation.isPending ||
-                      exportCashSalesMutation.isPending ||
-                      exportCreditSalesMutation.isPending ||
-                      exportProductionMutation.isPending ||
-                      exportFinishedGoodsSummaryMutation.isPending ||
-                      exportIngredientUsageMutation.isPending ||
-                      exportInventoryMutation.isPending ||
-                      exportFinancialMutation.isPending ||
-                      exportProfitAndLossMutation.isPending ||
-                      exportExpenseBreakdownMutation.isPending ||
-                      exportProductsMutation.isPending ||
-                      exportGoodsReceivedMutation.isPending;
+                        exportCashSalesMutation.isPending ||
+                        exportCreditSalesMutation.isPending ||
+                        exportProductionMutation.isPending ||
+                        exportFinishedGoodsSummaryMutation.isPending ||
+                        exportIngredientUsageMutation.isPending ||
+                        exportMaterialsInventoryMutation.isPending ||
+                        exportSuppliesInventoryMutation.isPending ||
+                        exportMaterialsAdjustmentsMutation.isPending ||
+                        exportSuppliesAdjustmentsMutation.isPending ||
+                        exportMaterialsLowStockMutation.isPending ||
+                        exportSuppliesLowStockMutation.isPending ||
+                        exportMaterialsOutOfStockMutation.isPending ||
+                        exportSuppliesOutOfStockMutation.isPending ||
+                        exportFinancialMutation.isPending ||
+                        exportProfitAndLossMutation.isPending ||
+                        exportExpenseBreakdownMutation.isPending ||
+                        exportProductsMutation.isPending ||
+                        exportProductDetailsMutation.isPending ||
+                        exportGoodsReceivedMutation.isPending;
 
   return (
     <Layout>
@@ -625,14 +850,19 @@ const Reports = () => {
                         <SelectValue placeholder="Select inventory report type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="material">Current Material Levels</SelectItem>
-                        <SelectItem value="low-stock">Low Stock Alert Report</SelectItem>
-                        <SelectItem value="stock-adjustment">Stock Adjustment Report</SelectItem>
-                        <SelectItem value="products">Price List</SelectItem>
+                        <SelectItem value="materials-current">Materials Current Stock</SelectItem>
+                        <SelectItem value="supplies-current">Supplies Current Stock</SelectItem>
+                        <SelectItem value="materials-low-stock">Materials Below Min Level</SelectItem>
+                        <SelectItem value="supplies-low-stock">Supplies Below Min Level</SelectItem>
+                        <SelectItem value="materials-adjustment">Materials Adjustments</SelectItem>
+                        <SelectItem value="supplies-adjustment">Supplies Adjustments</SelectItem>
+                        <SelectItem value="materials-out-of-stock">Materials Out of Stock</SelectItem>
+                        <SelectItem value="supplies-out-of-stock">Supplies Out of Stock</SelectItem>
+                        <SelectItem value="product-details">Product Details</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  {(selectedInventoryReport === 'low-stock' || selectedInventoryReport === 'stock-adjustment') && (
+                  {(selectedInventoryReport === 'materials-low-stock' || selectedInventoryReport === 'supplies-low-stock' || selectedInventoryReport === 'materials-adjustment' || selectedInventoryReport === 'supplies-adjustment') && (
                     <div className="flex-1">
                       <Label className="text-sm font-medium">Date Range</Label>
                       <DateRangePicker
@@ -648,10 +878,10 @@ const Reports = () => {
                 <div className="flex justify-end">
                   <Button
                     onClick={() => handleExport(selectedInventoryReport)}
-                    disabled={isExporting || !selectedInventoryReport || selectedInventoryReport === 'low-stock' || selectedInventoryReport === 'stock-adjustment'}
+                    disabled={isExporting || !selectedInventoryReport}
                     className="shadow-warm"
                   >
-                    {exportInventoryMutation.isPending ? (
+                    {exportMaterialsInventoryMutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...

@@ -214,24 +214,35 @@ const OutstandingPaymentsTab: React.FC = () => {
                           </DialogTrigger>
                           <DialogContent>
                             <DialogHeader>
-                              <DialogTitle>Record Payment for Sale #{selectedSale?.id}</DialogTitle>
+                              <DialogTitle>Record Payment</DialogTitle>
                             </DialogHeader>
                             <div className="space-y-4">
-                              <div>
-                                <Label htmlFor="amount">Payment Amount</Label>
-                                <Input
-                                  id="amount"
-                                  type="number"
-                                  step="0.01"
-                                  value={paymentAmount}
-                                  onChange={(e) => setPaymentAmount(e.target.value)}
-                                  placeholder="Enter payment amount"
-                                />
-                                {selectedSale && (
-                                  <p className="text-sm text-muted-foreground mt-1">
-                                    Outstanding balance: {formatCurrency(selectedSale.outstandingBalance || 0)}
+                              <div className="grid grid-cols-1 gap-4">
+                                <div className="flex justify-between items-center py-2 border-b">
+                                  <Label className="text-sm font-medium">Receipt #</Label>
+                                  <p className="text-lg font-semibold">{selectedSale?.id}</p>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b">
+                                  <Label className="text-sm font-medium">Outstanding Balance</Label>
+                                  <p className="text-lg font-semibold text-destructive">
+                                    {selectedSale ? formatCurrency(selectedSale.outstandingBalance || 0) : '0'}
                                   </p>
-                                )}
+                                </div>
+                                <div className="flex justify-between items-center py-2">
+                                  <Label htmlFor="amount" className="text-sm font-medium">Amount</Label>
+                                  <Input
+                                    id="amount"
+                                    type="text"
+                                    inputMode="numeric"
+                                    value={paymentAmount ? Number(paymentAmount).toLocaleString('en-TZ') : ''}
+                                    onChange={(e) => {
+                                      const raw = e.target.value.replace(/,/g, '');
+                                      setPaymentAmount(raw === '' ? '' : raw);
+                                    }}
+                                    placeholder="Enter amount"
+                                    className="w-40 text-right"
+                                  />
+                                </div>
                               </div>
                               <div className="flex justify-end space-x-2">
                                 <Button

@@ -43,6 +43,7 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const Profile = lazy(() => import("./pages/Profile"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const UserManual = lazy(() => import("./pages/UserManual"));
+const Tablet = lazy(() => import("./pages/Tablet"));
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/manual" element={<UserManual />} />
+              <Route path="/tablet" element={<Tablet />} />
               <Route path="/" element={
                 <ProtectedRoute>
                   <Index />

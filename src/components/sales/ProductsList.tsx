@@ -19,7 +19,7 @@ const ProductsList = ({
   addToCart
 }: ProductsListProps) => {
   return (
-    <div className="lg:col-span-2">
+    <div className="md:col-span-1">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

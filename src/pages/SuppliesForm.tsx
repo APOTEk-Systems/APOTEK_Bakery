@@ -305,7 +305,8 @@ const SuppliesForm = () => {
                   </Label>
                   <Input
                     id="currentQuantity"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.currentQuantity ? parseFloat(formData.currentQuantity).toLocaleString() : ''}
                     onChange={(e) => {
                       const value = e.target.value.replace(/,/g, '');
@@ -315,7 +316,6 @@ const SuppliesForm = () => {
                     }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder=""
-                    min="0"
                   />
                 </div>
                 <div>
@@ -342,7 +342,8 @@ const SuppliesForm = () => {
                   <Label htmlFor="minLevel">Minimum Level</Label>
                   <Input
                     id="minLevel"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.minLevel ? parseFloat(formData.minLevel).toLocaleString() : ''}
                     onChange={(e) => {
                       const value = e.target.value.replace(/,/g, '');
@@ -352,14 +353,14 @@ const SuppliesForm = () => {
                     }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder=""
-                    min="0"
                   />
                 </div>
                 <div>
                   <Label htmlFor="maxLevel">Maximum Level</Label>
                   <Input
                     id="maxLevel"
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     value={formData.maxLevel ? parseFloat(formData.maxLevel).toLocaleString() : ''}
                     onChange={(e) => {
                       const value = e.target.value.replace(/,/g, '');
@@ -369,7 +370,6 @@ const SuppliesForm = () => {
                     }}
                     onWheel={(e) => e.currentTarget.blur()}
                     placeholder=""
-                    min="0"
                   />
                 </div>
               </div>

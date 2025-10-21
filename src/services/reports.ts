@@ -3,6 +3,7 @@ import {fromBaseUnits} from "@/lib/funcs";
 import {format} from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { inventoryService } from "./inventory";
 
 // Types for report data
 export interface SalesReport {
@@ -87,6 +88,56 @@ export interface InventoryReport {
     }>;
     totalValue: number;
     lowStockItems: number;
+  };
+}
+
+export interface InventoryAdjustmentsReport {
+  data: {
+    adjustments: Array<{
+      id: number;
+      inventoryItemId: number;
+      amount: number;
+      reason: string;
+      createdAt: string;
+      createdById: number;
+      inventoryItem: {
+        id: number;
+        name: string;
+        unit: string;
+        type: string;
+      };
+      createdBy: {
+        id: number;
+        name: string;
+        email: string;
+      };
+    }>;
+    total: number;
+  };
+}
+
+export interface LowStockReport {
+  data: {
+    inventoryItem: Array<{
+      id: number;
+      name: string;
+      unit: string;
+      currentQuantity: number;
+      minLevel: number;
+      type: string;
+    }>;
+  };
+}
+
+export interface OutOfStockReport {
+  data: {
+    inventoryItem: Array<{
+      id: number;
+      name: string;
+      unit: string;
+      currentQuantity: number;
+      type: string;
+    }>;
   };
 }
 
@@ -178,13 +229,24 @@ export interface ProductsReport {
   }>;
 }
 
+export interface ProductDetailsReport {
+  data: Array<{
+    id: number;
+    name: string;
+    price: number;
+    averageProductionCost: number;
+    profit: number;
+  }>;
+}
+
 export const reportsService = {
   // Helper function to add company header to PDFs
   addCompanyHeader: (
     doc: jsPDF,
     reportTitle: string,
     startDate?: string,
-    endDate?: string
+    endDate?: string,
+    settings?: any
   ): number => {
     let yPos = 20;
 
@@ -199,13 +261,15 @@ export const reportsService = {
 
     let companyInfo = defaultCompanyInfo;
 
-    // Try to get company settings synchronously (this might not work in all environments)
-    try {
-      // For now, use default info since settings API is async
-      // In a real implementation, you might want to cache settings or make PDF generation async
-      console.log("Using default company info for PDF header");
-    } catch (error) {
-      console.warn("Using default company info for PDF header");
+    // Use settings if provided
+    if (settings?.information) {
+      companyInfo = {
+        bakeryName: settings.information.bakeryName || defaultCompanyInfo.bakeryName,
+        address: settings.information.address || defaultCompanyInfo.address,
+        phone: settings.information.phone || defaultCompanyInfo.phone,
+        email: settings.information.email || defaultCompanyInfo.email,
+        website: settings.information.website || defaultCompanyInfo.website,
+      };
     }
 
     // Company name (centered, bold, larger)
@@ -354,6 +418,48 @@ export const reportsService = {
     return response.data;
   },
 
+  // Inventory Adjustments Report
+  getInventoryAdjustmentsReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<InventoryAdjustmentsReport> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const response = await api.get(`/reports/inventory/adjustments?${params.toString()}`);
+    return response.data;
+  },
+
+  // Low Stock Report
+  getLowStockReport: async (type?: 'raw_material' | 'supplies'): Promise<LowStockReport> => {
+    // Use inventory service to get low stock items
+    const params = type ? { low: true, type } : { low: true };
+    const lowStockItems = await inventoryService.getInventory(params);
+
+    return {
+      data: {
+        inventoryItem: lowStockItems
+      }
+    };
+  },
+
+  // Out of Stock Report
+  getOutOfStockReport: async (type?: 'raw_material' | 'supplies'): Promise<OutOfStockReport> => {
+    // Get all inventory items and filter for out of stock
+    const params = type ? { type } : {};
+    const allItems = await inventoryService.getInventory(params);
+
+    // Filter items where currentQuantity <= 0
+    const outOfStockItems = allItems.filter((item: any) => item.currentQuantity <= 0);
+
+    return {
+      data: {
+        inventoryItem: outOfStockItems
+      }
+    };
+  },
+
   // Financial Report
   getFinancialReport: async (
     startDate?: string,
@@ -472,6 +578,20 @@ export const reportsService = {
     return { data: response.data };
   },
 
+  // Product Details Report
+  getProductDetailsReport: async (): Promise<ProductDetailsReport> => {
+    const response = await api.get('/products');
+    // Transform the data to include averageProductionCost and profit
+    const transformedData = response.data.map((product: any) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      averageProductionCost:product.averageProductionCost, // Assuming this field exists
+      profit:product.profit // As specified in the task
+    }));
+    return { data: transformedData };
+  },
+
   // Goods Received Report
   getGoodsReceivedReport: async (startDate?: string, endDate?: string, supplierId?: number): Promise<any> => {
     const params = new URLSearchParams();
@@ -546,16 +666,131 @@ export const reportsService = {
     }
   },
 
-  exportInventoryReport: async (): Promise<Blob> => {
-    console.log("📊 Starting inventory report export...");
+  exportInventoryReport: async (type?: 'raw_material' | 'supplies'): Promise<Blob> => {
+    console.log("📊 Starting inventory report export...", { type });
     try {
-      const data = await reportsService.getInventoryReport();
+      const params = type ? { type } : {};
+      let inventoryItems = await inventoryService.getInventory(params);
+
+      // Additional client-side filtering to ensure correct type
+      if (type) {
+        inventoryItems = inventoryItems.filter(item => item.type === type);
+      }
+
+      const totalValue = inventoryItems.reduce((sum, item) => sum + (item.currentQuantity * item.cost), 0);
+      const lowStockItems = inventoryItems.filter(item => item.currentQuantity <= item.minLevel).length;
+
+      const data = {
+        data: {
+          inventoryItem: inventoryItems,
+          totalValue,
+          lowStockItems
+        }
+      };
       console.log("✅ Inventory data fetched successfully:", data);
-      const pdfBlob = reportsService.generateInventoryPDF(data);
+      const pdfBlob = reportsService.generateInventoryPDF(data, type);
       console.log("📄 Inventory PDF generated successfully");
       return pdfBlob;
     } catch (error) {
       console.error("❌ Error exporting inventory report:", error);
+      throw error;
+    }
+  },
+
+  exportInventoryAdjustmentsReport: async (
+    startDate?: string,
+    endDate?: string,
+    type?: 'raw_material' | 'supplies'
+  ): Promise<Blob> => {
+    console.log("📊 Starting inventory adjustments report export...", {startDate, endDate, type});
+    try {
+      const params = {
+        startDate,
+        endDate,
+        ...(type && { type })
+      };
+      const adjustments = await inventoryService.getAdjustments(params);
+
+      if (adjustments.adjustments.length === 0) {
+        throw new Error(`No adjustments found${type ? ` for ${type === 'raw_material' ? 'materials' : 'supplies'}` : ''}${startDate && endDate ? ` in the selected date range` : ''}`);
+      }
+
+      const data = {
+        data: {
+          adjustments: adjustments.adjustments,
+          total: adjustments.total
+        }
+      };
+      console.log("✅ Inventory adjustments data fetched successfully:", data);
+      const pdfBlob = reportsService.generateInventoryAdjustmentsPDF(data, startDate, endDate, type);
+      console.log("📄 Inventory adjustments PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting inventory adjustments report:", error);
+      if (error.message && error.message.includes("No adjustments found")) {
+        // Return a resolved promise with null to indicate no PDF was generated
+        return Promise.resolve(null as any);
+      }
+      throw error;
+    }
+  },
+
+  exportLowStockReport: async (type?: 'raw_material' | 'supplies'): Promise<Blob> => {
+    console.log("📊 Starting low stock report export...", { type });
+    try {
+      const params = type ? { type } : {};
+      const allItems = await inventoryService.getInventory(params);
+      const lowStockItems = allItems.filter((item: any) => item.currentQuantity <= item.minLevel);
+
+      if (lowStockItems.length === 0) {
+        throw new Error(`No items found below minimum stock level${type ? ` for ${type === 'raw_material' ? 'materials' : 'supplies'}` : ''}`);
+      }
+
+      const data = {
+        data: {
+          inventoryItem: lowStockItems
+        }
+      };
+      console.log("✅ Low stock data fetched successfully:", data);
+      const pdfBlob = reportsService.generateLowStockPDF(data, type);
+      console.log("📄 Low stock PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting low stock report:", error);
+      if (error.message && error.message.includes("No items found below minimum stock level")) {
+        // Return a resolved promise with null to indicate no PDF was generated
+        return Promise.resolve(null as any);
+      }
+      throw error;
+    }
+  },
+
+  exportOutOfStockReport: async (type?: 'raw_material' | 'supplies'): Promise<Blob> => {
+    console.log("📊 Starting out of stock report export...", { type });
+    try {
+      const params = type ? { type } : {};
+      const allItems = await inventoryService.getInventory(params);
+      const outOfStockItems = allItems.filter((item: any) => item.currentQuantity <= 0);
+
+      if (outOfStockItems.length === 0) {
+        throw new Error(`No out of stock items found${type ? ` for ${type === 'raw_material' ? 'materials' : 'supplies'}` : ''}`);
+      }
+
+      const data = {
+        data: {
+          inventoryItem: outOfStockItems
+        }
+      };
+      console.log("✅ Out of stock data fetched successfully:", data);
+      const pdfBlob = reportsService.generateOutOfStockPDF(data, type);
+      console.log("📄 Out of stock PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting out of stock report:", error);
+      if (error.message && error.message.includes("No out of stock items found")) {
+        // Return a resolved promise with null to indicate no PDF was generated
+        return Promise.resolve(null as any);
+      }
       throw error;
     }
   },
@@ -633,6 +868,30 @@ export const reportsService = {
       return pdfBlob;
     } catch (error) {
       console.error("❌ Error exporting products report:", error);
+      throw error;
+    }
+  },
+
+  exportProductDetailsReport: async (): Promise<Blob> => {
+    console.log("📊 Starting product details report export...");
+    try {
+      const data = await reportsService.getProductDetailsReport();
+      console.log("✅ Product details data fetched successfully:", data);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = reportsService.generateProductDetailsPDF(data, settings);
+      console.log("📄 Product details PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting product details report:", error);
       throw error;
     }
   },
@@ -973,22 +1232,24 @@ export const reportsService = {
     // Add company header
     let yPos = reportsService.addCompanyHeader(
       doc,
-      "Production Report",
+      "Daily Production Batches Report",
       startDate,
       endDate
     );
 
-    // Production table
-    const tableData = data.data.production.map((prod) => [
-      prod.id.toString(),
-      prod.product,
-      prod.quantityProduced.toString(),
-      format(prod.createdAt, "dd-MM-yyyy"),
-      `TSH ${prod.cost.toLocaleString()}`,
+    // Production table with new column structure
+    const tableData = data.data.production.map((prod, index) => [
+      (index + 1).toString(), // S/N
+      format(prod.date || prod.createdAt || new Date(), "dd-MM-yyyy"), // Date
+      prod.product, // Item Name
+      prod.quantityProduced?.toString(), // Quantity
+      "Ingredients list", // Ingredients Used
+      `TSH ${prod.cost?.toLocaleString()}`, // Cost
+      "System", // Produced By
     ]);
 
     autoTable(doc, {
-      head: [["ID", "Product", "Quantity", "Date", "Cost"]],
+      head: [["S/N", "Date", "Item Name", "Quantity", "Ingredients Used", "Cost", "Produced By"]],
       body: tableData,
       startY: yPos,
       theme: "grid",
@@ -1018,11 +1279,14 @@ export const reportsService = {
     return doc.output("blob");
   },
 
-  generateInventoryPDF: (data: InventoryReport): Blob => {
+  generateInventoryPDF: (data: InventoryReport, type?: 'raw_material' | 'supplies'): Blob => {
     const doc = new jsPDF();
 
     // Add company header
-    let yPos = reportsService.addCompanyHeader(doc, "Inventory Report");
+    const reportTitle = type === 'raw_material' ? "Materials Current Stock Report" :
+                       type === 'supplies' ? "Supplies Current Stock Report" :
+                       "Inventory Report";
+    let yPos = reportsService.addCompanyHeader(doc, reportTitle);
 
     //console.log("Inventory Data " , data.data.inventoryItems)
     // Inventory table
@@ -1425,6 +1689,33 @@ export const reportsService = {
     return doc.output("blob");
   },
 
+  generateProductDetailsPDF: (data: ProductDetailsReport, settings?: any): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(doc, "Product Details Report", undefined, undefined, settings);
+
+    // Product details table
+    const tableData = data.data.map((product, index) => [
+      (index + 1).toString(),
+      product.name,
+      product.price.toLocaleString(),
+      product.averageProductionCost.toLocaleString(),
+      product.profit.toLocaleString(),
+    ]);
+
+    autoTable(doc, {
+      head: [["S/N", "Product Name", "Price", "Average Production Cost", "Profit"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    return doc.output("blob");
+  },
+
   generateCashSalesPDF: (
     data: SalesReport,
     startDate?: string,
@@ -1594,6 +1885,126 @@ export const reportsService = {
 
     autoTable(doc, {
       head: [["S/N", "Supplier", "Item Name", "Qty", "Price", "Received Date", "Received By"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    return doc.output("blob");
+  },
+
+  generateInventoryAdjustmentsPDF: (
+    data: InventoryAdjustmentsReport,
+    startDate?: string,
+    endDate?: string,
+    type?: 'raw_material' | 'supplies'
+  ): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    const reportTitle = type === 'raw_material' ? "Materials Adjustments Report" :
+                       type === 'supplies' ? "Supplies Adjustments Report" :
+                       "Inventory Adjustments Report";
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      reportTitle,
+      startDate,
+      endDate
+    );
+
+    // Inventory adjustments table
+    const tableData = data.data.adjustments.map((adjustment, index) => {
+      // Convert quantity to display units
+      let displayQuantity = adjustment.amount;
+      let displayUnit = adjustment.inventoryItem.unit;
+
+      if ((adjustment.inventoryItem.unit === "kg" || adjustment.inventoryItem.unit === "l") && Math.abs(displayQuantity) < 1000) {
+        displayQuantity = displayQuantity / 1000;
+        displayUnit = adjustment.inventoryItem.unit === "kg" ? "g" : "ml";
+      }
+
+      const adjustmentType = adjustment.amount > 0 ? "Increased" : "Deducted";
+
+      return [
+        (index + 1).toString(),
+        adjustment.inventoryItem.name,
+        format(adjustment.createdAt, "dd-MM-yyyy"),
+        adjustmentType,
+        `${displayQuantity.toFixed(2)} ${displayUnit}`,
+        adjustment.reason || "No reason provided",
+        adjustment.createdBy.name,
+      ];
+    });
+
+    autoTable(doc, {
+      head: [["S/N", "Item Name", "Date", "Type", "Quantity", "Reason", "Adj By"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    return doc.output("blob");
+  },
+
+  generateLowStockPDF: (data: LowStockReport, type?: 'raw_material' | 'supplies'): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    const reportTitle = type === 'raw_material' ? "Materials Below Min Level Report" :
+                       type === 'supplies' ? "Supplies Below Min Level Report" :
+                       "Stock Below Min Level Report";
+    let yPos = reportsService.addCompanyHeader(doc, reportTitle);
+
+    // Low stock table
+    const tableData = data.data.inventoryItem.map((item, index) => {
+      // Convert quantities from base units to natural units
+      let displayCurrentQty = fromBaseUnits(item.currentQuantity, item.unit);
+      let displayMinQty = item.minLevel; // minLevel is already in natural units
+
+      return [
+        (index + 1).toString(),
+        item.name,
+        item.type === "raw_material" ? "Material" : "Supplies",
+        `${displayMinQty.toFixed(2)} ${item.unit}`,
+        `${displayCurrentQty.toFixed(2)} ${item.unit}`,
+      ];
+    });
+
+    autoTable(doc, {
+      head: [["S/N", "Item Name", "Category", "Min Qty", "Available Qty"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    return doc.output("blob");
+  },
+
+  generateOutOfStockPDF: (data: OutOfStockReport, type?: 'raw_material' | 'supplies'): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    const reportTitle = type === 'raw_material' ? "Materials Out of Stock Report" :
+                       type === 'supplies' ? "Supplies Out of Stock Report" :
+                       "Out of Stock Report";
+    let yPos = reportsService.addCompanyHeader(doc, reportTitle);
+
+    // Out of stock table
+    const tableData = data.data.inventoryItem.map((item, index) => [
+      (index + 1).toString(),
+      item.name,
+      item.type === "raw_material" ? "Material" : "Supplies",
+      item.unit,
+    ]);
+
+    autoTable(doc, {
+      head: [["S/N", "Item Name", "Category", "Unit"]],
       body: tableData,
       startY: yPos,
       theme: "grid",
