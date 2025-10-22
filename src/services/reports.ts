@@ -2104,13 +2104,28 @@ export const reportsService = {
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
 
-    // Revenue
-    doc.text(`Total Sales Revenue: TZS ${data.data.revenue.toLocaleString()}`, 20, yPos);
+    // Revenue section
+    doc.setFont("helvetica", "bold");
+    doc.text("Revenue", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Value: TZS ${data.data.revenue.toLocaleString()}`, 40, yPos);
     yPos += 12;
 
-    // Cost of Goods Sold
-    doc.text(`Cost of Goods Sold: TZS ${data.data.cogs.toLocaleString()}`, 20, yPos);
+    // Separator line
+    doc.setLineWidth(0.5);
+    doc.line(20, yPos, 180, yPos);
+    yPos += 8;
+
+    // Cost of Production section
+    doc.setFont("helvetica", "bold");
+    doc.text("Cost of Production", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Value: TZS ${data.data.cogs.toLocaleString()}`, 40, yPos);
     yPos += 12;
+
+    // Separator line
+    doc.line(20, yPos, 180, yPos);
+    yPos += 8;
 
     // Gross Profit (highlighted)
     doc.setFont("helvetica", "bold");
@@ -2121,7 +2136,7 @@ export const reportsService = {
     // Calculation details
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
-    doc.text(`Calculation: Revenue (TZS ${data.data.grossProfit.parameters.totalSales.toLocaleString()}) - COGS (TZS ${data.data.grossProfit.parameters.costOfGoodsSold.toLocaleString()})`, 20, yPos);
+    doc.text(`Calculation: Revenue (TZS ${data.data.grossProfit.parameters.totalSales.toLocaleString()}) - Cost of Production (TZS ${data.data.grossProfit.parameters.costOfGoodsSold.toLocaleString()})`, 20, yPos);
     yPos += 15;
 
     // Gross Profit Margin
@@ -2159,13 +2174,28 @@ export const reportsService = {
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
 
-    // Gross Profit
-    doc.text(`Gross Profit: TZS ${data.data.grossProfit.result.toLocaleString()}`, 20, yPos);
+    // Gross Profit section
+    doc.setFont("helvetica", "bold");
+    doc.text("Gross Profit", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Value: TZS ${data.data.grossProfit.result.toLocaleString()}`, 40, yPos);
     yPos += 12;
 
-    // Operating Expenses
-    doc.text(`Operating Expenses: TZS ${data.data.operatingExpenses.toLocaleString()}`, 20, yPos);
+    // Separator line
+    doc.setLineWidth(0.5);
+    doc.line(20, yPos, 180, yPos);
+    yPos += 8;
+
+    // Operating Expenses section
+    doc.setFont("helvetica", "bold");
+    doc.text("Operating Expenses", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Value: TZS ${data.data.operatingExpenses.toLocaleString()}`, 40, yPos);
     yPos += 12;
+
+    // Separator line
+    doc.line(20, yPos, 180, yPos);
+    yPos += 8;
 
     // Net Profit (highlighted)
     doc.setFont("helvetica", "bold");

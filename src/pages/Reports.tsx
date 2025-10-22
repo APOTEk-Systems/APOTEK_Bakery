@@ -1071,8 +1071,6 @@ const Reports = () => {
                       <SelectContent>
                         <SelectItem value="gross-profit">Gross Profit Report</SelectItem>
                         <SelectItem value="net-profit">Net Profit Report</SelectItem>
-                        <SelectItem value="profit-loss">Profit and Loss</SelectItem>
-                        <SelectItem value="expense-breakdown">Expense Category Breakdown</SelectItem>
                         <SelectItem value="expenses">Expenses Report</SelectItem>
                         <SelectItem value="outstanding-payments">Outstanding Payments Report</SelectItem>
                       </SelectContent>
