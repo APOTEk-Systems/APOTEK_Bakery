@@ -76,7 +76,7 @@ const PaymentHistoryTab: React.FC = () => {
   return (
     <Card>
       <CardHeader className='py-4'>
-        <CardTitle>Payment History</CardTitle>
+        {/* <CardTitle>Payment History</CardTitle> */}
       </CardHeader>
       <CardContent>
         <div className="flex justify-end items-center space-x-2 mb-2">

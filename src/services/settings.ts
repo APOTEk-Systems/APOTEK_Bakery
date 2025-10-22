@@ -36,6 +36,7 @@ export interface SettingsData {
     dailySalesSummary: boolean;
     lowInventoryAlerts: boolean;
     newOrderNotifications: boolean;
+    outOfStockAlerts: boolean;
     customerBirthdayReminders: boolean;
   };
   vatAndTax: {

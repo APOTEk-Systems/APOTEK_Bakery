@@ -67,23 +67,22 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
 
   return (
     <div className="space-y-6">
-      <Card className="shadow-warm">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Expense Categories</CardTitle>
+        <div className="flex justify-end items-center">
+            
             <Button onClick={() => setIsAddCategoryModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Category
             </Button>
           </div>
-          <p className="text-muted-foreground">Manage expense categories</p>
+      <Card className="shadow-warm">
+        <CardHeader>
         </CardHeader>
         <CardContent>
           {categories.length === 0 ? (
             <p className="text-muted-foreground">No categories found.</p>
           ) : (
             <div className="overflow-x-auto">
-              <Card>
+              
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -117,7 +116,7 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
                   ))}
                 </TableBody>
               </Table>
-              </Card>
+            
             </div>
           )}
         </CardContent>

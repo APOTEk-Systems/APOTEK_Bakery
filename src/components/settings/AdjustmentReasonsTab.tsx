@@ -178,28 +178,25 @@ const AdjustmentReasonsTab = () => {
 
       <Card className="shadow-warm">
         <CardHeader>
-          <CardTitle>Adjustment Reasons</CardTitle>
+          {/* <CardTitle>Adjustment Reasons</CardTitle> */}
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Actions</TableHead>
+                {/* <TableHead>Description</TableHead>
+                <TableHead>Created</TableHead> */}
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {reasonsQuery.data?.map((reason) => (
                 <TableRow key={reason.id}>
                   <TableCell className="font-medium">{reason.name}</TableCell>
-                  <TableCell>{reason.description}</TableCell>
+                
                   <TableCell>
-                    {format(new Date(reason.createdAt), "dd-MM-yyyy")}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
+                    <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"

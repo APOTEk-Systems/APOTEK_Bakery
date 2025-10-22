@@ -11,10 +11,8 @@ import {
 } from "recharts";
 import { useQuery } from '@tanstack/react-query';
 import {useAuth} from "@/contexts/AuthContext";
-import {salesService, Sale} from "@/services/sales";
-import {purchasesService} from "@/services/purchases";
 import {inventoryService} from "@/services/inventory";
-import {accountingService} from "@/services/accounting";
+import {dashboardService} from "@/services/dashboard";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
@@ -39,7 +37,7 @@ const hasPermission = (user: any, permission: string): boolean => {
 const SalesSummaryTab = () => {
   const { data: dashboardData, isPending: loading } = useQuery({
     queryKey: ['salesDashboard'],
-    queryFn: () => salesService.getSalesSummary(),
+    queryFn: () => dashboardService.getSalesDashboard(),
   });
 
   const salesData = dashboardData?.weeklySalesList || [];
@@ -135,7 +133,7 @@ const SalesSummaryTab = () => {
 const PurchasesSummaryTab = () => {
   const { data: dashboardData, isPending: loading } = useQuery({
     queryKey: ['purchasesDashboard'],
-    queryFn: () => purchasesService.getPurchaseSummary(),
+    queryFn: () => dashboardService.getPurchasesDashboard(),
   });
 
   const purchasesData = dashboardData?.weeklyPurchasesList || [];
@@ -162,7 +160,7 @@ const PurchasesSummaryTab = () => {
               {formatCurrency(dashboardData?.totalPurchasesThisMonth) ?? "0.00"}
             </div>
             <p className="text-xs text-muted-foreground">
-              Growth: {dashboardData?.purchaseGrowth ?? "0.00"}%
+              Growth: {dashboardData?.purchaseGrowth ?? 0}%
             </p>
           </CardContent>
         </Card>
@@ -185,17 +183,17 @@ const PurchasesSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {dashboardData?.purchaseGrowth ?? "0.00"}%
+              {dashboardData?.purchaseGrowth ?? 0}%
             </div>
             <p className="text-xs text-muted-foreground">Monthly growth rate</p>
             <div className="flex items-center mt-2">
-              {parseFloat(dashboardData?.purchaseGrowth || '0') > 0 ? (
+              {(dashboardData?.purchaseGrowth ?? 0) > 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
               ) : (
                 <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
               )}
-              <span className={`text-sm ${parseFloat(dashboardData?.purchaseGrowth || '0') > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {parseFloat(dashboardData?.purchaseGrowth || '0') > 0 ? 'Up' : 'Down'} {Math.abs(parseFloat(dashboardData?.purchaseGrowth || '0'))}%
+              <span className={`text-sm ${(dashboardData?.purchaseGrowth ?? 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {(dashboardData?.purchaseGrowth ?? 0) > 0 ? 'Up' : 'Down'} {Math.abs(dashboardData?.purchaseGrowth ?? 0)}%
               </span>
             </div>
           </CardContent>
@@ -249,6 +247,7 @@ const InventorySummaryTab = () => {
 
   const lowStockRawMaterials = rawMaterials ? getLowStockItems(rawMaterials) : [];
   const lowStockSupplies = supplies ? getLowStockItems(supplies) : [];
+
 
   if(loading){
     return(
@@ -330,10 +329,69 @@ const InventorySummaryTab = () => {
   );
 };
 
+const ProductionSummaryTab = () => {
+  const { data: productionData, isPending: loading } = useQuery({
+    queryKey: ['productionSummary'],
+    queryFn: () => dashboardService.getProductionDashboard(),
+  });
+
+  if(loading){
+    return(
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Loading ...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Daily Production</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {productionData?.dailyProduction ?? 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Units produced today</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Weekly Production</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {productionData?.weeklyProduction ?? 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Units produced this week</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Weekly Production Cost</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {formatCurrency(productionData?.weeklyProductionCost) ?? "0.00"}
+            </div>
+            <p className="text-xs text-muted-foreground">Total cost this week</p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
 const AccountingSummaryTab = () => {
   const { data: summary, isPending: loading } = useQuery({
     queryKey: ['accountingSummary'],
-    queryFn: () => accountingService.getAccountingSummary(),
+    queryFn: () => dashboardService.getAccountingDashboard(),
   });
 
   if(loading){
@@ -439,6 +497,7 @@ const AccountingSummaryTab = () => {
 const Dashboard = () => {
   const {user, isAuthenticated, isLoading: authLoading} = useAuth();
 
+
   if (authLoading) {
     return (
       <div className="w-full h-screen flex justify-center items-center">
@@ -456,6 +515,7 @@ const Dashboard = () => {
   const hasSalesDashboard = hasPermission(user, "view:salesDashboard");
   const hasPurchasesDashboard = hasPermission(user, "view:purchasesDashboard");
   const hasInventoryDashboard = hasPermission(user, "view:inventoryDashboard");
+  const hasProductionDashboard = hasPermission(user, "view:productionDashboard");
   const hasAccountingDashboard = hasPermission(user, "view:accountingDashboard");
 
   return (
@@ -479,6 +539,11 @@ const Dashboard = () => {
                 Inventory
               </TabsTrigger>
             )}
+            {(hasAllPermissions || hasProductionDashboard) && (
+              <TabsTrigger value="production" className="w-full">
+                Production
+              </TabsTrigger>
+            )}
             {(hasAllPermissions || hasAccountingDashboard) && (
               <TabsTrigger value="accounting" className="w-full">
                 Accounting
@@ -498,6 +563,11 @@ const Dashboard = () => {
           {(hasAllPermissions || hasInventoryDashboard) && (
             <TabsContent value="material">
               <InventorySummaryTab />
+            </TabsContent>
+          )}
+          {(hasAllPermissions || hasProductionDashboard) && (
+            <TabsContent value="production">
+              <ProductionSummaryTab />
             </TabsContent>
           )}
           {(hasAllPermissions || hasAccountingDashboard) && (

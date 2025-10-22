@@ -237,8 +237,8 @@ const validatePhone = (phone: string): string | undefined => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle className="flex items-center gap-2">
-                  <Store className="h-5 w-5" />
-                  Bakery Information
+                  {/* <Store className="h-5 w-5" />
+                  Bakery Information */}
                 </CardTitle>
                 {!isEditMode ? (
                   <Button onClick={handleEdit} variant="outline">

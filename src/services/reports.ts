@@ -209,8 +209,20 @@ export interface ProfitAndLossReport {
     revenue: number;
     cogs: number;
     operatingExpenses: number;
-    grossProfit: number;
-    netProfit: number;
+    grossProfit: {
+      parameters: {
+        totalSales: number;
+        costOfGoodsSold: number;
+      };
+      result: number;
+    };
+    netProfit: {
+      parameters: {
+        grossProfit: number;
+        operatingExpenses: number;
+      };
+      result: number;
+    };
   };
 }
 
@@ -1094,6 +1106,48 @@ export const reportsService = {
     }
   },
 
+  exportGrossProfitReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    console.log("📊 Starting gross profit report export...", {startDate, endDate});
+    try {
+      const data = await reportsService.getProfitAndLossReport(startDate, endDate);
+      console.log("✅ Gross profit data fetched successfully:", data);
+      const pdfBlob = reportsService.generateGrossProfitPDF(
+        data,
+        startDate,
+        endDate
+      );
+      console.log("📄 Gross profit PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting gross profit report:", error);
+      throw error;
+    }
+  },
+
+  exportNetProfitReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    console.log("📊 Starting net profit report export...", {startDate, endDate});
+    try {
+      const data = await reportsService.getProfitAndLossReport(startDate, endDate);
+      console.log("✅ Net profit data fetched successfully:", data);
+      const pdfBlob = reportsService.generateNetProfitPDF(
+        data,
+        startDate,
+        endDate
+      );
+      console.log("📄 Net profit PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting net profit report:", error);
+      throw error;
+    }
+  },
+
   // PDF generation functions
   generateSalesPDF: (
     data: SalesReport,
@@ -1605,20 +1659,29 @@ export const reportsService = {
     doc.text(`Cost of Goods Sold: TZS ${data.data.cogs.toLocaleString()}`, 20, yPos);
     yPos += 10;
 
-    // Gross Profit
+    // Gross Profit Section
     doc.setFont("helvetica", "bold");
-    doc.text(`Gross Profit: TZS ${data.data.grossProfit.toLocaleString()}`, 20, yPos);
+    doc.text(`Gross Profit: TZS ${data.data.grossProfit.result.toLocaleString()}`, 20, yPos);
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`(Revenue: TZS ${data.data.grossProfit.parameters.totalSales.toLocaleString()} - COGS: TZS ${data.data.grossProfit.parameters.costOfGoodsSold.toLocaleString()})`, 30, yPos);
     yPos += 15;
 
     // Operating Expenses
+    doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
     doc.text(`Operating Expenses: TZS ${data.data.operatingExpenses.toLocaleString()}`, 20, yPos);
     yPos += 15;
 
-    // Net Profit
+    // Net Profit Section
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
-    doc.text(`Net Profit: TZS ${data.data.netProfit.toLocaleString()}`, 20, yPos);
+    doc.text(`Net Profit: TZS ${data.data.netProfit.result.toLocaleString()}`, 20, yPos);
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`(Gross Profit: TZS ${data.data.netProfit.parameters.grossProfit.toLocaleString()} - Operating Expenses: TZS ${data.data.netProfit.parameters.operatingExpenses.toLocaleString()})`, 30, yPos);
 
     return doc.output("blob");
   },
@@ -1991,8 +2054,8 @@ export const reportsService = {
 
     // Add company header
     const reportTitle = type === 'raw_material' ? "Materials Out of Stock Report" :
-                       type === 'supplies' ? "Supplies Out of Stock Report" :
-                       "Out of Stock Report";
+                        type === 'supplies' ? "Supplies Out of Stock Report" :
+                        "Out of Stock Report";
     let yPos = reportsService.addCompanyHeader(doc, reportTitle);
 
     // Out of stock table
@@ -2014,4 +2077,265 @@ export const reportsService = {
 
     return doc.output("blob");
   },
+
+  generateGrossProfitPDF: (
+    data: ProfitAndLossReport,
+    startDate?: string,
+    endDate?: string
+  ): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Gross Profit Report",
+      startDate,
+      endDate
+    );
+
+    // Add some spacing
+    yPos += 10;
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Gross Profit Analysis", 20, yPos);
+    yPos += 20;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    // Revenue
+    doc.text(`Total Sales Revenue: TZS ${data.data.revenue.toLocaleString()}`, 20, yPos);
+    yPos += 12;
+
+    // Cost of Goods Sold
+    doc.text(`Cost of Goods Sold: TZS ${data.data.cogs.toLocaleString()}`, 20, yPos);
+    yPos += 12;
+
+    // Gross Profit (highlighted)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Gross Profit: TZS ${data.data.grossProfit.result.toLocaleString()}`, 20, yPos);
+    yPos += 12;
+
+    // Calculation details
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Calculation: Revenue (TZS ${data.data.grossProfit.parameters.totalSales.toLocaleString()}) - COGS (TZS ${data.data.grossProfit.parameters.costOfGoodsSold.toLocaleString()})`, 20, yPos);
+    yPos += 15;
+
+    // Gross Profit Margin
+    const margin = data.data.revenue > 0 ? ((data.data.grossProfit.result / data.data.revenue) * 100) : 0;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Gross Profit Margin: ${margin.toFixed(2)}%`, 20, yPos);
+
+    return doc.output("blob");
+  },
+
+  generateNetProfitPDF: (
+    data: ProfitAndLossReport,
+    startDate?: string,
+    endDate?: string
+  ): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Net Profit Report",
+      startDate,
+      endDate
+    );
+
+    // Add some spacing
+    yPos += 10;
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Net Profit Analysis", 20, yPos);
+    yPos += 20;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    // Gross Profit
+    doc.text(`Gross Profit: TZS ${data.data.grossProfit.result.toLocaleString()}`, 20, yPos);
+    yPos += 12;
+
+    // Operating Expenses
+    doc.text(`Operating Expenses: TZS ${data.data.operatingExpenses.toLocaleString()}`, 20, yPos);
+    yPos += 12;
+
+    // Net Profit (highlighted)
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(`Net Profit: TZS ${data.data.netProfit.result.toLocaleString()}`, 20, yPos);
+    yPos += 12;
+
+    // Calculation details
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Calculation: Gross Profit (TZS ${data.data.netProfit.parameters.grossProfit.toLocaleString()}) - Operating Expenses (TZS ${data.data.netProfit.parameters.operatingExpenses.toLocaleString()})`, 20, yPos);
+    yPos += 15;
+
+    // Net Profit Margin
+    const margin = data.data.revenue > 0 ? ((data.data.netProfit.result / data.data.revenue) * 100) : 0;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Net Profit Margin: ${margin.toFixed(2)}%`, 20, yPos);
+
+    return doc.output("blob");
+  },
+
+  generateExpensesPDF: (data: any, startDate?: string, endDate?: string): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Expenses Report",
+      startDate,
+      endDate
+    );
+
+    // Expenses table
+    const tableData = data.data?.expenses?.map((expense: any, index: number) => [
+      (index + 1).toString(),
+      format(expense.date, "dd-MM-yyyy"),
+      expense.expenseCategory?.name || 'Unknown',
+      expense.amount.toLocaleString(),
+      expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH',
+      expense.notes || '',
+    ]) || [];
+
+    autoTable(doc, {
+      head: [["S/N", "Date", "Category", "Amount", "Payment Method", "Notes"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    // Summary (after table)
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    yPos = finalY + 15;
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Summary", 20, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    const totalExpenses = data.data?.expenses?.reduce((sum: number, expense: any) => sum + expense.amount, 0) || 0;
+    doc.text(`Total Expenses: TZS ${totalExpenses.toLocaleString()}`, 20, yPos);
+
+    return doc.output("blob");
+  },
+
+  generateOutstandingPaymentsPDF: (data: any, startDate?: string, endDate?: string): Blob => {
+    const doc = new jsPDF();
+
+    // Add company header
+    let yPos = reportsService.addCompanyHeader(
+      doc,
+      "Outstanding Payments Report",
+      startDate,
+      endDate
+    );
+
+    // Outstanding payments table
+    const tableData = data.data?.sales?.map((sale: any, index: number) => [
+      (index + 1).toString(),
+      sale.id.toString(),
+      sale.customer?.name || 'Walk-in Customer',
+      sale.total.toLocaleString(),
+      (sale.paid || 0).toLocaleString(),
+      (sale.outstandingBalance || 0).toLocaleString(),
+      sale.creditDueDate ? format(sale.creditDueDate, "dd-MM-yyyy") : 'N/A',
+    ]) || [];
+
+    autoTable(doc, {
+      head: [["S/N", "Receipt #", "Customer", "Total Amount", "Paid", "Balance", "Due Date"]],
+      body: tableData,
+      startY: yPos,
+      theme: "grid",
+      styles: {fontSize: 8},
+      headStyles: {fillColor: [41, 128, 185]},
+    });
+
+    // Summary (after table)
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    yPos = finalY + 15;
+
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("Summary", 20, yPos);
+    yPos += 10;
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    const totalOutstanding = data.data?.sales?.reduce((sum: number, sale: any) => sum + (sale.outstandingBalance || 0), 0) || 0;
+    doc.text(`Total Outstanding: TZS ${totalOutstanding.toLocaleString()}`, 20, yPos);
+
+    return doc.output("blob");
+  },
+  // Production Summary for Dashboard
+  getProductionSummary: async (): Promise<{dailyProduction: number, weeklyProduction: number, weeklyProductionCost: number}> => {
+    const response = await api.get('/dashboard/production');
+    return response.data;
+  },
+
+  // Expenses Report
+  getExpensesReport: async (startDate?: string, endDate?: string): Promise<any> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const response = await api.get(`/reports/expenses?${params.toString()}`);
+    return response.data;
+  },
+
+  // Outstanding Payments Report
+  getOutstandingPaymentsReport: async (startDate?: string, endDate?: string): Promise<any> => {
+    const params = new URLSearchParams();
+    if (startDate) params.append("startDate", startDate);
+    if (endDate) params.append("endDate", endDate);
+
+    const response = await api.get(`/reports/outstanding-payments?${params.toString()}`);
+    return response.data;
+  },
+
+  // Export Expenses Report
+  exportExpensesReport: async (startDate?: string, endDate?: string): Promise<Blob> => {
+    console.log("📊 Starting expenses report export...", {startDate, endDate});
+    try {
+      const data = await reportsService.getExpensesReport(startDate, endDate);
+      console.log("✅ Expenses data fetched successfully:", data);
+      const pdfBlob = reportsService.generateExpensesPDF(data, startDate, endDate);
+      console.log("📄 Expenses PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting expenses report:", error);
+      throw error;
+    }
+  },
+
+  // Export Outstanding Payments Report
+  exportOutstandingPaymentsReport: async (startDate?: string, endDate?: string): Promise<Blob> => {
+    console.log("📊 Starting outstanding payments report export...", {startDate, endDate});
+    try {
+      const data = await reportsService.getOutstandingPaymentsReport(startDate, endDate);
+      console.log("✅ Outstanding payments data fetched successfully:", data);
+      const pdfBlob = reportsService.generateOutstandingPaymentsPDF(data, startDate, endDate);
+      console.log("📄 Outstanding payments PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting outstanding payments report:", error);
+      throw error;
+    }
+  },
 };
+

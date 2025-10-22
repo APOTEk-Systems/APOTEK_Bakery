@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getInventory, deleteInventoryItem, createAdjustment, InventoryItem } from "../../services/inventory";
+import { settingsService } from "@/services/settings";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/funcs";
@@ -63,6 +64,11 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
     queryFn: () => getInventory({ type }),
   });
 
+  const settingsQuery = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsService.getAll(),
+  });
+
   const adjustMutation = useMutation({
     mutationFn: (data: { inventoryItemId: number; amount: number; reason?: string }) => createAdjustment(data),
     onSuccess: () => {
@@ -106,6 +112,8 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
   const inventoryData = inventoryQuery.data || [];
   const loading = inventoryQuery.isLoading;
   const error = inventoryQuery.error;
+  const settings = settingsQuery.data;
+  const notificationsEnabled = settings?.notifications;
 
   const filteredInventory = inventoryData.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -122,6 +130,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
   useMemo(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
 
   const getStatus = (currentQuantity: number, minLevel: number) => {
     if (currentQuantity <= minLevel * 0.5) return "critical";
@@ -205,7 +214,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
         <>
           <Card className="shadow-warm">
             <CardHeader>
-              <CardTitle>Materials</CardTitle>
+              {/* <CardTitle>Materials</CardTitle> */}
             </CardHeader>
             <CardContent>
               <Table>

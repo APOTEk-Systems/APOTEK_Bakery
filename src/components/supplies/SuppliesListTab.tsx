@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { getInventory, deleteInventoryItem, createAdjustment, InventoryItem } from "../../services/inventory";
+import { settingsService } from "@/services/settings";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/funcs";
@@ -48,6 +49,11 @@ const SuppliesListTab = () => {
   const suppliesQuery = useQuery({
     queryKey: ['supplies'],
     queryFn: () => getInventory({ type: 'supplies' }),
+  });
+
+  const settingsQuery = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsService.getAll(),
   });
 
   const adjustMutation = useMutation({
@@ -93,6 +99,8 @@ const SuppliesListTab = () => {
   const inventory = suppliesQuery.data || [];
   const loading = suppliesQuery.isLoading;
   const error = suppliesQuery.error;
+  const settings = settingsQuery.data;
+  const notificationsEnabled = settings?.notifications;
 
   const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -109,6 +117,7 @@ const SuppliesListTab = () => {
   useMemo(() => {
     setCurrentPage(1);
   }, [searchTerm]);
+
 
   const getStatus = (currentQuantity: number, minLevel: number) => {
     if (currentQuantity <= minLevel * 0.5) return "critical";
@@ -192,7 +201,7 @@ const SuppliesListTab = () => {
         <>
           <Card className="shadow-warm">
             <CardHeader>
-              <CardTitle>Supplies</CardTitle>
+              {/* <CardTitle>Supplies</CardTitle> */}
             </CardHeader>
             <CardContent>
               <Table>

@@ -144,8 +144,8 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
       {/* Expenses List */}
       <Card className="shadow-warm">
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>All Expenses</CardTitle>
+          <div className="flex justify-end items-center">
+            {/* <CardTitle>All Expenses</CardTitle> */}
             <Button className="shadow-warm" onClick={() => {
               setExpenseModalMode('add');
               setIsExpenseModalOpen(true);

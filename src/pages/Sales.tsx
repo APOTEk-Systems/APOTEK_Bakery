@@ -57,7 +57,7 @@ const Sales: React.FC = () => {
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
            <TabsList className="grid w-full grid-cols-3">
-             <TabsTrigger value="recent">Recent Sales</TabsTrigger>
+             <TabsTrigger value="recent">Sales History</TabsTrigger>
              <TabsTrigger value="unpaid">Outstanding Payments</TabsTrigger>
              <TabsTrigger value="payments">Payment History</TabsTrigger>
            </TabsList>

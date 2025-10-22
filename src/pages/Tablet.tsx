@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, ShoppingCart, Package, Truck, Factory, History, CreditCard, Settings, Plus } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Package, Truck, Factory, History, CreditCard, Settings, Plus, Sun, Moon } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -48,7 +48,24 @@ const Tablet = () => {
   const [completedSale, setCompletedSale] = useState<any>(null);
   const [poItems, setPoItems] = useState<Array<{item: string, quantity: number, unitPrice: number}>>([{item: "", quantity: 0, unitPrice: 0}]);
   const [productionIngredients, setProductionIngredients] = useState<Array<{ingredient: string, quantity: number, unit: string}>>([{ingredient: "", quantity: 0, unit: "kg"}]);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('tablet-theme');
+    return saved ? JSON.parse(saved) : false;
+  });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    localStorage.setItem('tablet-theme', JSON.stringify(isDarkMode));
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   const handleLogin = () => {
     if (loginStep === "email" && email) {
@@ -91,27 +108,28 @@ const Tablet = () => {
   };
 
   const renderLogin = () => (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md dark:bg-gray-800 dark:border-gray-700">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-800">Tablet Login</CardTitle>
-          <p className="text-gray-600">Enter your credentials to continue</p>
+          <CardTitle className="text-2xl font-bold text-gray-800 dark:text-white">Tablet Login</CardTitle>
+          <p className="text-gray-600 dark:text-gray-300">Enter your credentials to continue</p>
         </CardHeader>
         <CardContent className="space-y-4">
           {loginStep === "email" ? (
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email" className="dark:text-white">Email Address</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
             </div>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="code">Verification Code</Label>
+              <Label htmlFor="code" className="dark:text-white">Verification Code</Label>
               <Input
                 id="code"
                 type="text"
@@ -119,8 +137,9 @@ const Tablet = () => {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 maxLength={4}
+                className="dark:bg-gray-700 dark:border-gray-600 dark:text-white"
               />
-              <p className="text-sm text-gray-500">Demo code: 1234</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Demo code: 1234</p>
             </div>
           )}
           <Button onClick={handleLogin} className="w-full" size="lg">
@@ -132,51 +151,61 @@ const Tablet = () => {
   );
 
   const renderDashboard = () => (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Quick Actions</h1>
-          <p className="text-gray-600">Select a module to get started</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Quick Actions</h1>
+            <p className="text-gray-600 dark:text-gray-300">Select a module to get started</p>
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleTheme}
+            className="dark:border-gray-600 dark:hover:bg-gray-700"
+          >
+            {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-6">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-300"
+            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-blue-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-blue-400"
             onClick={() => setCurrentView("sales")}
           >
             <CardContent className="p-8 text-center">
-              <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-blue-600" />
-              <h3 className="text-xl font-semibold">Sales</h3>
+              <ShoppingCart className="h-16 w-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Sales</h3>
             </CardContent>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-green-300"
+            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-green-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-green-400"
             onClick={() => setCurrentView("inventory")}
           >
             <CardContent className="p-8 text-center">
-              <Package className="h-16 w-16 mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-semibold">Inventory</h3>
+              <Package className="h-16 w-16 mx-auto mb-4 text-green-600 dark:text-green-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Inventory</h3>
             </CardContent>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-orange-300"
+            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-orange-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-orange-400"
             onClick={() => setCurrentView("purchases")}
           >
             <CardContent className="p-8 text-center">
-              <Truck className="h-16 w-16 mx-auto mb-4 text-orange-600" />
-              <h3 className="text-xl font-semibold">Purchases</h3>
+              <Truck className="h-16 w-16 mx-auto mb-4 text-orange-600 dark:text-orange-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Purchases</h3>
             </CardContent>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-purple-300"
+            className="cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-purple-300 dark:bg-gray-800 dark:border-gray-700 dark:hover:border-purple-400"
             onClick={() => setCurrentView("production")}
           >
             <CardContent className="p-8 text-center">
-              <Factory className="h-16 w-16 mx-auto mb-4 text-purple-600" />
-              <h3 className="text-xl font-semibold">Production</h3>
+              <Factory className="h-16 w-16 mx-auto mb-4 text-purple-600 dark:text-purple-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Production</h3>
             </CardContent>
           </Card>
         </div>
@@ -185,7 +214,7 @@ const Tablet = () => {
           <Button
             variant="outline"
             onClick={() => navigate("/")}
-            className="mr-4"
+            className="mr-4 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
           >
             Back to Main App
           </Button>
@@ -197,6 +226,7 @@ const Tablet = () => {
               setEmail("");
               setCode("");
             }}
+            className="dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
           >
             Logout
           </Button>
@@ -206,38 +236,38 @@ const Tablet = () => {
   );
 
   const renderSales = () => (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => setCurrentView("dashboard")}>
+          <Button variant="outline" size="icon" onClick={() => setCurrentView("dashboard")} className="dark:border-gray-600 dark:hover:bg-gray-700">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Sales</h1>
-            <p className="text-gray-600">Choose an action</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Sales</h1>
+            <p className="text-gray-600 dark:text-gray-300">Choose an action</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
             onClick={() => setCurrentView("sales-history")}
           >
             <CardContent className="p-8 text-center">
-              <History className="h-16 w-16 mx-auto mb-4 text-blue-600" />
-              <h3 className="text-xl font-semibold mb-2">Sales History</h3>
-              <p className="text-gray-600">View completed transactions</p>
+              <History className="h-16 w-16 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-xl font-semibold mb-2 dark:text-white">Sales History</h3>
+              <p className="text-gray-600 dark:text-gray-300">View completed transactions</p>
             </CardContent>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
             onClick={() => setCurrentView("pos")}
           >
             <CardContent className="p-8 text-center">
-              <CreditCard className="h-16 w-16 mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-semibold mb-2">Point of Sale</h3>
-              <p className="text-gray-600">Create new sales transaction</p>
+              <CreditCard className="h-16 w-16 mx-auto mb-4 text-green-600 dark:text-green-400" />
+              <h3 className="text-xl font-semibold mb-2 dark:text-white">Point of Sale</h3>
+              <p className="text-gray-600 dark:text-gray-300">Create new sales transaction</p>
             </CardContent>
           </Card>
         </div>
@@ -246,36 +276,36 @@ const Tablet = () => {
   );
 
   const renderInventory = () => (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => setCurrentView("dashboard")}>
+          <Button variant="outline" size="icon" onClick={() => setCurrentView("dashboard")} className="dark:border-gray-600 dark:hover:bg-gray-700">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Inventory</h1>
-            <p className="text-gray-600">Manage materials and supplies</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Inventory</h1>
+            <p className="text-gray-600 dark:text-gray-300">Manage materials and supplies</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
             onClick={() => setCurrentView("inventory-details")}
           >
             <CardContent className="p-8 text-center">
-              <Package className="h-12 w-12 mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-semibold">Details</h3>
+              <Package className="h-12 w-12 mx-auto mb-4 text-green-600 dark:text-green-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Details</h3>
             </CardContent>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
             onClick={() => setCurrentView("inventory-adjustments")}
           >
             <CardContent className="p-8 text-center">
-              <Settings className="h-12 w-12 mx-auto mb-4 text-orange-600" />
-              <h3 className="text-xl font-semibold">Adjustments</h3>
+              <Settings className="h-12 w-12 mx-auto mb-4 text-orange-600 dark:text-orange-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Adjustments</h3>
             </CardContent>
           </Card>
         </div>
@@ -284,36 +314,36 @@ const Tablet = () => {
   );
 
   const renderPurchases = () => (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => setCurrentView("dashboard")}>
+          <Button variant="outline" size="icon" onClick={() => setCurrentView("dashboard")} className="dark:border-gray-600 dark:hover:bg-gray-700">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Purchases</h1>
-            <p className="text-gray-600">Manage purchase orders and receiving</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Purchases</h1>
+            <p className="text-gray-600 dark:text-gray-300">Manage purchase orders and receiving</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
             onClick={() => setCurrentView("purchase-orders")}
           >
             <CardContent className="p-8 text-center">
-              <Truck className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-              <h3 className="text-xl font-semibold">Purchase Orders</h3>
+              <Truck className="h-12 w-12 mx-auto mb-4 text-blue-600 dark:text-blue-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Purchase Orders</h3>
             </CardContent>
           </Card>
 
           <Card
-            className="cursor-pointer hover:shadow-lg transition-shadow"
+            className="cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-800 dark:border-gray-700"
             onClick={() => setCurrentView("material-receiving")}
           >
             <CardContent className="p-8 text-center">
-              <Package className="h-12 w-12 mx-auto mb-4 text-green-600" />
-              <h3 className="text-xl font-semibold">Material Receiving</h3>
+              <Package className="h-12 w-12 mx-auto mb-4 text-green-600 dark:text-green-400" />
+              <h3 className="text-xl font-semibold dark:text-white">Material Receiving</h3>
             </CardContent>
           </Card>
         </div>
@@ -329,25 +359,25 @@ const Tablet = () => {
       : mockInventory.filter(item => item.type === inventoryFilterType);
 
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8 flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={() => setCurrentView("inventory")}>
+            <Button variant="outline" size="icon" onClick={() => setCurrentView("inventory")} className="dark:border-gray-600 dark:hover:bg-gray-700">
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Inventory Details</h1>
-              <p className="text-gray-600">Current stock levels</p>
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Inventory Details</h1>
+              <p className="text-gray-600 dark:text-gray-300">Current stock levels</p>
             </div>
           </div>
 
           <div className="mb-6">
-            <Label htmlFor="inventory-filter">Filter by Type</Label>
+            <Label htmlFor="inventory-filter" className="dark:text-white">Filter by Type</Label>
             <select
               id="inventory-filter"
               value={inventoryFilterType}
               onChange={(e) => setInventoryFilterType(e.target.value as "all" | "raw_material" | "supplies")}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             >
               <option value="all">All Items</option>
               <option value="raw_material">Raw Materials</option>
@@ -355,26 +385,26 @@ const Tablet = () => {
             </select>
           </div>
 
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle>Stock Levels</CardTitle>
+              <CardTitle className="dark:text-white">Stock Levels</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
                 {filteredInventory.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg">
+                  <div key={item.id} className="flex justify-between items-center p-4 border rounded-lg dark:border-gray-600 dark:bg-gray-700">
                     <div>
-                      <h3 className="font-semibold">{item.name}</h3>
-                      <p className="text-sm text-gray-600">Min Level: {item.minLevel} {item.unit}</p>
+                      <h3 className="font-semibold dark:text-white">{item.name}</h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">Min Level: {item.minLevel} {item.unit}</p>
                     </div>
                     <div className="text-right">
                       <p className={`text-lg font-bold ${
-                        item.quantity <= item.minLevel ? 'text-red-600' : 'text-green-600'
+                        item.quantity <= item.minLevel ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'
                       }`}>
                         {item.quantity} {item.unit}
                       </p>
                       <span className={`px-2 py-1 rounded text-xs ${
-                        item.quantity <= item.minLevel ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        item.quantity <= item.minLevel ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300' : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                       }`}>
                         {item.quantity <= item.minLevel ? 'Low Stock' : 'Good Stock'}
                       </span>
@@ -390,23 +420,23 @@ const Tablet = () => {
   };
 
   const renderInventoryAdjustments = () => (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-center gap-4">
-          <Button variant="outline" size="icon" onClick={() => setCurrentView("inventory")}>
+          <Button variant="outline" size="icon" onClick={() => setCurrentView("inventory")} className="dark:border-gray-600 dark:hover:bg-gray-700">
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Inventory Adjustments</h1>
-            <p className="text-gray-600">Make stock adjustments</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Inventory Adjustments</h1>
+            <p className="text-gray-600 dark:text-gray-300">Make stock adjustments</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Adjustments */}
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle>Recent Adjustments</CardTitle>
+              <CardTitle className="dark:text-white">Recent Adjustments</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -414,18 +444,18 @@ const Tablet = () => {
                   { id: 1, item: "Flour", amount: -5, reason: "Damaged stock", date: "2024-01-15" },
                   { id: 2, item: "Sugar", amount: 10, reason: "New delivery", date: "2024-01-14" },
                 ].map((adjustment) => (
-                  <div key={adjustment.id} className="flex justify-between items-center p-3 border rounded">
+                  <div key={adjustment.id} className="flex justify-between items-center p-3 border rounded dark:border-gray-600 dark:bg-gray-700">
                     <div>
-                      <p className="font-medium">{adjustment.item}</p>
-                      <p className="text-sm text-gray-600">{adjustment.reason}</p>
+                      <p className="font-medium dark:text-white">{adjustment.item}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">{adjustment.reason}</p>
                     </div>
                     <div className="text-right">
                       <p className={`font-semibold ${
-                        adjustment.amount > 0 ? 'text-green-600' : 'text-red-600'
+                        adjustment.amount > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                       }`}>
                         {adjustment.amount > 0 ? '+' : ''}{adjustment.amount}
                       </p>
-                      <p className="text-xs text-gray-500">{adjustment.date}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{adjustment.date}</p>
                     </div>
                   </div>
                 ))}
@@ -434,14 +464,14 @@ const Tablet = () => {
           </Card>
 
           {/* New Adjustment Form */}
-          <Card>
+          <Card className="dark:bg-gray-800 dark:border-gray-700">
             <CardHeader>
-              <CardTitle>New Adjustment</CardTitle>
+              <CardTitle className="dark:text-white">New Adjustment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="adjustment-item">Item</Label>
-                <select id="adjustment-item" className="w-full p-2 border rounded">
+                <Label htmlFor="adjustment-item" className="dark:text-white">Item</Label>
+                <select id="adjustment-item" className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   {mockInventory.map((item) => (
                     <option key={item.id} value={item.id}>{item.name}</option>
                   ))}
@@ -449,13 +479,13 @@ const Tablet = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Action</Label>
+                <Label className="dark:text-white">Action</Label>
                 <div className="flex gap-4">
-                  <label className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 dark:text-white">
                     <input type="radio" name="action" value="add" defaultChecked />
                     Add
                   </label>
-                  <label className="flex items-center gap-2">
+                  <label className="flex items-center gap-2 dark:text-white">
                     <input type="radio" name="action" value="minus" />
                     Minus
                   </label>
@@ -463,13 +493,13 @@ const Tablet = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Quantity</Label>
-                <Input type="number" placeholder="Enter quantity" />
+                <Label className="dark:text-white">Quantity</Label>
+                <Input type="number" placeholder="Enter quantity" className="dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="adjustment-reason">Reason</Label>
-                <select id="adjustment-reason" className="w-full p-2 border rounded">
+                <Label htmlFor="adjustment-reason" className="dark:text-white">Reason</Label>
+                <select id="adjustment-reason" className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
                   <option>Damaged stock</option>
                   <option>New delivery</option>
                   <option>Correction</option>

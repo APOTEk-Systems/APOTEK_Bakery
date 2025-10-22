@@ -21,6 +21,7 @@ const Notifications = () => {
     lowInventoryAlerts: true,
     newOrderNotifications: true,
     customerBirthdayReminders: true,
+    outOfStockAlerts: true,
   });
 
   // Fetch settings with React Query
@@ -107,23 +108,9 @@ const Notifications = () => {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>New Order Notifications</Label>
-                <p className="text-sm text-muted-foreground">
-                  Instant alerts for new orders
-                </p>
-              </div>
-              <Switch
-                checked={notificationsData?.newOrderNotifications}
-                onCheckedChange={(checked) =>
-                  setNotificationsData(prev => ({ ...prev, newOrderNotifications: checked }))
-                }
-                disabled={settingsLoading}
-              />
-            </div>
+      
 
-            <div className="flex items-center justify-between">
+            {/* <div className="flex items-center justify-between">
               <div>
                 <Label>Daily Sales Summary</Label>
                 <p className="text-sm text-muted-foreground">
@@ -137,9 +124,23 @@ const Notifications = () => {
                 }
                 disabled={settingsLoading}
               />
-            </div>
+            </div> */}
 
-        
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Out of Stock Alerts</Label>
+                <p className="text-sm text-muted-foreground">
+                  Get notified when items are completely out of stock
+                </p>
+              </div>
+              <Switch
+                checked={notificationsData?.outOfStockAlerts}
+                onCheckedChange={(checked) =>
+                  setNotificationsData(prev => ({ ...prev, outOfStockAlerts: checked }))
+                }
+                disabled={settingsLoading}
+              />
+            </div>
 
             <Button
               onClick={handleSave}

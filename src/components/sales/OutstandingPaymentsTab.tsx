@@ -145,7 +145,7 @@ const OutstandingPaymentsTab: React.FC = () => {
   return (
     <Card>
       <CardHeader className='py-4'>
-        <CardTitle>Outstanding Payments</CardTitle>
+        {/* <CardTitle>Outstanding Payments</CardTitle> */}
       </CardHeader>
       <CardContent>
         <div className="flex justify-end items-center space-x-2 mb-2">

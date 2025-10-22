@@ -493,6 +493,90 @@ const Reports = () => {
     },
   });
 
+  const exportGrossProfitMutation = useMutation({
+    mutationFn: () => reportsService.exportGrossProfitReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('gross-profit'));
+      toast({
+        title: "Success",
+        description: "Gross profit report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export gross profit report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportNetProfitMutation = useMutation({
+    mutationFn: () => reportsService.exportNetProfitReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('net-profit'));
+      toast({
+        title: "Success",
+        description: "Net profit report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export net profit report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportExpensesMutation = useMutation({
+    mutationFn: () => reportsService.exportExpensesReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('expenses'));
+      toast({
+        title: "Success",
+        description: "Expenses report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export expenses report",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const exportOutstandingPaymentsMutation = useMutation({
+    mutationFn: () => reportsService.exportOutstandingPaymentsReport(
+      dateRange?.from?.toISOString().split('T')[0],
+      dateRange?.to?.toISOString().split('T')[0]
+    ),
+    onSuccess: (blob) => {
+      previewBlob(blob, generateFilename('outstanding-payments'));
+      toast({
+        title: "Success",
+        description: "Outstanding payments report generated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to export outstanding payments report",
+        variant: "destructive",
+      });
+    },
+  });
+
   const exportProductsMutation = useMutation({
     mutationFn: () => reportsService.exportProductsReport(),
     onSuccess: (blob) => {
@@ -647,6 +731,18 @@ const Reports = () => {
       case 'product-details':
         exportProductDetailsMutation.mutate();
         break;
+      case 'gross-profit':
+        exportGrossProfitMutation.mutate();
+        break;
+      case 'net-profit':
+        exportNetProfitMutation.mutate();
+        break;
+      case 'expenses':
+        exportExpensesMutation.mutate();
+        break;
+      case 'outstanding-payments':
+        exportOutstandingPaymentsMutation.mutate();
+        break;
     }
   };
 
@@ -668,25 +764,29 @@ const Reports = () => {
   };
 
   const isExporting = exportSalesMutation.isPending ||
-                        exportCashSalesMutation.isPending ||
-                        exportCreditSalesMutation.isPending ||
-                        exportProductionMutation.isPending ||
-                        exportFinishedGoodsSummaryMutation.isPending ||
-                        exportIngredientUsageMutation.isPending ||
-                        exportMaterialsInventoryMutation.isPending ||
-                        exportSuppliesInventoryMutation.isPending ||
-                        exportMaterialsAdjustmentsMutation.isPending ||
-                        exportSuppliesAdjustmentsMutation.isPending ||
-                        exportMaterialsLowStockMutation.isPending ||
-                        exportSuppliesLowStockMutation.isPending ||
-                        exportMaterialsOutOfStockMutation.isPending ||
-                        exportSuppliesOutOfStockMutation.isPending ||
-                        exportFinancialMutation.isPending ||
-                        exportProfitAndLossMutation.isPending ||
-                        exportExpenseBreakdownMutation.isPending ||
-                        exportProductsMutation.isPending ||
-                        exportProductDetailsMutation.isPending ||
-                        exportGoodsReceivedMutation.isPending;
+                          exportCashSalesMutation.isPending ||
+                          exportCreditSalesMutation.isPending ||
+                          exportProductionMutation.isPending ||
+                          exportFinishedGoodsSummaryMutation.isPending ||
+                          exportIngredientUsageMutation.isPending ||
+                          exportMaterialsInventoryMutation.isPending ||
+                          exportSuppliesInventoryMutation.isPending ||
+                          exportMaterialsAdjustmentsMutation.isPending ||
+                          exportSuppliesAdjustmentsMutation.isPending ||
+                          exportMaterialsLowStockMutation.isPending ||
+                          exportSuppliesLowStockMutation.isPending ||
+                          exportMaterialsOutOfStockMutation.isPending ||
+                          exportSuppliesOutOfStockMutation.isPending ||
+                          exportFinancialMutation.isPending ||
+                          exportProfitAndLossMutation.isPending ||
+                          exportExpenseBreakdownMutation.isPending ||
+                          exportGrossProfitMutation.isPending ||
+                          exportNetProfitMutation.isPending ||
+                          exportProductsMutation.isPending ||
+                          exportProductDetailsMutation.isPending ||
+                          exportGoodsReceivedMutation.isPending ||
+                          exportExpensesMutation.isPending ||
+                          exportOutstandingPaymentsMutation.isPending;
 
   return (
     <Layout>
@@ -713,8 +813,8 @@ const Reports = () => {
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Sales Reports
+                  {/* <FileText className="h-5 w-5" />
+                  Sales Reports */}
                 </CardTitle>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
@@ -770,8 +870,8 @@ const Reports = () => {
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Purchases Reports
+                 
+                  {/* Purchases Reports */}
                 </CardTitle>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
@@ -839,8 +939,8 @@ const Reports = () => {
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Inventory Reports
+                  {/* <FileText className="h-5 w-5" />
+                  Inventory Reports */}
                 </CardTitle>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
@@ -902,8 +1002,8 @@ const Reports = () => {
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Production Reports
+                  {/* <FileText className="h-5 w-5" />
+                  Production Reports */}
                 </CardTitle>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
@@ -958,8 +1058,8 @@ const Reports = () => {
             <Card className="shadow-warm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Accounting Reports
+                  {/* <FileText className="h-5 w-5" />
+                  Accounting Reports */}
                 </CardTitle>
                 <div className="flex gap-4 mt-4">
                   <div className="flex-1">
@@ -969,9 +1069,12 @@ const Reports = () => {
                         <SelectValue placeholder="Select accounting report type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {/* <SelectItem value="financial">Financial Summary</SelectItem> */}
+                        <SelectItem value="gross-profit">Gross Profit Report</SelectItem>
+                        <SelectItem value="net-profit">Net Profit Report</SelectItem>
                         <SelectItem value="profit-loss">Profit and Loss</SelectItem>
                         <SelectItem value="expense-breakdown">Expense Category Breakdown</SelectItem>
+                        <SelectItem value="expenses">Expenses Report</SelectItem>
+                        <SelectItem value="outstanding-payments">Outstanding Payments Report</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -993,7 +1096,7 @@ const Reports = () => {
                     disabled={isExporting || !selectedAccountingReport}
                     className="shadow-warm"
                   >
-                    {(exportFinancialMutation.isPending || exportProfitAndLossMutation.isPending || exportExpenseBreakdownMutation.isPending) ? (
+                    {(exportFinancialMutation.isPending || exportProfitAndLossMutation.isPending || exportExpenseBreakdownMutation.isPending || exportGrossProfitMutation.isPending || exportNetProfitMutation.isPending) ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                         Exporting...

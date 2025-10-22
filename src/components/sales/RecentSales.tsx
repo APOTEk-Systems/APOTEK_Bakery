@@ -97,7 +97,7 @@ const RecentSales: React.FC = () => {
   return (
     <Card>
       <CardHeader className='py-4'>
-        <CardTitle>Sales History</CardTitle>
+        {/* <CardTitle>Sales History</CardTitle> */}
       </CardHeader>
       <CardContent>
         <div className="flex justify-end items-center space-x-2 mb-2">
