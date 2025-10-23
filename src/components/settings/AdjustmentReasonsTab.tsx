@@ -184,7 +184,7 @@ const AdjustmentReasonsTab = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
+                <TableHead>Reason</TableHead>
                 {/* <TableHead>Description</TableHead>
                 <TableHead>Created</TableHead> */}
                 <TableHead className="text-right">Actions</TableHead>

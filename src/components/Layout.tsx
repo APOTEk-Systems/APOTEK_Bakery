@@ -38,7 +38,7 @@ const Layout = ({ children }: LayoutProps) => {
   const rawMaterials = rawMaterialsQuery.data;
   const supplies = suppliesQuery.data;
 
-  // Global inventory notification logic
+  // Global inventory notification logic - show once per page load
   useEffect(() => {
     if ((rawMaterials || supplies) && notificationsEnabled) {
       const allItems = [...(rawMaterials || []), ...(supplies || [])];
@@ -64,22 +64,31 @@ const Layout = ({ children }: LayoutProps) => {
         return displayQuantity <= 0;
       });
 
-      if (lowStockItems.length > 0 && notificationsEnabled.lowInventoryAlerts) {
-        toast({
-          title: "Low Inventory Alert",
-          description: `You have ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} running low on stock across all inventory.`,
-          variant: "default",
-          duration: 15000, // 15 seconds
-        });
-      }
+      // Simple approach: show notifications on every page load/refresh if issues exist
+      // Use a flag to prevent showing multiple times during the same load
+      const loadId = Date.now().toString();
+      const currentLoadId = sessionStorage.getItem('current_page_load');
 
-      if (outOfStockItems.length > 0 && (notificationsEnabled as any)?.outOfStockAlerts) {
-        toast({
-          title: "Out of Stock Alert",
-          description: `You have ${outOfStockItems.length} item${outOfStockItems.length > 1 ? 's' : ''} completely out of stock.`,
-          variant: "destructive",
-          duration: 15000, // 15 seconds
-        });
+      if (currentLoadId !== loadId) {
+        sessionStorage.setItem('current_page_load', loadId);
+
+        if (lowStockItems.length > 0 && notificationsEnabled.lowInventoryAlerts) {
+          toast({
+            title: "Low Inventory Alert",
+            description: `You have ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} running low on stock across all inventory.`,
+            variant: "default",
+            duration: 15000, // 15 seconds
+          });
+        }
+
+        if (outOfStockItems.length > 0 && (notificationsEnabled as any)?.outOfStockAlerts) {
+          toast({
+            title: "Out of Stock Alert",
+            description: `You have ${outOfStockItems.length} item${outOfStockItems.length > 1 ? 's' : ''} completely out of stock.`,
+            variant: "destructive",
+            duration: 15000, // 15 seconds
+          });
+        }
       }
     }
   }, [rawMaterials, supplies, notificationsEnabled, toast]);

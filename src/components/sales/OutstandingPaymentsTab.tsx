@@ -148,12 +148,12 @@ const OutstandingPaymentsTab: React.FC = () => {
         {/* <CardTitle>Outstanding Payments</CardTitle> */}
       </CardHeader>
       <CardContent>
-        <div className="flex justify-end items-center space-x-2 mb-2">
+        <div className="flex items-center space-x-2 mb-2">
           <Input
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search by receipt # or customer"
-            className="w-[250px]"
+            className="flex-1"
           />
           <DateRangePicker
             dateRange={dateRange}

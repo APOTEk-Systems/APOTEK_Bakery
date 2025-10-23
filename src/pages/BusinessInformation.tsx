@@ -240,26 +240,7 @@ const validatePhone = (phone: string): string | undefined => {
                   {/* <Store className="h-5 w-5" />
                   Bakery Information */}
                 </CardTitle>
-                {!isEditMode ? (
-                  <Button onClick={handleEdit} variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button onClick={handleCancel} variant="outline">
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={() => handleSave("Bakery Information")}
-                      disabled={updateSettingsMutation.isPending}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {updateSettingsMutation.isPending ? "Saving..." : "Save"}
-                    </Button>
-                  </div>
-                )}
+             
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -493,6 +474,28 @@ const validatePhone = (phone: string): string | undefined => {
                 </div>
               )}
             </CardContent>
+            <div className="flex justify-end p-4 pt-0">
+                 {!isEditMode ? (
+                  <Button onClick={handleEdit} variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button onClick={handleCancel} variant="outline">
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => handleSave("Bakery Information")}
+                      disabled={updateSettingsMutation.isPending}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {updateSettingsMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
+                  </div>
+                )}
+              </div>
           </Card>
         </div>
       </div>

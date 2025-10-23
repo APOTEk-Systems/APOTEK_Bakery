@@ -1,14 +1,15 @@
 import { api } from '../lib/api';
 
 export interface SalesDashboardData {
+  totalDailySales: number;
   totalSalesThisMonth: number;
   averageDailySales: number;
   salesGrowth: {
     current: number;
     previous: number;
   };
-  weeklySalesList: Array<{
-    weekStart: string;
+  dailySalesList: Array<{
+    date: string;
     total: number;
   }>;
 }
@@ -24,9 +25,29 @@ export interface PurchasesDashboardData {
 }
 
 export interface ProductionDashboardData {
-  dailyProduction: number;
-  weeklyProduction: number;
-  weeklyProductionCost: number;
+  weeklyIngredientUsage: {
+    count: number;
+    items: Array<{
+      name: string;
+      quantity: number;
+    }>;
+  };
+  dailyProduction: {
+    count: number;
+    items: Array<{
+      productName: string;
+      quantityProduced: number;
+    }>;
+  };
+  productionVsSales: {
+    count: number;
+    items: Array<{
+      productName: string;
+      produced: number;
+      sold: number;
+      difference: number;
+    }>;
+  };
 }
 
 export interface AccountingDashboardData {
@@ -43,6 +64,46 @@ export interface AccountingDashboardData {
     operatingExpenses: number;
     grossProfit: number;
     netProfit: number;
+  };
+}
+
+export interface InventoryDashboardData {
+  lowStock: {
+    count: number;
+    items: Array<{
+      id: number;
+      name: string;
+      currentQuantity: number;
+      minLevel: number;
+      type: string;
+    }>;
+  };
+  outOfStock: {
+    count: number;
+    items: Array<{
+      id: number;
+      name: string;
+      currentQuantity: number;
+      minLevel: number;
+      type: string;
+    }>;
+  };
+  materialsUsed: {
+    count: number;
+    items: Array<{
+      materialName: string;
+      amountDeducted: number;
+      unit: string;
+      productName: string;
+      quantityProduced: number;
+    }>;
+  };
+  topSellingProducts: {
+    count: number;
+    items: Array<{
+      productName: string;
+      totalQuantitySold: number;
+    }>;
   };
 }
 
@@ -68,6 +129,12 @@ export const dashboardService = {
   // Accounting Dashboard
   getAccountingDashboard: async (): Promise<AccountingDashboardData> => {
     const response = await api.get('/dashboard/accounting');
+    return response.data;
+  },
+
+  // Inventory Dashboard
+  getInventoryDashboard: async (): Promise<InventoryDashboardData> => {
+    const response = await api.get('/dashboard/inventory');
     return response.data;
   },
 };

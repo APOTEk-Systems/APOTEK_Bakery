@@ -102,10 +102,10 @@ const CategoriesTab = ({ expenseCategories, getCategoryColor }: CategoriesTabPro
                             Edit
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="destructive"
                             size="sm"
                             onClick={() => handleDeleteCategory(category)}
-                            className="text-destructive hover:text-destructive"
+                            className=""
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete

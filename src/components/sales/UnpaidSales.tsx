@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { customersService } from '@/services/customers';
 import { DateRangePicker, DateRange } from '@/components/ui/DateRange';
+import { Input } from '@/components/ui/input';
 import {
   Pagination,
   PaginationContent,
@@ -24,7 +25,7 @@ import {
 
 const UnpaidSales: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [selectedCustomer, setSelectedCustomer] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [page, setPage] = useState(1);
   const [limit] = useState(5);
 
@@ -55,12 +56,12 @@ const UnpaidSales: React.FC = () => {
   };
 
   const { data: paginatedData, isPending: loading, error, refetch } = useQuery<PaginatedSalesResponse>({
-    queryKey: ['unpaidSales', selectedCustomer || dateRange, page, limit],
+    queryKey: ['unpaidSales', searchQuery || dateRange, page, limit],
     queryFn: () => {
-      if (selectedCustomer) {
+      if (searchQuery) {
         const params: SalesQueryParams = {
           status: 'unpaid',
-          customerName: selectedCustomer,
+          customerName: searchQuery,
           page,
           limit,
         };
@@ -96,23 +97,16 @@ const UnpaidSales: React.FC = () => {
         <CardTitle>Unpaid Sales</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex justify-end items-center space-x-2 mb-2">
-          <Select value={selectedCustomer || ''} onValueChange={(value) => {
-            setSelectedCustomer(value);
-            setPage(1);
-          }}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filter by customer" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="cash">Cash</SelectItem>
-              {customersQuery.data?.map(customer => (
-                <SelectItem key={customer.id} value={customer.name}>
-                  {customer.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex items-center space-x-2 mb-2">
+          <Input
+            placeholder="Search by customer name..."
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setPage(1);
+            }}
+            className="flex-1"
+          />
           <DateRangePicker
             dateRange={dateRange}
             onDateRangeChange={(newRange) => {
