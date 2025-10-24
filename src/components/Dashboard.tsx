@@ -212,22 +212,24 @@ const PurchasesSummaryTab = () => {
           </CardContent>
         </Card>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Weekly Purchases Trend</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={purchasesData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="weekStart" />
-              <YAxis />
-              <Tooltip formatter={(value) => [`${formatCurrency(Number(value || 0))}`, 'Total']} />
-              <Bar dataKey="total" fill="#ef4444" name="Purchases" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <div className="w-full">
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Purchases Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={purchasesData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="weekStart" />
+                <YAxis />
+                <Tooltip formatter={(value) => [`${formatCurrency(Number(value || 0))}`, 'Total']} />
+                <Bar dataKey="total" fill="#ef4444" name="Purchases" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
