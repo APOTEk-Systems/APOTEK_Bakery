@@ -1,10 +1,179 @@
 import Layout from "../components/Layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ExpensesTab from "../components/accounting/ExpensesTab";
+import { useQuery } from '@tanstack/react-query';
+import { dashboardService } from "@/services/dashboard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/funcs";
+import {
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Loader2,
+} from "lucide-react";
 // import OverviewTab from "../components/accounting/OverviewTab";
 // import ReportsTab from "../components/accounting/ReportsTab";
 
 
+
+const ProfitLossTab = () => {
+  const { data: profitLossData, isPending: loading } = useQuery({
+    queryKey: ['profitLossReport'],
+    queryFn: () => dashboardService.getProfitLossReport(),
+  });
+
+  if (loading) {
+    return (
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Loading Profit & Loss Report...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(Math.round(profitLossData?.revenue || 0))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Cost of Goods Sold</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(Math.round(profitLossData?.cogs || 0))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Gross Profit</CardTitle>
+            <DollarSign className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${(profitLossData?.grossProfit || 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              {formatCurrency(Math.round(profitLossData?.grossProfit || 0))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+            <DollarSign className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${(profitLossData?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(Math.round(profitLossData?.netProfit || 0))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Operating Expenses: {formatCurrency(Math.round(profitLossData?.operatingExpenses || 0))}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+const CashFlowTab = () => {
+  const { data: cashFlowData, isPending: loading } = useQuery({
+    queryKey: ['cashFlowReport'],
+    queryFn: () => dashboardService.getCashFlowReport(),
+  });
+
+  if (loading) {
+    return (
+      <div className="flex flex-col w-full justify-center items-center p-6">
+        <Loader2 className="w-6 h-6 animate-spin" />
+        <p>Loading Cash Flow Report...</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-green-600">Cash Inflows</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">From Sales</span>
+              <span className="text-lg font-bold text-green-600">
+                {formatCurrency(Math.round(cashFlowData?.cashInflows?.fromSales || 0))}
+              </span>
+            </div>
+            <div className="border-t pt-2">
+              <div className="flex justify-between items-center font-semibold">
+                <span>Total Inflows</span>
+                <span className="text-xl text-green-600">
+                  {formatCurrency(Math.round(cashFlowData?.cashInflows?.total || 0))}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-semibold text-red-600">Cash Outflows</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">For Expenses</span>
+              <span className="text-lg font-bold text-red-600">
+                {formatCurrency(Math.round(cashFlowData?.cashOutflows?.forExpenses || 0))}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">For Purchases</span>
+              <span className="text-lg font-bold text-red-600">
+                {formatCurrency(Math.round(cashFlowData?.cashOutflows?.forPurchases || 0))}
+              </span>
+            </div>
+            <div className="border-t pt-2">
+              <div className="flex justify-between items-center font-semibold">
+                <span>Total Outflows</span>
+                <span className="text-xl text-red-600">
+                  {formatCurrency(Math.round(cashFlowData?.cashOutflows?.total || 0))}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Net Cash Flow</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className={`text-3xl font-bold ${(cashFlowData?.netCashFlow || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(Math.round(cashFlowData?.netCashFlow || 0))}
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            {(cashFlowData?.netCashFlow || 0) >= 0 ? 'Positive cash flow' : 'Negative cash flow'}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
 
 const Accounting = () => {
 
@@ -85,18 +254,11 @@ const Accounting = () => {
         </div>
 
         <Tabs defaultValue="expenses" className="space-y-6">
-          {/* <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
-            <TabsTrigger value="reports">Financial Reports</TabsTrigger>
-          </TabsList> */}
-
-          {/* <TabsContent value="overview">
-            <OverviewTab
-              getStatusColor={getStatusColor}
-            />
-          </TabsContent> */}
+            <TabsTrigger value="profit-loss">Profit & Loss</TabsTrigger>
+            <TabsTrigger value="cash-flow">Cash Flow</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="expenses">
             <ExpensesTab
@@ -105,10 +267,13 @@ const Accounting = () => {
             />
           </TabsContent>
 
+          <TabsContent value="profit-loss">
+            <ProfitLossTab />
+          </TabsContent>
 
-          {/* <TabsContent value="reports">
-            <ReportsTab />
-          </TabsContent> */}
+          <TabsContent value="cash-flow">
+            <CashFlowTab />
+          </TabsContent>
         </Tabs>
       </div>
     </Layout>

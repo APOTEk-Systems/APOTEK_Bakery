@@ -30,13 +30,16 @@ export interface ProductionDashboardData {
     items: Array<{
       name: string;
       quantity: number;
+      unit: string;
+      available: number;
     }>;
   };
-  dailyProduction: {
+  weeklyProduction: {
     count: number;
     items: Array<{
       productName: string;
       quantityProduced: number;
+      cost: number;
     }>;
   };
   productionVsSales: {
@@ -57,6 +60,7 @@ export interface AccountingDashboardData {
     operatingExpenses: number;
     grossProfit: number;
     netProfit: number;
+    outstandingPayments: number;
   };
   lastMonth: {
     revenue: number;
@@ -64,7 +68,29 @@ export interface AccountingDashboardData {
     operatingExpenses: number;
     grossProfit: number;
     netProfit: number;
+    outstandingPayments: number;
   };
+}
+
+export interface CashFlowData {
+  cashInflows: {
+    fromSales: number;
+    total: number;
+  };
+  cashOutflows: {
+    forExpenses: number;
+    forPurchases: number;
+    total: number;
+  };
+  netCashFlow: number;
+}
+
+export interface ProfitLossData {
+  revenue: number;
+  cogs: number;
+  grossProfit: number;
+  operatingExpenses: number;
+  netProfit: number;
 }
 
 export interface InventoryDashboardData {
@@ -94,6 +120,7 @@ export interface InventoryDashboardData {
       materialName: string;
       amountDeducted: number;
       unit: string;
+      available: number;
       productName: string;
       quantityProduced: number;
     }>;
@@ -104,6 +131,10 @@ export interface InventoryDashboardData {
       productName: string;
       totalQuantitySold: number;
     }>;
+  };
+  weeklyAdjustments: {
+    count: number;
+    items: Array<any>; // Define proper type if needed
   };
 }
 
@@ -136,5 +167,17 @@ export const dashboardService = {
   getInventoryDashboard: async (): Promise<InventoryDashboardData> => {
     const response = await api.get('/dashboard/inventory');
     return response.data;
+  },
+
+  // Cash Flow Report
+  getCashFlowReport: async (): Promise<CashFlowData> => {
+    const response = await api.get('/accounting/reports/cash-flow');
+    return response.data.data;
+  },
+
+  // Profit & Loss Report
+  getProfitLossReport: async (): Promise<ProfitLossData> => {
+    const response = await api.get('/accounting/reports/profit-loss');
+    return response.data.data;
   },
 };

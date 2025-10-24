@@ -11,7 +11,6 @@ import {
 } from "recharts";
 import { useQuery } from '@tanstack/react-query';
 import {useAuth} from "@/contexts/AuthContext";
-import {inventoryService} from "@/services/inventory";
 import {dashboardService} from "@/services/dashboard";
 import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
 import {Badge} from "@/components/ui/badge";
@@ -67,7 +66,7 @@ const SalesSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(dashboardData?.totalDailySales) ?? "0.00"}
+              {formatCurrency(Math.round(dashboardData?.totalDailySales || 0))}
             </div>
             <p className="text-xs text-muted-foreground">Today's sales</p>
           </CardContent>
@@ -79,7 +78,7 @@ const SalesSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(dashboardData?.totalSalesThisMonth) ?? "0.00"}
+              {formatCurrency(Math.round(dashboardData?.totalSalesThisMonth || 0))}
             </div>
             <p className="text-xs text-muted-foreground">
               Growth: {growthPercentage}%
@@ -93,7 +92,7 @@ const SalesSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(dashboardData?.averageDailySales) ?? "0.00"}
+              {formatCurrency(Math.round(dashboardData?.averageDailySales || 0))}
             </div>
             <p className="text-xs text-muted-foreground">Average per day</p>
           </CardContent>
@@ -108,7 +107,7 @@ const SalesSummaryTab = () => {
               {growthPercentage}%
             </div>
             <p className="text-xs text-muted-foreground">
-              Current: {formatCurrency(dashboardData?.salesGrowth?.current) ?? "0.00"} | Previous: {formatCurrency(dashboardData?.salesGrowth?.previous) ?? "0.00"}
+              Current: {formatCurrency(Math.round(dashboardData?.salesGrowth?.current || 0))} | Previous: {formatCurrency(Math.round(dashboardData?.salesGrowth?.previous || 0))}
             </p>
             <div className="flex items-center mt-2">
               {growthNum > 0 ? (
@@ -170,7 +169,7 @@ const PurchasesSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {formatCurrency(dashboardData?.totalPurchasesThisMonth) ?? "0.00"}
+              {formatCurrency(Math.round(dashboardData?.totalPurchasesThisMonth || 0))}
             </div>
             <p className="text-xs text-muted-foreground">
               Growth: {dashboardData?.purchaseGrowth ?? 0}%
@@ -256,39 +255,45 @@ const InventorySummaryTab = () => {
     <div className="space-y-6">
       {/* Summary Cards Row */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {inventoryData?.lowStock && inventoryData.lowStock.count > 0 && (
-          <Card
-            className={`cursor-pointer transition-colors ${expandedCard === 'lowStock' ? 'ring-2 ring-orange-500' : 'hover:bg-muted/50'}`}
-            onClick={() => toggleCard('lowStock')}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{inventoryData.lowStock.count}</div>
-              <p className="text-xs text-muted-foreground">Items below minimum</p>
-            </CardContent>
-          </Card>
-        )}
+        {(() => {
+          // Priority: show outOfStock if it has items, otherwise show lowStock if it has items
+          if (inventoryData?.outOfStock && inventoryData.outOfStock.count > 0) {
+            return (
+              <Card
+                className={`cursor-pointer transition-colors ${expandedCard === 'outOfStock' ? 'ring-2 ring-red-500' : 'hover:bg-muted/50'}`}
+                onClick={() => toggleCard('outOfStock')}
+              >
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{inventoryData.outOfStock.count}</div>
+                  <p className="text-xs text-muted-foreground">Items at zero stock</p>
+                </CardContent>
+              </Card>
+            );
+          } else if (inventoryData?.lowStock && inventoryData.lowStock.count > 0) {
+            return (
+              <Card
+                className={`cursor-pointer transition-colors ${expandedCard === 'lowStock' ? 'ring-2 ring-orange-500' : 'hover:bg-muted/50'}`}
+                onClick={() => toggleCard('lowStock')}
+              >
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-medium">Low Stock Items</CardTitle>
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{inventoryData.lowStock.count}</div>
+                  <p className="text-xs text-muted-foreground">Items below minimum</p>
+                </CardContent>
+              </Card>
+            );
+          }
+          return null;
+        })()}
 
-        {inventoryData?.outOfStock && inventoryData.outOfStock.count > 0 && (
-          <Card
-            className={`cursor-pointer transition-colors ${expandedCard === 'outOfStock' ? 'ring-2 ring-red-500' : 'hover:bg-muted/50'}`}
-            onClick={() => toggleCard('outOfStock')}
-          >
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{inventoryData.outOfStock.count}</div>
-              <p className="text-xs text-muted-foreground">Items at zero stock</p>
-            </CardContent>
-          </Card>
-        )}
-
-        {inventoryData?.materialsUsed && inventoryData.materialsUsed.count > 0 && (
+        {inventoryData?.materialsUsed && (
           <Card
             className={`cursor-pointer transition-colors ${expandedCard === 'materialsUsed' ? 'ring-2 ring-blue-500' : 'hover:bg-muted/50'}`}
             onClick={() => toggleCard('materialsUsed')}
@@ -304,18 +309,34 @@ const InventorySummaryTab = () => {
           </Card>
         )}
 
-        {inventoryData?.topSellingProducts && inventoryData.topSellingProducts.count > 0 && (
+        {inventoryData?.topSellingProducts && (
           <Card
             className={`cursor-pointer transition-colors ${expandedCard === 'topSellingProducts' ? 'ring-2 ring-green-500' : 'hover:bg-muted/50'}`}
             onClick={() => toggleCard('topSellingProducts')}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Top Products</CardTitle>
+              <CardTitle className="text-sm font-medium">Top Selling Products</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{inventoryData.topSellingProducts.count}</div>
               <p className="text-xs text-muted-foreground">Best selling items</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {inventoryData?.weeklyAdjustments && (
+          <Card
+            className={`cursor-pointer transition-colors ${expandedCard === 'weeklyAdjustments' ? 'ring-2 ring-purple-500' : 'hover:bg-muted/50'}`}
+            onClick={() => toggleCard('weeklyAdjustments')}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Weekly Adjustments</CardTitle>
+              <Package className="h-4 w-4 text-purple-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{inventoryData.weeklyAdjustments.count}</div>
+              <p className="text-xs text-muted-foreground">Inventory adjustments</p>
             </CardContent>
           </Card>
         )}
@@ -334,7 +355,7 @@ const InventorySummaryTab = () => {
                   <tr className="border-b">
                     <th className="text-left p-2">Name</th>
                     <th className="text-left p-2">Type</th>
-                    <th className="text-left p-2">Current</th>
+                    <th className="text-left p-2">Qunatity</th>
                     <th className="text-left p-2">Min Level</th>
                     <th className="text-left p-2">Status</th>
                   </tr>
@@ -397,7 +418,7 @@ const InventorySummaryTab = () => {
       {expandedCard === 'materialsUsed' && inventoryData?.materialsUsed && (
         <Card>
           <CardHeader>
-            <CardTitle>Materials Used Details</CardTitle>
+            <CardTitle>Weekly Materials Used </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -405,22 +426,36 @@ const InventorySummaryTab = () => {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">Material</th>
-                    <th className="text-left p-2">Amount Deducted</th>
+                    <th className="text-left p-2">Used</th>
                     <th className="text-left p-2">Unit</th>
                     <th className="text-left p-2">Product</th>
-                    <th className="text-left p-2">Quantity Produced</th>
+                    <th className="text-left p-2">Produced</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {inventoryData.materialsUsed.items.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="p-2">{item.materialName}</td>
-                      <td className="p-2">{item.amountDeducted}</td>
-                      <td className="p-2">{item.unit}</td>
-                      <td className="p-2">{item.productName}</td>
-                      <td className="p-2">{item.quantityProduced}</td>
-                    </tr>
-                  ))}
+                  {inventoryData.materialsUsed.items.map((item, index) => {
+                    let displayQuantity = item.amountDeducted;
+                    let displayUnit = item.unit;
+
+                    if (item.unit === 'kg' || item.unit === 'l') {
+                      if (item.amountDeducted >= 1000) {
+                        displayQuantity = item.amountDeducted / 1000;
+                        displayUnit = item.unit;
+                      } else {
+                        displayUnit = item.unit === 'kg' ? 'g' : 'ml';
+                      }
+                    }
+
+                    return (
+                      <tr key={index} className="border-b">
+                        <td className="p-2">{item.materialName}</td>
+                        <td className="p-2">{displayQuantity.toFixed(2)}</td>
+                        <td className="p-2">{displayUnit}</td>
+                        <td className="p-2">{item.productName}</td>
+                        <td className="p-2">{item.quantityProduced}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -499,18 +534,18 @@ const ProductionSummaryTab = () => {
           </Card>
         )}
 
-        {productionData?.dailyProduction && productionData.dailyProduction.count > 0 && (
+        {productionData?.weeklyProduction && productionData.weeklyProduction.count > 0 && (
           <Card
-            className={`cursor-pointer transition-colors ${expandedCard === 'dailyProduction' ? 'ring-2 ring-green-500' : 'hover:bg-muted/50'}`}
-            onClick={() => toggleCard('dailyProduction')}
+            className={`cursor-pointer transition-colors ${expandedCard === 'weeklyProduction' ? 'ring-2 ring-green-500' : 'hover:bg-muted/50'}`}
+            onClick={() => toggleCard('weeklyProduction')}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Daily Production</CardTitle>
+              <CardTitle className="text-sm font-medium">Weekly Production</CardTitle>
               <TrendingUp className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{productionData.dailyProduction.count}</div>
-              <p className="text-xs text-muted-foreground">Products made today</p>
+              <div className="text-2xl font-bold">{productionData.weeklyProduction.count}</div>
+              <p className="text-xs text-muted-foreground">Products made this week</p>
             </CardContent>
           </Card>
         )}
@@ -521,7 +556,7 @@ const ProductionSummaryTab = () => {
             onClick={() => toggleCard('productionVsSales')}
           >
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Production vs Sales</CardTitle>
+              <CardTitle className="text-sm font-medium">Weekly Production vs Sales</CardTitle>
               <Banknote className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent>
@@ -544,16 +579,43 @@ const ProductionSummaryTab = () => {
                 <thead>
                   <tr className="border-b">
                     <th className="text-left p-2">Ingredient</th>
-                    <th className="text-left p-2">Quantity Used</th>
+                    <th className="text-left p-2">Used</th>
+                    <th className="text-left p-2">Available</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {productionData.weeklyIngredientUsage.items.map((item, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="p-2">{item.name}</td>
-                      <td className="p-2">{item.quantity.toFixed(2)}</td>
-                    </tr>
-                  ))}
+                 {productionData.weeklyIngredientUsage.items.map((item, index) => {
+                   let displayQuantity = item.quantity;
+                   let displayUnit = item.unit;
+                   let displayAvailable = item.available;
+                   let displayAvailableUnit = item.unit
+
+                   if (item.unit === 'kg' || item.unit === 'l') {
+                     if (item.quantity >= 1000) {
+                       displayQuantity = item.quantity / 1000;
+                       displayUnit = item.unit;
+                     } else {
+                       displayUnit = item.unit === 'kg' ? 'g' : 'ml';
+                     }
+
+                     // Apply the same unit logic to available
+                     if (item.available >= 1000) {
+                       displayAvailable = item.available / 1000;
+                        displayAvailableUnit = item.unit === 'kg' ? 'kg' : 'l';
+                     } else {
+                       displayAvailable = item.available;
+                        displayAvailableUnit = item.unit;
+                     }
+                   }
+
+                   return (
+                     <tr key={index} className="border-b">
+                       <td className="p-2">{item.name}</td>
+                       <td className="p-2">{displayQuantity.toFixed(2)} {displayUnit}</td>
+                       <td className="p-2">{displayAvailable.toFixed(2)} {displayAvailableUnit}</td>
+                     </tr>
+                   );
+                 })}
                 </tbody>
               </table>
             </div>
@@ -561,10 +623,10 @@ const ProductionSummaryTab = () => {
         </Card>
       )}
 
-      {expandedCard === 'dailyProduction' && productionData?.dailyProduction && (
+      {expandedCard === 'weeklyProduction' && productionData?.weeklyProduction && (
         <Card>
           <CardHeader>
-            <CardTitle>Daily Production Details</CardTitle>
+            <CardTitle>Weekly Production Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -573,13 +635,15 @@ const ProductionSummaryTab = () => {
                   <tr className="border-b">
                     <th className="text-left p-2">Product</th>
                     <th className="text-left p-2">Quantity Produced</th>
+                    <th className="text-left p-2">Cost</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {productionData.dailyProduction.items.map((item, index) => (
+                  {productionData.weeklyProduction.items.map((item, index) => (
                     <tr key={index} className="border-b">
                       <td className="p-2">{item.productName}</td>
                       <td className="p-2">{item.quantityProduced}</td>
+                      <td className="p-2">{formatCurrency(item.cost)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -592,7 +656,7 @@ const ProductionSummaryTab = () => {
       {expandedCard === 'productionVsSales' && productionData?.productionVsSales && (
         <Card>
           <CardHeader>
-            <CardTitle>Production vs Sales Details</CardTitle>
+            <CardTitle>Weekly Production vs Sales Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -602,7 +666,6 @@ const ProductionSummaryTab = () => {
                     <th className="text-left p-2">Product</th>
                     <th className="text-left p-2">Produced</th>
                     <th className="text-left p-2">Sold</th>
-                    <th className="text-left p-2">Difference</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -611,7 +674,6 @@ const ProductionSummaryTab = () => {
                       <td className="p-2">{item.productName}</td>
                       <td className="p-2">{item.produced}</td>
                       <td className="p-2">{item.sold}</td>
-                      <td className="p-2">{item.difference}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -653,10 +715,10 @@ const AccountingSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold ">
-              {formatCurrency(currentMonth?.revenue || 0)}
+              {formatCurrency(Math.round(currentMonth?.revenue || 0))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Last month: {formatCurrency(lastMonth?.revenue || 0)}
+              Last month: {formatCurrency(Math.round(lastMonth?.revenue || 0))}
             </p>
           </CardContent>
         </Card>
@@ -668,10 +730,10 @@ const AccountingSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold ">
-              {formatCurrency(currentMonth?.cogs || 0)}
+              {formatCurrency(Math.round(currentMonth?.cogs || 0))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Last month: {formatCurrency(lastMonth?.cogs || 0)}
+              Last month: {formatCurrency(Math.round(lastMonth?.cogs || 0))}
             </p>
           </CardContent>
         </Card>
@@ -683,48 +745,61 @@ const AccountingSummaryTab = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold ">
-              {formatCurrency(currentMonth?.operatingExpenses || 0)}
+              {formatCurrency(Math.round(currentMonth?.operatingExpenses || 0))}
             </div>
             <p className="text-xs text-muted-foreground">
-              Last month: {formatCurrency(lastMonth?.operatingExpenses || 0)}
+              Last month: {formatCurrency(Math.round(lastMonth?.operatingExpenses || 0))}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Second row: 2 centered cards */}
-      <div className="flex justify-center w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-3/4">
-          <Card className="">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Gross Profit</CardTitle>
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${(currentMonth?.grossProfit || 0) >= 0 ? 'text-blue-600' : ''}`}>
-                {formatCurrency(currentMonth?.grossProfit || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Last month: {formatCurrency(lastMonth?.grossProfit || 0)}
-              </p>
-            </CardContent>
-          </Card>
+      {/* Second row: 3 cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Gross Profit</CardTitle>
+            <TrendingUp className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${(currentMonth?.grossProfit || 0) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              {formatCurrency(Math.round(currentMonth?.grossProfit || 0))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last month: {formatCurrency(Math.round(lastMonth?.grossProfit || 0))}
+            </p>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
-              <Banknote className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className={`text-2xl font-bold ${(currentMonth?.netProfit || 0) >= 0 ? '' : ''}`}>
-                {formatCurrency(currentMonth?.netProfit || 0)}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Last month: {formatCurrency(lastMonth?.netProfit || 0)}
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+            <Banknote className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${(currentMonth?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(Math.round(currentMonth?.netProfit || 0))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last month: {formatCurrency(Math.round(lastMonth?.netProfit || 0))}
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Outstanding Payments</CardTitle>
+            <DollarSign className="h-4 w-4 text-orange-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(Math.round(currentMonth?.outstandingPayments || 0))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Last month: {formatCurrency(Math.round(lastMonth?.outstandingPayments || 0))}
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
