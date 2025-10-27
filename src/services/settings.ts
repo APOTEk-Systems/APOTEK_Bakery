@@ -23,7 +23,12 @@ export interface SettingsData {
     website: string;
     bakeryName: string;
     description: string;
-    tin:string;
+    tin: string;
+    registrationNumber: string;
+    vrnNumber: string;
+    slogan: string;
+    logo: string;
+    vatPercentage: string;
   };
   configuration?: {
     vat: number;

@@ -26,13 +26,21 @@ const BusinessInformation = () => {
   // Local state for settings forms
   const [informationData, setInformationData] = useState({
     bakeryName: "",
-    phone: "",
+    registrationNumber: "",
+    tin: "",
+    vrnNumber: "",
+    slogan: "",
+    logo: "",
     address: "",
+    phone: "",
     email: "",
     website: "",
+    vatPercentage: "",
     description: "",
-    tin: "",
   });
+
+  // Logo preview state
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
@@ -99,17 +107,23 @@ const validatePhone = (phone: string): string | undefined => {
     if (settings?.information) {
       setInformationData({
         bakeryName: settings.information.bakeryName || "",
+        registrationNumber: settings.information.registrationNumber || "",
+        tin: settings.information.tin || "",
+        vrnNumber: settings.information.vrnNumber || "",
+        slogan: settings.information.slogan || "",
+        logo: settings.information.logo || "",
+        address: settings.information.address || "",
         phone: settings.information.phone
           ? settings.information.phone.startsWith("+255")
             ? settings.information.phone.substring(4)
             : settings.information.phone
           : "",
-        address: settings.information.address || "",
         email: settings.information.email || "",
         website: settings.information.website || "",
+        vatPercentage: settings.information.vatPercentage || "",
         description: settings.information.description || "",
-        tin: settings.information.tin || "",
       });
+      setLogoPreview(settings.information.logo || null);
     }
   }, [settings]);
 
@@ -133,17 +147,23 @@ const validatePhone = (phone: string): string | undefined => {
     if (settings?.information) {
       setInformationData({
         bakeryName: settings.information.bakeryName || "",
+        registrationNumber: settings.information.registrationNumber || "",
+        tin: settings.information.tin || "",
+        vrnNumber: settings.information.vrnNumber || "",
+        slogan: settings.information.slogan || "",
+        logo: settings.information.logo || "",
+        address: settings.information.address || "",
         phone: settings.information.phone
           ? settings.information.phone.startsWith("+255")
             ? settings.information.phone.substring(4)
             : settings.information.phone
           : "",
-        address: settings.information.address || "",
         email: settings.information.email || "",
         website: settings.information.website || "",
+        vatPercentage: settings.information.vatPercentage || "",
         description: settings.information.description || "",
-        tin: settings.information.tin || "",
       });
+      setLogoPreview(settings.information.logo || null);
     }
     setValidationErrors({});
     setIsEditMode(false);
@@ -157,6 +177,20 @@ const validatePhone = (phone: string): string | undefined => {
     className: string = ""
   ) => {
     if (!isEditMode) {
+      if (label === "Logo" && logoPreview) {
+        return (
+          <div className={className}>
+            <Label>{label}</Label>
+            <div className="mt-1">
+              <img
+                src={logoPreview}
+                alt="Logo preview"
+                className="w-20 h-20 object-contain border rounded"
+              />
+            </div>
+          </div>
+        );
+      }
       return (
         <div className={className}>
           <Label>{label}</Label>
@@ -167,6 +201,34 @@ const validatePhone = (phone: string): string | undefined => {
       );
     }
     return field;
+  };
+
+  // Handle logo file change
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: "Error",
+          description: "Please select a valid image file.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setLogoPreview(result);
+        setInformationData((prev) => ({
+          ...prev,
+          logo: result, // Store base64 string
+        }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = (section: string) => {
@@ -246,10 +308,10 @@ const validatePhone = (phone: string): string | undefined => {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderField(
-                  "Bakery Name",
+                  "Business Name",
                   informationData.bakeryName,
                   <div>
-                    <Label htmlFor="bakeryName">Bakery Name</Label>
+                    <Label htmlFor="bakeryName">Business Name</Label>
                     <Input
                       id="bakeryName"
                       value={informationData.bakeryName}
@@ -259,6 +321,130 @@ const validatePhone = (phone: string): string | undefined => {
                           bakeryName: e.target.value,
                         }))
                       }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+                {renderField(
+                  "Registration Number",
+                  informationData.registrationNumber,
+                  <div>
+                    <Label htmlFor="registrationNumber">Registration Number</Label>
+                    <Input
+                      id="registrationNumber"
+                      value={informationData.registrationNumber}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          registrationNumber: e.target.value,
+                        }))
+                      }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderField(
+                  "TIN Number",
+                  informationData.tin,
+                  <div>
+                    <Label htmlFor="tin">TIN Number</Label>
+                    <Input
+                      id="tin"
+                      value={informationData.tin}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          tin: e.target.value,
+                        }))
+                      }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+                {renderField(
+                  "VRN Number",
+                  informationData.vrnNumber,
+                  <div>
+                    <Label htmlFor="vrnNumber">VRN Number</Label>
+                    <Input
+                      id="vrnNumber"
+                      value={informationData.vrnNumber}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          vrnNumber: e.target.value,
+                        }))
+                      }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderField(
+                  "Slogan",
+                  informationData.slogan,
+                  <div>
+                    <Label htmlFor="slogan">Slogan</Label>
+                    <Input
+                      id="slogan"
+                      value={informationData.slogan}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          slogan: e.target.value,
+                        }))
+                      }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+                {renderField(
+                  "Logo",
+                  informationData.logo,
+                  <div>
+                    <Label htmlFor="logo">Logo</Label>
+                    <Input
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      disabled={settingsLoading}
+                      className="cursor-pointer"
+                    />
+                    {logoPreview && (
+                      <div className="mt-2">
+                        <img
+                          src={logoPreview}
+                          alt="Logo preview"
+                          className="w-20 h-20 object-contain border rounded"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderField(
+                  "Address",
+                  informationData.address,
+                  <div>
+                    <Label htmlFor="address">Address</Label>
+                    <Textarea
+                      id="address"
+                      value={informationData.address}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          address: e.target.value,
+                        }))
+                      }
+                      rows={2}
                       disabled={settingsLoading}
                     />
                   </div>
@@ -307,78 +493,14 @@ const validatePhone = (phone: string): string | undefined => {
                     </div>
                   </div>
                 )}
-                {/* {renderField(
-                  "Address",
-                  informationData.address || "",
-                  <div>
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <div className="flex items-center">
-                      <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">
-                        +255
-                      </span>
-                      <Input
-                        id="phone"
-                        value={informationData.phone}
-                        onChange={(e) => {
-                          setInformationData((prev) => ({
-                            ...prev,
-                            phone: e.target.value,
-                          }));
-                          // Clear validation error when user starts typing
-                          if (validationErrors.phone) {
-                            setValidationErrors((prev) => ({
-                              ...prev,
-                              phone: undefined,
-                            }));
-                          }
-                        }}
-                        onBlur={(e) => {
-                          const error = validatePhone(e.target.value);
-                          setValidationErrors((prev) => ({
-                            ...prev,
-                            phone: error,
-                          }));
-                        }}
-                        placeholder="enter phone number"
-                        className={`rounded-l-none ${validationErrors.phone ? "border-destructive" : ""}`}
-                        disabled={settingsLoading}
-                      />
-                      {validationErrors.phone && (
-                        <p className="text-sm text-destructive mt-1">
-                          {validationErrors.phone}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )} */}
               </div>
-
-              {renderField(
-                "Address",
-                informationData.address,
-                <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Textarea
-                    id="address"
-                    value={informationData.address}
-                    onChange={(e) =>
-                      setInformationData((prev) => ({
-                        ...prev,
-                        address: e.target.value,
-                      }))
-                    }
-                    rows={2}
-                    disabled={settingsLoading}
-                  />
-                </div>
-              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderField(
-                  "Email",
+                  "Email Address",
                   informationData.email || "",
                   <div>
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">Email Address</Label>
                     <Input
                       id="email"
                       type="email"
@@ -435,44 +557,27 @@ const validatePhone = (phone: string): string | undefined => {
                 )}
               </div>
 
-              {renderField(
-                "Description",
-                informationData.description || "",
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    value={informationData.description}
-                    onChange={(e) =>
-                      setInformationData((prev) => ({
-                        ...prev,
-                        description: e.target.value,
-                      }))
-                    }
-                    rows={3}
-                    disabled={settingsLoading}
-                  />
-                </div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {renderField(
+                  "VAT Percentage",
+                  informationData.vatPercentage || "",
+                  <div>
+                    <Label htmlFor="vatPercentage">VAT Percentage</Label>
+                    <Input
+                      id="vatPercentage"
+                      value={informationData.vatPercentage}
+                      onChange={(e) =>
+                        setInformationData((prev) => ({
+                          ...prev,
+                          vatPercentage: e.target.value,
+                        }))
+                      }
+                      disabled={settingsLoading}
+                    />
+                  </div>
+                )}
+              </div>
 
-              {renderField(
-                "TIN Number",
-                informationData.tin || "",
-                <div>
-                  <Label htmlFor="tin">TIN Number</Label>
-                  <Input
-                    id="tin"
-                    value={informationData.tin}
-                    onChange={(e) =>
-                      setInformationData((prev) => ({
-                        ...prev,
-                        tin: e.target.value,
-                      }))
-                    }
-                    disabled={settingsLoading}
-                  />
-                </div>
-              )}
             </CardContent>
             <div className="flex justify-end p-4 pt-0">
                  {!isEditMode ? (
