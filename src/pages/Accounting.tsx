@@ -113,9 +113,15 @@ const CashFlowTab = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">From Sales</span>
+              <span className="text-sm font-medium">From Cash Sales</span>
               <span className="text-lg font-bold text-green-600">
-                {formatCurrency(Math.round(cashFlowData?.cashInflows?.fromSales || 0))}
+                {formatCurrency(Math.round(cashFlowData?.cashInflows?.fromCashSales || 0))}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium">From Credit Payments</span>
+              <span className="text-lg font-bold text-green-600">
+                {formatCurrency(Math.round(cashFlowData?.cashInflows?.fromCreditPayments || 0))}
               </span>
             </div>
             <div className="border-t pt-2">

@@ -28,7 +28,7 @@ const InventorySummaryTab = () => {
   return (
     <div className="space-y-6">
       {/* Summary Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {(() => {
           // Priority: show outOfStock if it has items, otherwise show lowStock if it has items
           if (inventoryData?.outOfStock && inventoryData.outOfStock.count > 0) {
@@ -277,6 +277,8 @@ const InventorySummaryTab = () => {
                     <tr className="border-b">
                       <th className="text-left p-2">Product</th>
                       <th className="text-left p-2">Total Quantity Sold</th>
+                      <th className="text-left p-2">Number of Sales</th>
+                      <th className="text-left p-2">Quantity on Hand</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -285,6 +287,8 @@ const InventorySummaryTab = () => {
                         <tr key={index} className="border-b">
                           <td className="p-2">{item.productName}</td>
                           <td className="p-2">{item.totalQuantitySold}</td>
+                          <td className="p-2">{item.numberOfSales}</td>
+                          <td className="p-2">{item.quantityOnHand}</td>
                         </tr>
                       )
                     )}

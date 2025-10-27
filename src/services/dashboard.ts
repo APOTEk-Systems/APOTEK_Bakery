@@ -74,7 +74,8 @@ export interface AccountingDashboardData {
 
 export interface CashFlowData {
   cashInflows: {
-    fromSales: number;
+    fromCashSales: number;
+    fromCreditPayments: number;
     total: number;
   };
   cashOutflows: {
@@ -120,7 +121,6 @@ export interface InventoryDashboardData {
       materialName: string;
       amountDeducted: number;
       unit: string;
-      available: number;
       productName: string;
       quantityProduced: number;
     }>;
@@ -130,6 +130,8 @@ export interface InventoryDashboardData {
     items: Array<{
       productName: string;
       totalQuantitySold: number;
+      numberOfSales: number;
+      quantityOnHand: number;
     }>;
   };
   weeklyAdjustments: {
