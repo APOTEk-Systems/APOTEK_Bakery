@@ -13,7 +13,7 @@ import {
   Download,
   Loader2,
 } from "lucide-react";
-import { reportsService } from "../services/reports";
+import { reportsService } from "../services/reports/index";
 import { suppliersService, Supplier } from "../services/suppliers";
 
 

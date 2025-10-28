@@ -34,6 +34,7 @@ export interface Sale {
   id: number;
   customerId?: number;
   customerName?: string;
+  soldById?: number;
   isCredit?: boolean;
   creditDueDate?: string;
   total: number;
@@ -51,7 +52,7 @@ export interface Sale {
     email?: string;
     phone?: string;
   };
-  soldBy?: string;
+  soldBy: string;
   outstandingBalance?: number;
   paid?: number;
 }
