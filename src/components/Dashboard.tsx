@@ -7,6 +7,8 @@ import PurchasesSummaryTab from "./dashboard/PurchasesSummaryTab";
 import InventorySummaryTab from "./dashboard/InventorySummaryTab";
 import ProductionSummaryTab from "./dashboard/ProductionSummaryTab";
 import AccountingSummaryTab from "./dashboard/AccountingSummaryTab";
+import DashboardRedirect from "./DashboardRedirect";
+import WelcomePage from "./WelcomePage";
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
@@ -43,6 +45,32 @@ const Dashboard = () => {
     user,
     "view:accountingDashboard"
   );
+
+  // Check if user has any dashboard permissions
+  const hasAnyDashboardPermission = hasAllPermissions ||
+    hasSalesDashboard ||
+    hasPurchasesDashboard ||
+    hasInventoryDashboard ||
+    hasProductionDashboard ||
+    hasAccountingDashboard;
+
+  // If no dashboard permissions, check if they have any other permissions for redirect
+  const hasAnyPermission = hasPermission(user, "view:sales") ||
+    hasPermission(user, "create:sales") ||
+    hasPermission(user, "view:products") ||
+    hasPermission(user, "view:customers") ||
+    hasPermission(user, "view:reports") ||
+    hasPermission(user, "view:profile");
+
+  // If no dashboard permissions but has other permissions, redirect
+  if (!hasAnyDashboardPermission && hasAnyPermission) {
+    return <DashboardRedirect />;
+  }
+
+  // If no permissions at all, show welcome page
+  if (!hasAnyDashboardPermission && !hasAnyPermission) {
+    return <WelcomePage />;
+  }
 
   return (
     <div className="min-h-screen bg-background">
