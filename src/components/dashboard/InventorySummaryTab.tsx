@@ -36,7 +36,7 @@ const InventorySummaryTab = () => {
               <Card
                 className={`cursor-pointer transition-colors ${
                   expandedCard === "outOfStock"
-                    ? "ring-2 ring-red-500"
+                    ? "ring-2 ring-blue-500"
                     : "hover:bg-muted/50"
                 }`}
                 onClick={() => toggleCard("outOfStock")}
@@ -65,7 +65,7 @@ const InventorySummaryTab = () => {
               <Card
                 className={`cursor-pointer transition-colors ${
                   expandedCard === "lowStock"
-                    ? "ring-2 ring-orange-500"
+                    ? "ring-2 ring-blue-500"
                     : "hover:bg-muted/50"
                 }`}
                 onClick={() => toggleCard("lowStock")}
@@ -120,7 +120,7 @@ const InventorySummaryTab = () => {
           <Card
             className={`cursor-pointer transition-colors ${
               expandedCard === "topSellingProducts"
-                ? "ring-2 ring-green-500"
+                ? "ring-2 ring-blue-500"
                 : "hover:bg-muted/50"
             }`}
             onClick={() => toggleCard("topSellingProducts")}
@@ -276,7 +276,7 @@ const InventorySummaryTab = () => {
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-2">Product</th>
-                      <th className="text-left p-2">Total Quantity Sold</th>
+                      <th className="text-left p-2">Quantity Sold</th>
                       <th className="text-left p-2">Number of Sales</th>
                       <th className="text-left p-2">Quantity on Hand</th>
                     </tr>

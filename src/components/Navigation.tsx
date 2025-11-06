@@ -125,7 +125,8 @@ const Navigation = ({
                   hasPermission(user, "view:salesDashboard") ||
                   hasPermission(user, "view:purchasesDashboard") ||
                   hasPermission(user, "view:inventoryDashboard") ||
-                  hasPermission(user, "view:accountingDashboard");
+                  hasPermission(user, "view:accountingDashboard") ||
+                  hasPermission(user, "view:productionDashboard");
                 if (!hasAnyDashboardPermission) return null;
               }
               if (item.label === "Inventory") {
@@ -461,7 +462,7 @@ const Navigation = ({
                       <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Security
                       </div>
-                      <div className="ml-2 space-y-1">
+                      <div className="ml-2 space-y-1 flex flex-col-reverse">
                         
                         {(hasPermission(user, "view:users") ||
                           hasPermission(user, "create:users") ||

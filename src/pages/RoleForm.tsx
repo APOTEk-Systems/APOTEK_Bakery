@@ -24,6 +24,7 @@ const permissionModules = {
     "view:purchasesDashboard",
     "view:inventoryDashboard",
     "view:accountingDashboard",
+    "view:productionDashboard",
   ],
  
   "Sales": [
@@ -380,9 +381,31 @@ const RoleForm = () => {
                               htmlFor={`perm-${permission}`}
                               className="text-sm font-normal cursor-pointer"
                             >
-                              {permissionModules["Dashboard"].includes(permission)
-                                ? permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase()).replace(/Dashboard/g, "")
-                                : permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase()).replace(/Inventory/g, "Materials & Supplies").replace(/Adjustment/g, "Materials & Supplies Adjustment").replace(/Dashboard/g, "")}
+                              {(() => {
+                                let label = permission.replace(/:/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+
+                                // Module-specific transformations
+                                if (permissionModules["Dashboard"].includes(permission)) {
+                                  label = label.replace(/Dashboard/g, "");
+                                } else if (permissionModules["Inventory"].includes(permission)) {
+                                  label = label.replace(/Inventory/g, "Materials & Supplies");
+                                  if (permission.includes("adjustment")) {
+                                    label = label.replace(/Adjustment/g, "Materials & Supplies Adjustment");
+                                  }
+                                } else if (permissionModules["Settings"].includes(permission)) {
+                                  if (permission.includes("adjustment-reasons")) {
+                                    if (permission.startsWith("view:")) {
+                                      label = "View Adjustment Reasons";
+                                    } else if (permission.startsWith("update:")) {
+                                      label = "Edit Adjustment Reasons";
+                                    }
+                                  } else if (permission.includes("expense-categories")) {
+                                    label = label.replace(/-/g, " ");
+                                  }
+                                }
+
+                                return label;
+                              })()}
                             </Label>
                           </div>
                         ))}

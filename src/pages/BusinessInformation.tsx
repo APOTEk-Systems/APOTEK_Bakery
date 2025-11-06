@@ -4,14 +4,12 @@ import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {Textarea} from "@/components/ui/textarea";
-import {Switch} from "@/components/ui/switch";
 import {useToast} from "@/hooks/use-toast";
 import {settingsService, SettingsData} from "@/services/settings";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Save,
-  Store,
   Edit,
   X,
 } from "lucide-react";
@@ -35,7 +33,6 @@ const BusinessInformation = () => {
     phone: "",
     email: "",
     website: "",
-    vatPercentage: "",
     description: "",
   });
 
@@ -120,7 +117,6 @@ const validatePhone = (phone: string): string | undefined => {
           : "",
         email: settings.information.email || "",
         website: settings.information.website || "",
-        vatPercentage: settings.information.vatPercentage || "",
         description: settings.information.description || "",
       });
       setLogoPreview(settings.information.logo || null);
@@ -160,7 +156,6 @@ const validatePhone = (phone: string): string | undefined => {
           : "",
         email: settings.information.email || "",
         website: settings.information.website || "",
-        vatPercentage: settings.information.vatPercentage || "",
         description: settings.information.description || "",
       });
       setLogoPreview(settings.information.logo || null);
@@ -403,30 +398,6 @@ const validatePhone = (phone: string): string | undefined => {
                     />
                   </div>
                 )}
-                {renderField(
-                  "Logo",
-                  informationData.logo,
-                  <div>
-                    <Label htmlFor="logo">Logo</Label>
-                    <Input
-                      id="logo"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleLogoChange}
-                      disabled={settingsLoading}
-                      className="cursor-pointer"
-                    />
-                    {logoPreview && (
-                      <div className="mt-2">
-                        <img
-                          src={logoPreview}
-                          alt="Logo preview"
-                          className="w-20 h-20 object-contain border rounded"
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -557,23 +528,29 @@ const validatePhone = (phone: string): string | undefined => {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
                 {renderField(
-                  "VAT Percentage",
-                  informationData.vatPercentage || "",
+                  "Logo",
+                  informationData.logo,
                   <div>
-                    <Label htmlFor="vatPercentage">VAT Percentage</Label>
+                    <Label htmlFor="logo">Logo</Label>
                     <Input
-                      id="vatPercentage"
-                      value={informationData.vatPercentage}
-                      onChange={(e) =>
-                        setInformationData((prev) => ({
-                          ...prev,
-                          vatPercentage: e.target.value,
-                        }))
-                      }
+                      id="logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
                       disabled={settingsLoading}
+                      className="cursor-pointer"
                     />
+                    {logoPreview && (
+                      <div className="mt-2">
+                        <img
+                          src={logoPreview}
+                          alt="Logo preview"
+                          className="w-20 h-20 object-contain border rounded"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

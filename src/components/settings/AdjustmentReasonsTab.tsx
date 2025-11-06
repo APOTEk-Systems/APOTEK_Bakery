@@ -261,7 +261,7 @@ const AdjustmentReasonsTab = () => {
                 required
               />
             </div>
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
@@ -270,15 +270,15 @@ const AdjustmentReasonsTab = () => {
                 placeholder="Describe the reason for adjustment"
                 rows={3}
               />
-            </div>
+            </div> */}
             <DialogFooter>
-              <Button
+              {/* <Button
                 type="button"
                 variant="outline"
                 onClick={handleDialogClose}
               >
                 Cancel
-              </Button>
+              </Button> */}
               <Button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending || !name.trim()}

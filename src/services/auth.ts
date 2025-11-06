@@ -4,8 +4,9 @@ import { api } from '../lib/api';
 export interface User {
   id: number;
   email: string;
-  role: string; // Can be role object or role name string
+  role: string | { id: number; name: string }; // Can be role object or role name string
   name: string;
+  phoneNumber?: string;
   status?: string;
   permissions?: string[]; // Permissions can be at user level
   createdAt?: string;

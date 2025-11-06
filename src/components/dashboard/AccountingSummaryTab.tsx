@@ -129,7 +129,7 @@ const AccountingSummaryTab = () => {
             <CardTitle className="text-sm font-medium">
               Outstanding Payments
             </CardTitle>
-            <DollarSign className="h-4 w-4 text-orange-600" />
+            <Banknote className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">

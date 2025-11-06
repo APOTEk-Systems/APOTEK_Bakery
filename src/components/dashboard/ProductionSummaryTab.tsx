@@ -61,7 +61,7 @@ const ProductionSummaryTab = () => {
           <Card
             className={`cursor-pointer transition-colors ${
               expandedCard === "weeklyProduction"
-                ? "ring-2 ring-green-500"
+                ? "ring-2 ring-blue-500"
                 : "hover:bg-muted/50"
             }`}
             onClick={() => toggleCard("weeklyProduction")}
@@ -88,7 +88,7 @@ const ProductionSummaryTab = () => {
             <Card
               className={`cursor-pointer transition-colors ${
                 expandedCard === "productionVsSales"
-                  ? "ring-2 ring-purple-500"
+                  ? "ring-2 ring-blue-500"
                   : "hover:bg-muted/50"
               }`}
               onClick={() => toggleCard("productionVsSales")}

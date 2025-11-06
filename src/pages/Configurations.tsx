@@ -1,8 +1,8 @@
 import Layout from "../components/Layout";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -10,20 +10,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {Switch} from "@/components/ui/switch";
-import {useToast} from "@/hooks/use-toast";
-import {settingsService, SettingsData} from "@/services/settings";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/hooks/use-toast";
+import { settingsService, SettingsData } from "@/services/settings";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Save,
-  Settings,
-  Edit,
-  X,
-} from "lucide-react";
+import { Save, Settings, Edit, X } from "lucide-react";
 
 const Configurations = () => {
-  const {toast} = useToast();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Edit mode state
@@ -38,7 +33,11 @@ const Configurations = () => {
   });
 
   // Fetch settings with React Query
-  const { data: settings, isLoading: settingsLoading, error: settingsError } = useQuery<SettingsData>({
+  const {
+    data: settings,
+    isLoading: settingsLoading,
+    error: settingsError,
+  } = useQuery<SettingsData>({
     queryKey: ["settings"],
     queryFn: () => settingsService.getAll(),
   });
@@ -51,7 +50,7 @@ const Configurations = () => {
         title: "Success",
         description: "Settings updated successfully.",
       });
-      queryClient.invalidateQueries({queryKey: ["settings"]});
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
     },
     onError: () => {
       toast({
@@ -114,7 +113,11 @@ const Configurations = () => {
         <div className={className}>
           <Label>{label}</Label>
           <p className="text-sm text-muted-foreground mt-1">
-            {typeof value === 'boolean' ? (value ? 'Yes' : 'No') : (value || "Not set")}
+            {typeof value === "boolean"
+              ? value
+                ? "Yes"
+                : "No"
+              : value || "Not set"}
           </p>
         </div>
       );
@@ -132,7 +135,7 @@ const Configurations = () => {
     updateSettingsMutation.mutate(updateData, {
       onSuccess: () => {
         setIsEditMode(false);
-      }
+      },
     });
   };
 
@@ -152,35 +155,15 @@ const Configurations = () => {
                   <Settings className="h-5 w-5" />
                   System Configurations
                 </CardTitle>
-                {!isEditMode ? (
-                  <Button onClick={handleEdit} variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button onClick={handleCancel} variant="outline">
-                      <X className="h-4 w-4 mr-2" />
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleSave}
-                      disabled={updateSettingsMutation.isPending}
-                    >
-                      <Save className="h-4 w-4 mr-2" />
-                      {updateSettingsMutation.isPending ? "Saving..." : "Save"}
-                    </Button>
-                  </div>
-                )}
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {renderField(
-                  "VAT Rate (%)",
+                  "VAT Percentage",
                   configurationData.vat || "",
                   <div>
-                    <Label htmlFor="vat">VAT Rate (%)</Label>
+                    <Label htmlFor="vat">VAT Percentage</Label>
                     <Input
                       id="vat"
                       type="number"
@@ -199,7 +182,9 @@ const Configurations = () => {
                 )}
                 {renderField(
                   "Receipt Size",
-                  configurationData.receiptSize || "a5",
+                  configurationData.receiptSize
+                    .replace(/-/g, " ") // replace hyphens with spaces
+                    .replace(/\b\w/g, (c) => c.toUpperCase()) || "a5",
                   <div>
                     <Label htmlFor="receiptSize">Receipt Size</Label>
                     <Select
@@ -217,7 +202,13 @@ const Configurations = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="a5">A5</SelectItem>
-                        <SelectItem value="thermal">Thermal</SelectItem>
+                        <SelectItem value="a4">A4</SelectItem>
+                        <SelectItem value="thermal-80mm">
+                          Thermal 80mm
+                        </SelectItem>
+                        <SelectItem value="thermal-58mm">
+                          Thermal 58mm
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -259,6 +250,29 @@ const Configurations = () => {
                       disabled={settingsLoading}
                     />
                     <Label htmlFor="allowCreditSales">Allow Credit Sales</Label>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end w-full">
+                {" "}
+                {!isEditMode ? (
+                  <Button onClick={handleEdit} variant="outline">
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button onClick={handleCancel} variant="outline">
+                      <X className="h-4 w-4 mr-2" />
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSave}
+                      disabled={updateSettingsMutation.isPending}
+                    >
+                      <Save className="h-4 w-4 mr-2" />
+                      {updateSettingsMutation.isPending ? "Saving..." : "Save"}
+                    </Button>
                   </div>
                 )}
               </div>

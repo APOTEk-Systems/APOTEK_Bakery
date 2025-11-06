@@ -11,7 +11,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { dashboardService } from "@/services/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Package, AlertTriangle, TrendingUp } from "lucide-react";
+import { Loader2, Package, AlertTriangle, TrendingUp, ShoppingCart } from "lucide-react";
 import { formatCurrency } from "@/lib/funcs";
 import { format } from "date-fns";
 
@@ -40,7 +40,7 @@ const PurchasesSummaryTab = () => {
             <CardTitle className="text-sm font-medium">
               Total Purchases This Month
             </CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

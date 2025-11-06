@@ -1,8 +1,8 @@
 import Layout from "../components/Layout";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -21,40 +21,38 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {useToast} from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { usersService, CreateUserData } from "@/services/users";
 import { rolesService } from "@/services/roles";
 import { User } from "@/services/auth";
 import { useAuth } from "@/contexts/AuthContext";
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Plus,
-  Edit,
-  Trash2,
-} from "lucide-react";
+import { Plus, Edit, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 const Users = () => {
-  const {toast} = useToast();
+  const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user: currentUser } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [formData, setFormData] = useState<Omit<CreateUserData, 'permissions'> & { confirmPassword: string }>({
+  const [formData, setFormData] = useState<
+    Omit<CreateUserData, "permissions"> & { confirmPassword: string; status?: string }
+  >({
     name: "",
     email: "",
     password: "",
     phoneNumber: "",
     confirmPassword: "",
     roleId: 2, // default to cashier
+    status: "active",
   });
 
   const [validationErrors, setValidationErrors] = useState<{
@@ -74,14 +72,18 @@ const Users = () => {
   };
 
   // Fetch users with React Query
-  const { data: users = [], isLoading: loading, error: usersError } = useQuery<User[]>({
-    queryKey: ['users'],
+  const {
+    data: users = [],
+    isLoading: loading,
+    error: usersError,
+  } = useQuery<User[]>({
+    queryKey: ["users"],
     queryFn: () => usersService.getAll(),
   });
 
   // Fetch roles with React Query
   const { data: roles = [] } = useQuery({
-    queryKey: ['roles'],
+    queryKey: ["roles"],
     queryFn: () => rolesService.getAll(),
   });
 
@@ -93,7 +95,7 @@ const Users = () => {
         title: "Success",
         description: "User created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       setDialogOpen(false);
       setFormData({
         name: "",
@@ -122,7 +124,7 @@ const Users = () => {
         title: "Success",
         description: "User updated successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       setDialogOpen(false);
       setEditingUser(null);
       setFormData({
@@ -132,6 +134,7 @@ const Users = () => {
         phoneNumber: "",
         confirmPassword: "",
         roleId: 2,
+        status: "active",
       });
     },
     onError: () => {
@@ -151,7 +154,7 @@ const Users = () => {
         title: "Success",
         description: "User deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: () => {
       toast({
@@ -174,9 +177,9 @@ const Users = () => {
   }, [usersError, toast]);
 
   const handleRoleChange = (roleName: string) => {
-    const selectedRole = roles.find(r => r.name === roleName);
+    const selectedRole = roles.find((r) => r.name === roleName);
     if (selectedRole) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         roleId: selectedRole.id,
       }));
@@ -184,7 +187,7 @@ const Users = () => {
   };
 
   const getRoleNameFromId = (roleId: number) => {
-    const role = roles.find(r => r.id === roleId);
+    const role = roles.find((r) => r.id === roleId);
     return role ? role.name : "";
   };
 
@@ -212,17 +215,27 @@ const Users = () => {
       name: user.name || "",
       email: user.email,
       password: "", // Don't prefill password for security
-      phoneNumber: "",
+      phoneNumber: user.phoneNumber || "",
       confirmPassword: "",
-      roleId: typeof user.role === 'object' ? Number(user.role?.id) || 2 : 2,
+      roleId: typeof user.role === "object" ? Number(user.role?.id) || 2 : 2,
+      status: user.status || "active",
     });
     setDialogOpen(true);
   };
 
   const handleUpdateUser = () => {
     if (!editingUser) return;
-    const finalData = { ...formData } as Partial<CreateUserData>;
-    updateUserMutation.mutate({ id: editingUser.id, data: finalData });
+    const { confirmPassword, password, ...finalData } = formData;
+
+    // Only include password if it's not empty (to avoid setting it to null)
+    const updateData = password.trim()
+      ? { ...finalData, password }
+      : finalData;
+
+    updateUserMutation.mutate({
+      id: editingUser.id,
+      data: updateData as Partial<CreateUserData & { status?: string }>,
+    });
   };
 
   const handleDeleteUser = (userId: number) => {
@@ -256,24 +269,25 @@ const Users = () => {
       phoneNumber: "",
       confirmPassword: "",
       roleId: 2,
+      status: "active",
     });
     setDialogOpen(true);
   };
 
-   const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string) => {
     return status === "active" ? "default" : "secondary";
   };
   return (
     <Layout>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">User Management</h1>
+          <h1 className="text-3xl font-bold text-foreground">
+            User Management
+          </h1>
         </div>
 
         <Card className="shadow-warm">
-          <CardHeader>
-          
-          </CardHeader>
+          <CardHeader></CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold"></h3>
@@ -304,7 +318,10 @@ const Users = () => {
                         id="name"
                         value={formData.name}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, name: e.target.value }))
+                          setFormData((prev) => ({
+                            ...prev,
+                            name: e.target.value,
+                          }))
                         }
                         className="col-span-3"
                       />
@@ -318,7 +335,10 @@ const Users = () => {
                         type="email"
                         value={formData.email}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, email: e.target.value }))
+                          setFormData((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
                         }
                         className="col-span-3"
                       />
@@ -331,7 +351,10 @@ const Users = () => {
                         id="phoneNumber"
                         value={formData.phoneNumber}
                         onChange={(e) =>
-                          setFormData((prev) => ({ ...prev, phoneNumber: e.target.value }))
+                          setFormData((prev) => ({
+                            ...prev,
+                            phoneNumber: e.target.value,
+                          }))
                         }
                         className="col-span-3"
                       />
@@ -347,13 +370,19 @@ const Users = () => {
                             type="password"
                             value={formData.password}
                             onChange={(e) =>
-                              setFormData((prev) => ({ ...prev, password: e.target.value }))
+                              setFormData((prev) => ({
+                                ...prev,
+                                password: e.target.value,
+                              }))
                             }
                             className="col-span-3"
                           />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                          <Label htmlFor="confirmPassword" className="text-right">
+                          <Label
+                            htmlFor="confirmPassword"
+                            className="text-right"
+                          >
                             Confirm Password
                           </Label>
                           <Input
@@ -361,7 +390,10 @@ const Users = () => {
                             type="password"
                             value={formData.confirmPassword}
                             onChange={(e) =>
-                              setFormData((prev) => ({ ...prev, confirmPassword: e.target.value }))
+                              setFormData((prev) => ({
+                                ...prev,
+                                confirmPassword: e.target.value,
+                              }))
                             }
                             className="col-span-3"
                           />
@@ -373,11 +405,15 @@ const Users = () => {
                         Role
                       </Label>
                       <Select
-                        value={getRoleNameFromId(formData.roleId)}
+                        value={
+                          formData.roleId
+                            ? getRoleNameFromId(formData.roleId)
+                            : undefined
+                        }
                         onValueChange={handleRoleChange}
                       >
                         <SelectTrigger className="col-span-3">
-                          <SelectValue />
+                          <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>
                           {roles.map((role) => (
@@ -388,11 +424,34 @@ const Users = () => {
                         </SelectContent>
                       </Select>
                     </div>
+                    {editingUser && (
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="status" className="text-right">
+                          Status
+                        </Label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({ ...prev, status: value }))
+                          }
+                        >
+                          <SelectTrigger className="col-span-3">
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <Button
                       type="submit"
-                      onClick={editingUser ? handleUpdateUser : handleCreateUser}
+                      onClick={
+                        editingUser ? handleUpdateUser : handleCreateUser
+                      }
                     >
                       {editingUser ? "Update User" : "Create User"}
                     </Button>
@@ -429,11 +488,15 @@ const Users = () => {
                       <TableRow key={user.id}>
                         <TableCell>{user.name || "N/A"}</TableCell>
                         <TableCell>{user.email}</TableCell>
-                        <TableCell>{typeof user.role === 'object' ? user.role.name : user.role}</TableCell>
                         <TableCell>
-                         <Badge variant={getStatusColor(user.status)}>
-                        {user.status}
-                      </Badge>
+                          {typeof user.role === "object"
+                            ? user.role.name
+                            : user.role}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusColor(user.status)}>
+                            {user.status}
+                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Button

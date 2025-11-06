@@ -48,7 +48,7 @@ const AddExpenseCategoryModal = ({ isOpen, onClose, onCategoryAdded }: AddExpens
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Expense Category</DialogTitle>
+          <DialogTitle>Add Expense Category</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
