@@ -8,7 +8,8 @@ import type { PurchasesReport, SupplierWisePurchasesReport } from "@/types/repor
 export const generatePurchasesPDF = (
   data: PurchasesReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -17,7 +18,8 @@ export const generatePurchasesPDF = (
     doc,
     "All Purchases Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Purchases table - need to get goods receiving data for the detailed view
@@ -62,7 +64,8 @@ export const generatePurchasesPDF = (
 export const generateSupplierWisePurchasesPDF = (
   data: SupplierWisePurchasesReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -71,7 +74,8 @@ export const generateSupplierWisePurchasesPDF = (
     doc,
     "Supplier-wise Purchases Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Supplier purchases table
@@ -93,7 +97,7 @@ export const generateSupplierWisePurchasesPDF = (
 };
 
 // Goods Received Report PDF
-export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?: string): Blob => {
+export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?: string, settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
@@ -101,7 +105,8 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
     doc,
     "Material Receiving Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Goods received table with detailed item information
@@ -117,7 +122,8 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
       "1", // Placeholder for quantity - would need detailed API
       formatCurrencyPDF(receipt.total),
       format(receipt.receivedDate || receipt.createdAt, "dd-MM-yyyy"),
-      "System", // Received By placeholder
+      receipt.createdByName || "System", // Received By
+   //   receipt.updatedBy?.name || "N/A", // Updated By
     ]);
   });
 

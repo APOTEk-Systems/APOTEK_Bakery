@@ -119,6 +119,8 @@ export default function GoodsReceivingTab() {
                 <TableHead>Date</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Total</TableHead>
+                <TableHead>Received By</TableHead>
+                <TableHead>Updated By</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -127,7 +129,7 @@ export default function GoodsReceivingTab() {
               {isLoading ? (
                 // Loading state
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center w-full">
+                  <TableCell colSpan={8} className="h-24 text-center w-full">
                     <div className="flex items-center justify-center">
                       <Loader2 className="h-6 w-6 animate-spin mr-2" />
                       Loading goods receipts...
@@ -137,7 +139,7 @@ export default function GoodsReceivingTab() {
               ) : hasError ? (
                 // Error state
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={8} className="h-24 text-center">
                     <div className="flex flex-col items-center justify-center">
                       <p className="text-destructive mb-2">Failed to load goods receipts</p>
                       <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
@@ -149,7 +151,7 @@ export default function GoodsReceivingTab() {
               ) : goodsReceiving.length === 0 ? (
                 // Empty state
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center w-full">
+                  <TableCell colSpan={8} className="h-24 text-center w-full">
                     <div className="flex flex-col items-center justify-center">
                       <Eye className="h-12 w-12 text-muted-foreground mb-4" />
                       <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -172,6 +174,8 @@ export default function GoodsReceivingTab() {
                     <TableCell>{format(new Date(gr.receivedDate), 'dd-MM-yyyy')}</TableCell>
                     <TableCell> {gr.supplierName} </TableCell>
                     <TableCell> {gr.total.toLocaleString()} </TableCell>
+                    <TableCell>{gr.createdByName || "Unknown"}</TableCell>
+                    <TableCell>{gr.updatedBy?.name || "N/A"}</TableCell>
                     <TableCell>
                       <Badge variant={getStatusVariant(gr.status)}>
                         {capitalizeStatus(gr.status)}

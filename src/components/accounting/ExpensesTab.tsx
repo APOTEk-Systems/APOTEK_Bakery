@@ -2,19 +2,23 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import {
-  Table, TableHeader, TableRow, TableHead, TableBody, TableCell
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
 } from "@/components/ui/table";
-import {
-  Edit,
-  Trash2,
-  Plus,
-  Loader2,
-} from "lucide-react";
+import { Edit, Trash2, Plus, Loader2 } from "lucide-react";
 import { expensesService } from "@/services/expenses";
 import { formatCurrency } from "@/lib/funcs";
 import { toast } from "sonner";
@@ -44,37 +48,54 @@ interface Expense {
     id: number;
     name: string;
   };
+  createdBy?: {
+    name: string;
+  };
+  updatedBy?: {
+    name: string;
+  };
 }
 
-const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => {
+const ExpensesTab = ({
+  getCategoryColor,
+  getStatusColor,
+}: ExpensesTabProps) => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
-  const [expenseModalMode, setExpenseModalMode] = useState<'add' | 'edit'>('add');
+  const [expenseModalMode, setExpenseModalMode] = useState<"add" | "edit">(
+    "add"
+  );
   const [selectedExpense, setSelectedExpense] = useState<Expense | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [expenseToDelete, setExpenseToDelete] = useState<Expense | null>(null);
   const queryClient = useQueryClient();
 
   const categoriesQuery = useQuery({
-    queryKey: ['expenseCategories'],
+    queryKey: ["expenseCategories"],
     queryFn: () => expensesService.getExpenseCategories(),
   });
 
   const expensesQuery = useQuery({
-    queryKey: ['expenses', filterCategory, dateRange],
-    queryFn: () => expensesService.getExpenses({
-      categoryId: filterCategory === "all" ? undefined : filterCategory,
-      startDate: dateRange?.from ? dateRange.from.toISOString().split('T')[0] : undefined,
-      endDate: dateRange?.to ? dateRange.to.toISOString().split('T')[0] : undefined,
-    }),
+    queryKey: ["expenses", filterCategory, dateRange],
+    queryFn: () =>
+      expensesService.getExpenses({
+        categoryId: filterCategory === "all" ? undefined : filterCategory,
+        startDate: dateRange?.from
+          ? dateRange.from.toISOString().split("T")[0]
+          : undefined,
+        endDate: dateRange?.to
+          ? dateRange.to.toISOString().split("T")[0]
+          : undefined,
+      }),
   });
 
   const categories = categoriesQuery.data?.data || [];
-  const expenses = Array.isArray(expensesQuery.data) ? expensesQuery.data : expensesQuery.data?.dailyBreakdown || [];
+  const expenses = Array.isArray(expensesQuery.data)
+    ? expensesQuery.data
+    : expensesQuery.data?.dailyBreakdown || [];
 
-
-    if (expensesQuery.isLoading) {
+  if (expensesQuery.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -83,7 +104,14 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   }
 
   if (expensesQuery.error) {
-    return <div className="text-center py-8 text-destructive">Error: {expensesQuery.error instanceof Error ? expensesQuery.error.message : 'Failed to load expenses'}</div>;
+    return (
+      <div className="text-center py-8 text-destructive">
+        Error:{" "}
+        {expensesQuery.error instanceof Error
+          ? expensesQuery.error.message
+          : "Failed to load expenses"}
+      </div>
+    );
   }
 
   const handleDeleteExpense = (expense: Expense) => {
@@ -107,7 +135,7 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
 
   const handleExpenseSaved = () => {
     // Invalidate and refetch expenses queries
-    queryClient.invalidateQueries({ queryKey: ['expenses'] });
+    queryClient.invalidateQueries({ queryKey: ["expenses"] });
     setIsExpenseModalOpen(false);
     setSelectedExpense(null);
   };
@@ -115,41 +143,44 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
   return (
     <div className="space-y-6">
       {/* Expense Filters */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-            <div>
-              <Label>Date Range</Label>
-              <DateRangePicker
-                dateRange={dateRange}
-                onDateRangeChange={setDateRange}
-              />
-            </div>
-            <div>
-              <Label htmlFor="category">Category</Label>
-              <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {categories.map((category) => (
-                    <SelectItem key={category.id} value={category.id.toString()}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div>
+          <Label>Date Range</Label>
+          <DateRangePicker
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
+        </div>
+        <div>
+          <Label htmlFor="category">Category</Label>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Expenses List */}
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-end items-center">
             {/* <CardTitle>All Expenses</CardTitle> */}
-            <Button className="shadow-warm" onClick={() => {
-              setExpenseModalMode('add');
-              setIsExpenseModalOpen(true);
-            }}>
+            <Button
+              className="shadow-warm"
+              onClick={() => {
+                setExpenseModalMode("add");
+                setIsExpenseModalOpen(true);
+              }}
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Expense
             </Button>
@@ -167,29 +198,43 @@ const ExpensesTab = ({ getCategoryColor, getStatusColor }: ExpensesTabProps) => 
                     <TableHead>Category</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Payment Method</TableHead>
-                    <TableHead>Notes</TableHead>
+                    <TableHead>Updated By</TableHead>
+                    {/* <TableHead>Notes</TableHead> */}
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {expenses.map((expense) => (
                     <TableRow key={expense.id}>
-                        <TableCell>{format(new Date(expense.date), "dd-MM-yyyy")}</TableCell>
-                        <TableCell>
-                          <Badge className={getCategoryColor(expense.expenseCategory?.name.toLowerCase() || 'other')} variant="outline">
-                            {expense.expenseCategory?.name || 'Unknown'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatCurrency(expense?.amount).replace("TSH", "")}</TableCell>
-                        <TableCell>{expense.paymentMethod ? expense.paymentMethod.replace('_', ' ').toUpperCase() : 'CASH'}</TableCell>
-                        <TableCell>{expense.notes}</TableCell>
+                      <TableCell>
+                        {format(new Date(expense.date), "dd-MM-yyyy")}
+                      </TableCell>
+                      <TableCell>
+                        {expense.expenseCategory?.name || "Unknown"}
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(expense?.amount).replace("TSH", "")}
+                      </TableCell>
+                      <TableCell>
+                        {expense.paymentMethod
+                          ? expense.paymentMethod
+                              .replace("_", " ")
+                              .toUpperCase()
+                          : "CASH"}
+                      </TableCell>
+                      <TableCell>{expense.updatedBy?.name || "N/A"}</TableCell>
+                      {/* <TableCell>{expense.notes}</TableCell> */}
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => {
-                            setSelectedExpense(expense);
-                            setExpenseModalMode('edit');
-                            setIsExpenseModalOpen(true);
-                          }}>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedExpense(expense);
+                              setExpenseModalMode("edit");
+                              setIsExpenseModalOpen(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Button>

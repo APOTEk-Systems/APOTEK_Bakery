@@ -4,11 +4,11 @@ import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../p
 import type { ProductsReport, ProductDetailsReport } from "@/types/reports";
 
 // Products Report PDF
-export const generateProductsPDF = (data: ProductsReport): Blob => {
+export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
-  let yPos = addCompanyHeader(doc, "Price List");
+  let yPos = addCompanyHeader(doc, "Price List", undefined, undefined, settings);
 
   // Products table
   const tableData = data.data.map((product, index) => [
@@ -54,7 +54,7 @@ export const generateProductDetailsPDF = (data: ProductDetailsReport, settings?:
 };
 
 // Expenses Report PDF
-export const generateExpensesPDF = (data: any, startDate?: string, endDate?: string): Blob => {
+export const generateExpensesPDF = (data: any, startDate?: string, endDate?: string, settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
@@ -62,21 +62,25 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     doc,
     "Expenses Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Expenses table
-  const tableData = data.data?.expenses?.map((expense: any, index: number) => [
+  const expensesArray = Array.isArray(data) ? data : data.data || [];
+  const tableData = expensesArray.map((expense: any, index: number) => [
     (index + 1).toString(),
     expense.date.split('T')[0], // Format date
     expense.expenseCategory?.name || 'Unknown',
     formatCurrencyPDF(expense.amount),
     (expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'),
-    expense.notes || '',
-  ]) || [];
+   // expense.notes || '',
+    //expense.createdBy?.name || 'Unknown',
+    expense.updatedBy?.name || 'N/A',
+  ]);
 
   autoTable(doc, {
-    head: [["S/N", "Date", "Category", "Amount", "Payment Method", "Notes"]],
+    head: [["S/N", "Date", "Category", "Amount", "Payment Method", "Updated By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -93,14 +97,14 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  const totalExpenses = data.data?.expenses?.reduce((sum: number, expense: any) => sum + expense.amount, 0) || 0;
+  const totalExpenses = expensesArray.reduce((sum: number, expense: any) => sum + expense.amount, 0) || 0;
   doc.text(`Total Expenses: ${formatCurrencyPDF(totalExpenses)}`, 20, yPos);
 
   return doc.output("blob");
 };
 
 // Outstanding Payments Report PDF
-export const generateOutstandingPaymentsPDF = (data: any, startDate?: string, endDate?: string): Blob => {
+export const generateOutstandingPaymentsPDF = (data: any, startDate?: string, endDate?: string, settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
@@ -108,7 +112,8 @@ export const generateOutstandingPaymentsPDF = (data: any, startDate?: string, en
     doc,
     "Outstanding Payments Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Outstanding payments table

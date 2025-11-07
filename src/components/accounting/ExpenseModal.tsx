@@ -1,13 +1,29 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { expensesService } from "@/services/expenses";
 import { toast } from "sonner";
 import { Plus, CalendarIcon } from "lucide-react";
@@ -19,7 +35,7 @@ interface ExpenseModalProps {
   onClose: () => void;
   onExpenseSaved: () => void;
   expense?: Expense | null;
-  mode: 'add' | 'edit';
+  mode: "add" | "edit";
 }
 
 interface Expense {
@@ -27,7 +43,7 @@ interface Expense {
   amount: number;
   date: string;
   status: string;
-  paymentMethod?: 'cash' | 'mobile' | 'bank_transfer';
+  paymentMethod?: "cash" | "mobile" | "bank_transfer";
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -41,18 +57,28 @@ interface Expense {
   };
 }
 
-const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: ExpenseModalProps) => {
-  const [date, setDate] = useState<Date | undefined>(mode === 'add' ? new Date() : undefined);
+const ExpenseModal = ({
+  isOpen,
+  onClose,
+  onExpenseSaved,
+  expense,
+  mode,
+}: ExpenseModalProps) => {
+  const [date, setDate] = useState<Date | undefined>(
+    mode === "add" ? new Date() : undefined
+  );
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mobile' | 'bank_transfer'>("cash");
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cash" | "mobile" | "bank_transfer"
+  >("cash");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   const categoriesQuery = useQuery({
-    queryKey: ['expenseCategories'],
+    queryKey: ["expenseCategories"],
     queryFn: () => expensesService.getExpenseCategories(),
     enabled: isOpen,
   });
@@ -66,13 +92,13 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
   }, [categories, category]);
 
   useEffect(() => {
-    if (expense && mode === 'edit' && isOpen) {
+    if (expense && mode === "edit" && isOpen) {
       setDate(new Date(expense.date));
       setCategory(expense.expenseCategoryId.toString());
       setAmount(expense.amount.toString());
       setPaymentMethod(expense.paymentMethod || "cash");
       setNotes(expense.notes || "");
-    } else if (mode === 'add' && isOpen) {
+    } else if (mode === "add" && isOpen) {
       setDate(new Date());
       setCategory(categories.length > 0 ? categories[0].id.toString() : "");
       setAmount("");
@@ -101,10 +127,10 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
     };
 
     try {
-      if (mode === 'add') {
+      if (mode === "add") {
         await expensesService.createExpense(expenseData);
         toast.success("Expense added successfully!");
-      } else if (mode === 'edit' && expense) {
+      } else if (mode === "edit" && expense) {
         await expensesService.updateExpense(expense.id.toString(), expenseData);
         toast.success("Expense updated successfully!");
       }
@@ -128,22 +154,28 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{mode === 'add' ? 'Add New Expense' : 'Edit Expense'}</DialogTitle>
+          <DialogTitle>
+            {mode === "add" ? "Add New Expense" : "Edit Expense"}
+          </DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">
-                Date
-              </Label>
+              <Label className="text-right">Date</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={`col-span-3 justify-start text-left font-normal ${!date && "text-muted-foreground"}`}
+                    className={`col-span-3 justify-start text-left font-normal ${
+                      !date && "text-muted-foreground"
+                    }`}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "dd-MM-yyyy") : <span>Pick a date</span>}
+                    {date ? (
+                      format(date, "dd-MM-yyyy")
+                    ) : (
+                      <span>Pick a date</span>
+                    )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
@@ -161,9 +193,19 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
                 Category
               </Label>
               <div className="col-span-3 flex gap-2">
-                <Select value={category} onValueChange={setCategory} disabled={categoriesQuery.isLoading}>
+                <Select
+                  value={category}
+                  onValueChange={setCategory}
+                  disabled={categoriesQuery.isLoading}
+                >
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={categoriesQuery.isLoading ? "Loading..." : "Select a category"} />
+                    <SelectValue
+                      placeholder={
+                        categoriesQuery.isLoading
+                          ? "Loading..."
+                          : "Select a category"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat) => (
@@ -190,19 +232,33 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
               </Label>
               <Input
                 id="amount"
-                type="number"
+                type="text" // must be text to allow commas
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => {
+                  let raw = e.target.value.replace(/,/g, ""); // Remove existing commas
+                  if (raw === "") {
+                    setAmount(""); // allow clearing
+                    return;
+                  }
+                  const num = parseFloat(raw);
+                  if (!isNaN(num)) {
+                    setAmount(num.toLocaleString());
+                  }
+                }}
+                placeholder="1,000"
                 className="col-span-3"
-                placeholder="0.00"
-                step="0.01"
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="paymentMethod" className="text-right">
                 Payment Method
               </Label>
-              <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'cash' | 'mobile' | 'bank_transfer')}>
+              <Select
+                value={paymentMethod}
+                onValueChange={(value) =>
+                  setPaymentMethod(value as "cash" | "mobile" | "bank_transfer")
+                }
+              >
                 <SelectTrigger className="col-span-3">
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
@@ -229,7 +285,13 @@ const ExpenseModal = ({ isOpen, onClose, onExpenseSaved, expense, mode }: Expens
           {error && <p className="text-destructive text-sm mb-4">{error}</p>}
           <DialogFooter>
             <Button type="submit" disabled={loading}>
-              {loading ? (mode === 'add' ? "Adding..." : "Updating...") : (mode === 'add' ? "Add Expense" : "Update Expense")}
+              {loading
+                ? mode === "add"
+                  ? "Adding..."
+                  : "Updating..."
+                : mode === "add"
+                ? "Add Expense"
+                : "Update Expense"}
             </Button>
           </DialogFooter>
         </form>

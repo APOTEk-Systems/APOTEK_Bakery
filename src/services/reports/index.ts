@@ -195,7 +195,17 @@ export const reportsService = {
     try {
       const data = await getSalesReport(startDate, endDate, type);
       console.log("✅ Sales data fetched successfully:", data);
-      const pdfBlob = generateSalesPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateSalesPDF(data, startDate, endDate, settings);
       console.log("📄 Sales PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -212,7 +222,17 @@ export const reportsService = {
     try {
       const data = await getPurchasesReport(startDate, endDate);
       console.log("✅ Purchases data fetched successfully:", data);
-      const pdfBlob = generatePurchasesPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generatePurchasesPDF(data, startDate, endDate, settings);
       console.log("📄 Purchases PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -232,7 +252,17 @@ export const reportsService = {
     try {
       const data = await getProductionReport(startDate, endDate);
       console.log("✅ Production data fetched successfully:", data);
-      const pdfBlob = generateProductionPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateProductionPDF(data, startDate, endDate, settings);
       console.log("📄 Production PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -264,7 +294,17 @@ export const reportsService = {
         }
       };
       console.log("✅ Inventory data fetched successfully:", data);
-      const pdfBlob = generateInventoryPDF(data, type);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateInventoryPDF(data, type, settings);
       console.log("📄 Inventory PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -298,7 +338,17 @@ export const reportsService = {
         }
       };
       console.log("✅ Inventory adjustments data fetched successfully:", data);
-      const pdfBlob = generateInventoryAdjustmentsPDF(data, startDate, endDate, type);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateInventoryAdjustmentsPDF(data, startDate, endDate, type, settings);
       console.log("📄 Inventory adjustments PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -328,7 +378,17 @@ export const reportsService = {
         }
       };
       console.log("✅ Low stock data fetched successfully:", data);
-      const pdfBlob = generateLowStockPDF(data, type);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateLowStockPDF(data, type, settings);
       console.log("📄 Low stock PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -358,7 +418,17 @@ export const reportsService = {
         }
       };
       console.log("✅ Out of stock data fetched successfully:", data);
-      const pdfBlob = generateOutOfStockPDF(data, type);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateOutOfStockPDF(data, type, settings);
       console.log("📄 Out of stock PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -379,7 +449,17 @@ export const reportsService = {
     try {
       const data = await getFinancialReport(startDate, endDate);
       console.log("✅ Financial data fetched successfully:", data);
-      const pdfBlob = generateFinancialPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateFinancialPDF(data, startDate, endDate, settings);
       console.log("📄 Financial PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -396,7 +476,17 @@ export const reportsService = {
     try {
       const data = await getProfitAndLossReport(startDate, endDate);
       console.log("✅ Profit and loss data fetched successfully:", data);
-      const pdfBlob = generateProfitAndLossPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateProfitAndLossPDF(data, startDate, endDate, settings);
       console.log("📄 Profit and loss PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -413,7 +503,17 @@ export const reportsService = {
     try {
       const data = await getExpenseBreakdownReport(startDate, endDate);
       console.log("✅ Expense breakdown data fetched successfully:", data);
-      const pdfBlob = generateExpenseBreakdownPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateExpenseBreakdownPDF(data, startDate, endDate, settings);
       console.log("📄 Expense breakdown PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -427,7 +527,17 @@ export const reportsService = {
     try {
       const data = await getProductsReport();
       console.log("✅ Products data fetched successfully:", data);
-      const pdfBlob = generateProductsPDF(data);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateProductsPDF(data, settings);
       console.log("📄 Products PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -465,7 +575,17 @@ export const reportsService = {
     try {
       const data = await getGoodsReceivedReport(startDate, endDate, supplierId);
       console.log("✅ Goods received data fetched successfully:", data);
-      const pdfBlob = generateGoodsReceivedPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateGoodsReceivedPDF(data, startDate, endDate, settings);
       console.log("📄 Goods received PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -485,7 +605,17 @@ export const reportsService = {
     try {
       const data = await getSalesReport(startDate, endDate, 'cash');
       console.log("✅ Cash sales data fetched successfully:", data);
-      const pdfBlob = generateCashSalesPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateCashSalesPDF(data, startDate, endDate, settings);
       console.log("📄 Cash sales PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -505,7 +635,17 @@ export const reportsService = {
     try {
       const data = await getSalesReport(startDate, endDate, 'credit');
       console.log("✅ Credit sales data fetched successfully:", data);
-      const pdfBlob = generateCreditSalesPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateCreditSalesPDF(data, startDate, endDate, settings);
       console.log("📄 Credit sales PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -528,7 +668,17 @@ export const reportsService = {
         "✅ Supplier-wise purchases data fetched successfully:",
         data
       );
-      const pdfBlob = generateSupplierWisePurchasesPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateSupplierWisePurchasesPDF(data, startDate, endDate, settings);
       console.log("📄 Supplier-wise purchases PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -577,7 +727,17 @@ export const reportsService = {
     try {
       const data = await getFinishedGoodsSummaryReport(startDate, endDate);
       console.log("✅ Finished goods summary data fetched successfully:", data);
-      const pdfBlob = generateFinishedGoodsSummaryPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateFinishedGoodsSummaryPDF(data, startDate, endDate, settings);
       console.log("📄 Finished goods summary PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -597,7 +757,17 @@ export const reportsService = {
     try {
       const data = await getIngredientUsageReport(startDate, endDate);
       console.log("✅ Ingredient usage data fetched successfully:", data);
-      const pdfBlob = generateIngredientUsagePDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateIngredientUsagePDF(data, startDate, endDate, settings);
       console.log("📄 Ingredient usage PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -614,7 +784,17 @@ export const reportsService = {
     try {
       const data = await getProfitAndLossReport(startDate, endDate);
       console.log("✅ Gross profit data fetched successfully:", data);
-      const pdfBlob = generateGrossProfitPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateGrossProfitPDF(data, startDate, endDate, settings);
       console.log("📄 Gross profit PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -631,7 +811,17 @@ export const reportsService = {
     try {
       const data = await getProfitAndLossReport(startDate, endDate);
       console.log("✅ Net profit data fetched successfully:", data);
-      const pdfBlob = generateNetProfitPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateNetProfitPDF(data, startDate, endDate, settings);
       console.log("📄 Net profit PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -645,7 +835,17 @@ export const reportsService = {
     try {
       const data = await getExpensesReport(startDate, endDate);
       console.log("✅ Expenses data fetched successfully:", data);
-      const pdfBlob = generateExpensesPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateExpensesPDF(data, startDate, endDate, settings);
       console.log("📄 Expenses PDF generated successfully");
       return pdfBlob;
     } catch (error) {
@@ -659,7 +859,17 @@ export const reportsService = {
     try {
       const data = await getOutstandingPaymentsReport(startDate, endDate);
       console.log("✅ Outstanding payments data fetched successfully:", data);
-      const pdfBlob = generateOutstandingPaymentsPDF(data, startDate, endDate);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateOutstandingPaymentsPDF(data, startDate, endDate, settings);
       console.log("📄 Outstanding payments PDF generated successfully");
       return pdfBlob;
     } catch (error) {

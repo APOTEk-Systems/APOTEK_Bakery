@@ -5,14 +5,14 @@ import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../p
 import type { InventoryReport, InventoryAdjustmentsReport, LowStockReport, OutOfStockReport } from "@/types/reports";
 
 // Inventory Report PDF
-export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material' | 'supplies'): Blob => {
+export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material' | 'supplies', settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
   const reportTitle = type === 'raw_material' ? "Materials Current Stock Report" :
                      type === 'supplies' ? "Supplies Current Stock Report" :
                      "Inventory Report";
-  let yPos = addCompanyHeader(doc, reportTitle);
+  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings);
 
   // Inventory table
   const tableData = data.data.inventoryItem.map((item) => {
@@ -66,7 +66,8 @@ export const generateInventoryAdjustmentsPDF = (
   data: InventoryAdjustmentsReport,
   startDate?: string,
   endDate?: string,
-  type?: 'raw_material' | 'supplies'
+  type?: 'raw_material' | 'supplies',
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -78,7 +79,8 @@ export const generateInventoryAdjustmentsPDF = (
     doc,
     reportTitle,
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Inventory adjustments table
@@ -118,14 +120,14 @@ export const generateInventoryAdjustmentsPDF = (
 };
 
 // Low Stock Report PDF
-export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' | 'supplies'): Blob => {
+export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' | 'supplies', settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
   const reportTitle = type === 'raw_material' ? "Materials Below Min Level Report" :
                      type === 'supplies' ? "Supplies Below Min Level Report" :
                      "Stock Below Min Level Report";
-  let yPos = addCompanyHeader(doc, reportTitle);
+  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings);
 
   // Low stock table
   const tableData = data.data.inventoryItem.map((item, index) => {
@@ -153,14 +155,14 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
 };
 
 // Out of Stock Report PDF
-export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_material' | 'supplies'): Blob => {
+export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_material' | 'supplies', settings?: any): Blob => {
   const doc = new jsPDF();
 
   // Add company header
   const reportTitle = type === 'raw_material' ? "Materials Out of Stock Report" :
                      type === 'supplies' ? "Supplies Out of Stock Report" :
                      "Out of Stock Report";
-  let yPos = addCompanyHeader(doc, reportTitle);
+  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings);
 
   // Out of stock table
   const tableData = data.data.inventoryItem.map((item, index) => [

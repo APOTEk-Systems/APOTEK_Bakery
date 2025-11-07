@@ -14,7 +14,8 @@ import type {
 export const generateFinancialPDF = (
   data: FinancialReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -23,7 +24,8 @@ export const generateFinancialPDF = (
     doc,
     "Financial Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Add some spacing before financial summary
@@ -62,7 +64,8 @@ export const generateFinancialPDF = (
 export const generateProfitAndLossPDF = (
   data: ProfitAndLossReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -71,7 +74,8 @@ export const generateProfitAndLossPDF = (
     doc,
     "Profit and Loss Statement",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Add some spacing
@@ -124,7 +128,8 @@ export const generateProfitAndLossPDF = (
 export const generateGrossProfitPDF = (
   data: ProfitAndLossReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -133,7 +138,8 @@ export const generateGrossProfitPDF = (
     doc,
     "Gross Profit Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Add some spacing
@@ -195,7 +201,8 @@ export const generateGrossProfitPDF = (
 export const generateNetProfitPDF = (
   data: ProfitAndLossReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -204,7 +211,8 @@ export const generateNetProfitPDF = (
     doc,
     "Net Profit Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Add some spacing
@@ -266,7 +274,8 @@ export const generateNetProfitPDF = (
 export const generateExpenseBreakdownPDF = (
   data: ExpenseBreakdownReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -275,7 +284,8 @@ export const generateExpenseBreakdownPDF = (
     doc,
     "Expense Category Breakdown",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Expense breakdown table
@@ -306,7 +316,8 @@ export const generateExpenseBreakdownPDF = (
 export const generateCustomerSalesPDF = (
   data: CustomerSalesReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -315,7 +326,8 @@ export const generateCustomerSalesPDF = (
     doc,
     "Customer Sales Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Customer sales table
@@ -344,7 +356,8 @@ export const generateCustomerSalesPDF = (
 export const generateIngredientPurchaseTrendPDF = (
   data: IngredientPurchaseTrendReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -353,7 +366,8 @@ export const generateIngredientPurchaseTrendPDF = (
     doc,
     "Ingredient Purchase Trend Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Ingredient purchase trend table

@@ -18,19 +18,19 @@ const Layout = ({ children }: LayoutProps) => {
 
   // Global inventory monitoring for notifications
   const rawMaterialsQuery = useQuery({
-    queryKey: ['inventory', 'raw_material'],
-    queryFn: () => inventoryService.getInventory({ type: 'raw_material' }),
+    queryKey: ["inventory", "raw_material"],
+    queryFn: () => inventoryService.getInventory({ type: "raw_material" }),
     refetchInterval: 300000 * 12, // Check every 30 minutes
   });
 
   const suppliesQuery = useQuery({
-    queryKey: ['inventory', 'supplies'],
-    queryFn: () => inventoryService.getInventory({ type: 'supplies' }),
+    queryKey: ["inventory", "supplies"],
+    queryFn: () => inventoryService.getInventory({ type: "supplies" }),
     refetchInterval: 300000 * 12, // Check every 30 minutes
   });
 
   const settingsQuery = useQuery({
-    queryKey: ['settings'],
+    queryKey: ["settings"],
     queryFn: () => settingsService.getAll(),
   });
 
@@ -49,42 +49,62 @@ const Layout = ({ children }: LayoutProps) => {
         return "in-stock";
       };
 
-      const lowStockItems = allItems.filter(item => {
-        const displayQuantity = item.unit?.toLowerCase() === 'kg' || item.unit?.toLowerCase() === 'l'
-          ? item.currentQuantity / 1000
-          : item.currentQuantity;
+      const lowStockItems = allItems.filter((item) => {
+        // Run check only for raw materials
+        if (item.type?.toLowerCase() !== "raw material") return false;
+
+        const displayQuantity =
+          item.unit?.toLowerCase() === "kg" || item.unit?.toLowerCase() === "l"
+            ? item.currentQuantity / 1000
+            : item.currentQuantity;
+
         const status = getStatus(displayQuantity, item.minLevel);
         return status === "low" || status === "critical";
       });
 
-      const outOfStockItems = allItems.filter(item => {
-        const displayQuantity = item.unit?.toLowerCase() === 'kg' || item.unit?.toLowerCase() === 'l'
-          ? item.currentQuantity / 1000
-          : item.currentQuantity;
+      const outOfStockItems = allItems.filter((item) => {
+        // Run check only for raw materials
+        if (item.type?.toLowerCase() !== "raw material") return false;
+
+        const displayQuantity =
+          item.unit?.toLowerCase() === "kg" || item.unit?.toLowerCase() === "l"
+            ? item.currentQuantity / 1000
+            : item.currentQuantity;
+
         return displayQuantity <= 0;
       });
 
       // Simple approach: show notifications on every page load/refresh if issues exist
       // Use a flag to prevent showing multiple times during the same load
       const loadId = Date.now().toString();
-      const currentLoadId = sessionStorage.getItem('current_page_load');
+      const currentLoadId = sessionStorage.getItem("current_page_load");
 
       if (currentLoadId !== loadId) {
-        sessionStorage.setItem('current_page_load', loadId);
+        sessionStorage.setItem("current_page_load", loadId);
 
-        if (lowStockItems.length > 0 && notificationsEnabled.lowInventoryAlerts) {
+        if (
+          lowStockItems.length > 0 &&
+          notificationsEnabled.lowInventoryAlerts
+        ) {
           toast({
             title: "Low Inventory Alert",
-            description: `You have ${lowStockItems.length} item${lowStockItems.length > 1 ? 's' : ''} running low on stock across all inventory.`,
+            description: `You have ${lowStockItems.length} item${
+              lowStockItems.length > 1 ? "s" : ""
+            } running low on stock across all inventory.`,
             variant: "default",
             duration: 15000, // 15 seconds
           });
         }
 
-        if (outOfStockItems.length > 0 && (notificationsEnabled as any)?.outOfStockAlerts) {
+        if (
+          outOfStockItems.length > 0 &&
+          (notificationsEnabled as any)?.outOfStockAlerts
+        ) {
           toast({
             title: "Out of Stock Alert",
-            description: `You have ${outOfStockItems.length} item${outOfStockItems.length > 1 ? 's' : ''} completely out of stock.`,
+            description: `You have ${outOfStockItems.length} item${
+              outOfStockItems.length > 1 ? "s" : ""
+            } completely out of stock.`,
             variant: "destructive",
             duration: 15000, // 15 seconds
           });
@@ -108,9 +128,7 @@ const Layout = ({ children }: LayoutProps) => {
         setMobileOpen={setMobileOpen}
         isMobile={isMobile}
       />
-      <main className={mainClass}>
-        {children}
-      </main>
+      <main className={mainClass}>{children}</main>
     </div>
   );
 };

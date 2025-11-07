@@ -46,7 +46,11 @@ export interface GoodsReceiptResponse {
   notes?: string;
   createdById?: number;
   supplierName:string;
-  total:number
+  total:number;
+  createdByName?: string;
+  updatedBy?: {
+    name: string;
+  };
 }
 
 export const purchasesService = {

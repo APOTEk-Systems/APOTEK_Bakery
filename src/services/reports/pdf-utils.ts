@@ -11,7 +11,7 @@ export const addCompanyHeader = (
   endDate?: string,
   settings?: any
 ): number => {
-  let yPos = 20;
+  let yPos = 10;
 
   // Default company info (fallback)
   const defaultCompanyInfo = {
@@ -20,6 +20,7 @@ export const addCompanyHeader = (
     phone: "(555) 123-BAKE",
     email: "info@goldencrustbakery.com",
     website: "www.goldencrustbakery.com",
+    logo: "",
   };
 
   let companyInfo = defaultCompanyInfo;
@@ -32,13 +33,38 @@ export const addCompanyHeader = (
       phone: settings.information.phone || defaultCompanyInfo.phone,
       email: settings.information.email || defaultCompanyInfo.email,
       website: settings.information.website || defaultCompanyInfo.website,
+      logo: settings.information.logo || defaultCompanyInfo.logo,
     };
+  }
+
+  // Add registration details if available (only TIN and VRN)
+  let registrationInfo = "";
+  if (settings?.information?.tin) {
+    registrationInfo += `TIN: ${settings.information.tin}`;
+  }
+  if (settings?.information?.vrnNumber) {
+    if (registrationInfo) registrationInfo += " | ";
+    registrationInfo += `VRN: ${settings.information.vrnNumber}`;
+  }
+
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // Add logo if available (centered at top)
+  if (companyInfo.logo) {
+    try {
+      // Add logo image to PDF - assuming logo is a base64 data URL
+      if (companyInfo.logo.startsWith('data:image')) {
+        doc.addImage(companyInfo.logo, 'JPEG', (pageWidth - 50) / 2, yPos, 50, 30);
+        yPos += 35;
+      }
+    } catch (error) {
+      console.warn("Could not load logo for PDF:", error);
+    }
   }
 
   // Company name (centered, bold, larger)
   doc.setFontSize(18);
   doc.setFont("helvetica", "bold");
-  const pageWidth = doc.internal.pageSize.getWidth();
   const companyNameWidth = doc.getTextWidth(companyInfo.bakeryName);
   doc.text(companyInfo.bakeryName, (pageWidth - companyNameWidth) / 2, yPos);
   yPos += 10;
@@ -53,12 +79,20 @@ export const addCompanyHeader = (
     yPos += 6;
   }
 
-  // Contact info on same line
+  // Phone on its own line
+  if (companyInfo.phone) {
+    const phoneText = `Phone: ${companyInfo.phone}`;
+    const phoneWidth = doc.getTextWidth(phoneText);
+    doc.text(phoneText, (pageWidth - phoneWidth) / 2, yPos);
+    yPos += 6;
+  }
+
+  // Email and website on same line
   let contactInfo = "";
-  if (companyInfo.phone) contactInfo += `Phone: ${companyInfo.phone}`;
-  if (companyInfo.email) {
+  if (companyInfo.email) contactInfo += `Email: ${companyInfo.email}`;
+  if (companyInfo.website) {
     if (contactInfo) contactInfo += " | ";
-    contactInfo += `Email: ${companyInfo.email}`;
+    contactInfo += `Website: ${companyInfo.website}`;
   }
   if (contactInfo) {
     const contactWidth = doc.getTextWidth(contactInfo);
@@ -66,9 +100,12 @@ export const addCompanyHeader = (
     yPos += 6;
   }
 
-  if (companyInfo.website) {
-    const websiteWidth = doc.getTextWidth(companyInfo.website);
-    doc.text(companyInfo.website, (pageWidth - websiteWidth) / 2, yPos);
+  // Add registration information if available
+  if (registrationInfo) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    const regWidth = doc.getTextWidth(registrationInfo);
+    doc.text(registrationInfo, (pageWidth - regWidth) / 2, yPos);
     yPos += 10;
   }
 
@@ -83,20 +120,16 @@ export const addCompanyHeader = (
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   const dateRange =
-    startDate && endDate ? `From ${startDate} to ${endDate}` : "All Time";
-  const dateRangeWidth = doc.getTextWidth(`Date Range: ${dateRange}`);
-  doc.text(
-    `Date Range: ${dateRange}`,
-    (pageWidth - dateRangeWidth) / 2,
-    yPos
-  );
+    startDate && endDate ? `From: ${startDate} to ${endDate}` : "All Time";
+  const dateRangeWidth = doc.getTextWidth(dateRange);
+  doc.text(dateRange, (pageWidth - dateRangeWidth) / 2, yPos);
   yPos += 6;
 
   // Generated date
   const generatedText = `Generated: ${format(new Date(), "dd-MM-yyyy")}`;
   const generatedWidth = doc.getTextWidth(generatedText);
   doc.text(generatedText, (pageWidth - generatedWidth) / 2, yPos);
-  yPos += 15;
+  yPos += 10;
 
   return yPos; // Return the Y position after the header
 };
@@ -136,14 +169,27 @@ export const testPDFGeneration = (): Blob => {
 
 // Common table styling configuration
 export const getDefaultTableStyles = () => ({
-  theme: "grid" as const,
-  styles: {fontSize: 8},
-  headStyles: {fillColor: [41, 128, 185] as [number, number, number]},
+  theme: "plain" as const,
+  styles: {
+    fontSize: 8,
+    cellPadding: 3,
+  },
+  headStyles: {
+    fillColor: [31, 41, 55] as [number, number, number], // Dark gray/navy blue
+    textColor: [255, 255, 255] as [number, number, number],
+    fontStyle: 'bold' as const,
+  },
+  alternateRowStyles: {
+    fillColor: [249, 250, 251] as [number, number, number], // Light gray for odd rows
+  },
+  rowStyles: {
+    fillColor: [255, 255, 255] as [number, number, number], // White for even rows
+  },
 });
 
 // Format currency for PDF
 export const formatCurrencyPDF = (amount: number): string => {
-  return `TZS ${amount.toLocaleString()}`;
+  return `${amount.toLocaleString()}`;
 };
 
 // Format date for PDF

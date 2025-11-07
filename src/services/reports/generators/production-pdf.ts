@@ -8,7 +8,8 @@ import type { ProductionReport, FinishedGoodsSummaryReport, IngredientUsageRepor
 export const generateProductionPDF = (
   data: ProductionReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -17,7 +18,8 @@ export const generateProductionPDF = (
     doc,
     "Daily Production Batches Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Production table with new column structure
@@ -64,7 +66,8 @@ export const generateProductionPDF = (
 export const generateFinishedGoodsSummaryPDF = (
   data: FinishedGoodsSummaryReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -73,7 +76,8 @@ export const generateFinishedGoodsSummaryPDF = (
     doc,
     "Finished Goods Summary Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Finished goods summary table
@@ -99,7 +103,8 @@ export const generateFinishedGoodsSummaryPDF = (
 export const generateIngredientUsagePDF = (
   data: IngredientUsageReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   const doc = new jsPDF();
 
@@ -108,7 +113,8 @@ export const generateIngredientUsagePDF = (
     doc,
     "Ingredient Usage Report",
     startDate,
-    endDate
+    endDate,
+    settings
   );
 
   // Ingredient usage table

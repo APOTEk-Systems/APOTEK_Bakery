@@ -109,25 +109,25 @@ const CashFlowTab = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-green-600">Cash Inflows</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">Cash Inflows</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">From Cash Sales</span>
-              <span className="text-lg font-bold text-green-600">
+              <span className="text-lg font-bold text-foreground">
                 {formatCurrency(Math.round(cashFlowData?.cashInflows?.fromCashSales || 0))}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">From Credit Payments</span>
-              <span className="text-lg font-bold text-green-600">
+              <span className="text-lg font-bold text-foreground">
                 {formatCurrency(Math.round(cashFlowData?.cashInflows?.fromCreditPayments || 0))}
               </span>
             </div>
             <div className="border-t pt-2">
               <div className="flex justify-between items-center font-semibold">
                 <span>Total Inflows</span>
-                <span className="text-xl text-green-600">
+                <span className="text-xl text-foreground">
                   {formatCurrency(Math.round(cashFlowData?.cashInflows?.total || 0))}
                 </span>
               </div>
@@ -137,25 +137,25 @@ const CashFlowTab = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold text-red-600">Cash Outflows</CardTitle>
+            <CardTitle className="text-lg font-semibold text-foreground">Cash Outflows</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">For Expenses</span>
-              <span className="text-lg font-bold text-red-600">
+              <span className="text-lg font-bold text-foreground">
                 {formatCurrency(Math.round(cashFlowData?.cashOutflows?.forExpenses || 0))}
               </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm font-medium">For Purchases</span>
-              <span className="text-lg font-bold text-red-600">
+              <span className="text-lg font-bold text-foreground">
                 {formatCurrency(Math.round(cashFlowData?.cashOutflows?.forPurchases || 0))}
               </span>
             </div>
             <div className="border-t pt-2">
               <div className="flex justify-between items-center font-semibold">
                 <span>Total Outflows</span>
-                <span className="text-xl text-red-600">
+                <span className="text-xl text-foreground">
                   {formatCurrency(Math.round(cashFlowData?.cashOutflows?.total || 0))}
                 </span>
               </div>
@@ -169,7 +169,7 @@ const CashFlowTab = () => {
           <CardTitle className="text-xl font-bold">Net Cash Flow</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`text-3xl font-bold ${(cashFlowData?.netCashFlow || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <div className="text-3xl font-bold text-foreground">
             {formatCurrency(Math.round(cashFlowData?.netCashFlow || 0))}
           </div>
           <p className="text-sm text-muted-foreground mt-2">

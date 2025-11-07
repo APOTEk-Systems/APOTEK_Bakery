@@ -307,7 +307,8 @@ export const getExpensesReport = async (startDate?: string, endDate?: string): P
   if (startDate) params.append("startDate", startDate);
   if (endDate) params.append("endDate", endDate);
 
-  const response = await api.get(`/reports/expenses?${params.toString()}`);
+  // Use the same endpoint as ExpensesTab for consistency
+  const response = await api.get(`/accounting/expenses?${params.toString()}`);
   return response.data;
 };
 

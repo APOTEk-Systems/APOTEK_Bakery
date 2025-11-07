@@ -8,7 +8,8 @@ import type { SalesReport } from "@/types/reports";
 export const generateSalesPDF = (
   data: SalesReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   console.log("🎨 Generating sales PDF...", {
     salesCount: data.data.sales.length,
@@ -21,7 +22,8 @@ export const generateSalesPDF = (
       doc,
       "Sales Report",
       startDate,
-      endDate
+      endDate,
+      settings
     );
 
     // Sales table
@@ -79,7 +81,8 @@ export const generateSalesPDF = (
 export const generateCashSalesPDF = (
   data: SalesReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   console.log("🎨 Generating cash sales PDF...", {
     salesCount: data.data.sales.length,
@@ -92,7 +95,8 @@ export const generateCashSalesPDF = (
       doc,
       "Cash Sales Report",
       startDate,
-      endDate
+      endDate,
+      settings
     );
 
     // Cash sales table
@@ -144,7 +148,8 @@ export const generateCashSalesPDF = (
 export const generateCreditSalesPDF = (
   data: SalesReport,
   startDate?: string,
-  endDate?: string
+  endDate?: string,
+  settings?: any
 ): Blob => {
   console.log("🎨 Generating credit sales PDF...", {
     salesCount: data.data.sales.length,
@@ -157,7 +162,8 @@ export const generateCreditSalesPDF = (
       doc,
       "Credit Sales Report",
       startDate,
-      endDate
+      endDate,
+      settings
     );
 
     // Credit sales table
