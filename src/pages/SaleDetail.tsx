@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/table";
 import {formatCurrency} from "../lib/funcs";
 import { format } from 'date-fns';
+import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const SaleDetail = () => {
   const {id} = useParams<{id: string}>();
@@ -29,6 +32,8 @@ const SaleDetail = () => {
   const queryClient = useQueryClient();
   const {toast} = useToast();
   const [isConfirmOpen, setConfirmOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
 
   // Determine back navigation based on referrer
   const getBackLink = () => {
@@ -61,6 +66,29 @@ const SaleDetail = () => {
         description: (err as Error).message || "Failed to complete sale.",
       });
       setConfirmOpen(false);
+    },
+  });
+
+  const createPaymentMutation = useMutation({
+    mutationFn: ({ saleId, amount }: { saleId: number; amount: number }) =>
+      salesService.createPayment(saleId, amount),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Payment recorded successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ['sale', saleId] });
+      queryClient.invalidateQueries({ queryKey: ['unpaidSales'] });
+      queryClient.invalidateQueries({ queryKey: ['outstanding-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['recentSales'] });
+    },
+    onError: (error) => {
+      console.error('Error making payment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to record payment",
+        variant: "destructive",
+      });
     },
   });
 
@@ -130,6 +158,31 @@ const SaleDetail = () => {
     payMutation.mutate(saleId);
   };
 
+  const handleMakePayment = () => {
+    if (!sale || !paymentAmount) return;
+
+    const amount = parseFloat(paymentAmount);
+    if (amount <= 0) {
+      toast({
+        title: "Invalid Amount",
+        description: "Payment amount must be greater than 0",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (amount > (sale.outstandingBalance || 0)) {
+      toast({
+        title: "Invalid Amount",
+        description: "Payment amount cannot exceed outstanding balance",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createPaymentMutation.mutate({ saleId: sale.id, amount });
+  };
+
   return (
     <Layout>
       {" "}
@@ -147,13 +200,69 @@ const SaleDetail = () => {
                 Sale #{sale.id}
               </h1>
             </div>
-            {sale.status === "unpaid" && (
-              <Button
-                onClick={() => setConfirmOpen(true)}
-                disabled={payMutation.isPending}
-              >
-                {payMutation.isPending ? "Completing..." : "Complete Sale"}
-              </Button>
+            {sale.status === "unpaid" && sale.outstandingBalance && sale.outstandingBalance > 0 && (
+              <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    size="sm"
+                    onClick={() => setIsPaymentDialogOpen(true)}
+                    disabled={createPaymentMutation.isPending}
+                  >
+                    {createPaymentMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : null}
+                    Record Payment
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Record Payment</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <Label className="text-sm font-medium">Receipt #</Label>
+                        <p className="text-lg font-semibold">{sale.id}</p>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <Label className="text-sm font-medium">Outstanding Balance</Label>
+                        <p className="text-lg font-semibold text-destructive">
+                          {formatCurrency(sale.outstandingBalance || 0)}
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center py-2">
+                        <Label htmlFor="amount" className="text-sm font-medium">Amount</Label>
+                        <Input
+                          id="amount"
+                          type="text"
+                          inputMode="numeric"
+                          value={paymentAmount ? Number(paymentAmount).toLocaleString('en-TZ') : ''}
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/,/g, '');
+                            setPaymentAmount(raw === '' ? '' : raw);
+                          }}
+                          placeholder="Enter amount"
+                          className="w-40 text-right"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsPaymentDialogOpen(false);
+                          setPaymentAmount('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleMakePayment}>
+                        Record Payment
+                      </Button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             )}
           </div>
         </div>

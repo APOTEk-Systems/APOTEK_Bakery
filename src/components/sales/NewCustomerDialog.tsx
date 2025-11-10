@@ -70,7 +70,7 @@ const NewCustomerDialog = ({
               placeholder="Customer name"
               value={newCustomerForm.name}
               onChange={(e) =>
-                setNewCustomerForm({...newCustomerForm, name: toSentenceCase(e.target.value)})
+                setNewCustomerForm({...newCustomerForm, name: e.target.value})
               }
             />
           </div>
@@ -128,7 +128,7 @@ const NewCustomerDialog = ({
               id="newCustomerCreditLimit"
               type="text"
               inputMode="numeric"
-              placeholder="1,000.00"
+              placeholder="100,000"
               value={newCustomerForm.creditLimit}
               onChange={(e) => {
                 // Strip commas before saving

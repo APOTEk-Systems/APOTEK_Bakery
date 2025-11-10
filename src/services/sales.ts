@@ -70,6 +70,10 @@ export interface Payment {
     email?: string;
     phone?: string;
   };
+  receivedBy: {
+    id: number;
+    name: string;
+  };
 }
 
 export interface OrderItem {

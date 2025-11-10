@@ -120,7 +120,7 @@ export default function GoodsReceivingTab() {
                 <TableHead>Supplier</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Received By</TableHead>
-                <TableHead>Updated By</TableHead>
+                
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -175,7 +175,7 @@ export default function GoodsReceivingTab() {
                     <TableCell> {gr.supplierName} </TableCell>
                     <TableCell> {gr.total.toLocaleString()} </TableCell>
                     <TableCell>{gr.createdByName || "Unknown"}</TableCell>
-                    <TableCell>{gr.updatedBy?.name || "N/A"}</TableCell>
+                   
                     <TableCell>
                       <Badge variant={getStatusVariant(gr.status)}>
                         {capitalizeStatus(gr.status)}

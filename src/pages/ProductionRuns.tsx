@@ -298,10 +298,16 @@ const ProductionRuns = () => {
                     <Label htmlFor="quantity">Quantity</Label>
                     <Input
                       id="quantity"
-                      type="number"
-                      value={formData.quantity}
+                      type="text"
+                      inputMode="numeric"
+                      value={
+                        formData.quantity
+                          ? Number(formData.quantity).toLocaleString()
+                          : ""
+                      }
                       onChange={(e) => {
-                        const newQuantity = e.target.value;
+                        const raw = e.target.value.replace(/,/g, "");
+                        const newQuantity = raw;
                         setFormData((prev) => ({
                           ...prev,
                           quantity: newQuantity,
@@ -472,7 +478,7 @@ const ProductionRuns = () => {
                             <TableCell className="font-medium">
                               {productName}
                             </TableCell>
-                            <TableCell>{run.quantityProduced}</TableCell>
+                            <TableCell>{run.quantityProduced.toLocaleString()}</TableCell>
                             <TableCell>
                               {format(new Date(run.date), "dd-MM-yyyy")}
                             </TableCell>

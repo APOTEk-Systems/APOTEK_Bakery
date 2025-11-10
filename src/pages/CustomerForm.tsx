@@ -266,7 +266,7 @@ const CustomerForm = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Full Name *</Label>
+                    <Label htmlFor="name">Name *</Label>
                     <Input
                       id="name"
                       value={formData.name}
@@ -300,7 +300,7 @@ const CustomerForm = () => {
                       )}
                     </div>
                     <div>
-                      <Label htmlFor="phone">Phone Number *</Label>
+                      <Label htmlFor="phone">Phone *</Label>
                       <div className="flex items-center">
                         <span className="border border-input bg-muted px-3 py-2 rounded-l-md text-muted-foreground border-r-0">+255</span>
                         <Input
@@ -342,7 +342,7 @@ const CustomerForm = () => {
               {/* Customer Settings */}
               <Card className="shadow-warm">
                 <CardHeader>
-                  <CardTitle>Customer Settings</CardTitle>
+                  <CardTitle>Extra Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

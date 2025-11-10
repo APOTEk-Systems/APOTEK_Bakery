@@ -128,8 +128,9 @@ const ProductForm = () => {
   });
 
   useEffect(() => {
-    if (isEdit && productQuery.data) {
+    if (isEdit && productQuery.data && inventoryQuery.data) {
       const product = productQuery.data;
+      const inventory = inventoryQuery.data as InventoryItem[];
       setFormData({
         name: product.name,
         price: product.price.toString(),
@@ -137,19 +138,22 @@ const ProductForm = () => {
         status: product.status,
         description: product.description || "",
         instructions: product.instructions,
-        batchSize: (product as any).batchSize?.toString() || "1",
+        batchSize: (product as any).batchSize ? Number((product as any).batchSize).toLocaleString() : "1",
       });
       if ((product as any).productRecipes) {
         setProductRecipes(
-          (product as any).productRecipes.map((r: any) => ({
-            inventoryItemId: r.inventoryItemId.toString(),
-            amount: r.amountRequired.toString(),
-            unit: "",
-          }))
+          (product as any).productRecipes.map((r: any) => {
+            const inventoryItem = inventory.find(item => item.id === r.inventoryItemId);
+            return {
+              inventoryItemId: r.inventoryItemId.toString(),
+              amount: r.amountRequired.toString(),
+              unit: inventoryItem?.unit || "",
+            };
+          })
         );
       }
     }
-  }, [productQuery.data]);
+  }, [productQuery.data, inventoryQuery.data]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -438,7 +442,8 @@ const ProductForm = () => {
                     </Label>
                     <Input
                       id="batchSize"
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       value={
                         formData.batchSize
                           ? Number(formData.batchSize).toLocaleString()

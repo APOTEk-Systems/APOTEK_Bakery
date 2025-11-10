@@ -25,6 +25,7 @@ export interface PurchaseOrder {
 export interface GoodsReceiptItem {
   inventoryItemId: number;
   receivedQuantity: number;
+  cost: number;
 }
 
 export interface GoodsReceipt {

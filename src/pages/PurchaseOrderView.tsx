@@ -180,7 +180,7 @@ const PurchaseOrderView = () => {
             <div className="flex justify-between items-center">
               <div>
                 <h1 className="text-3xl font-bold tracking-tight">
-                  Purchase Order {po.id}
+                  Purchase Order # {po.id}
                 </h1>
              
               </div>
@@ -261,7 +261,7 @@ const PurchaseOrderView = () => {
                           <TableCell className="font-medium">
                             {itemName}
                           </TableCell>
-                          <TableCell>{item.quantity}</TableCell>
+                          <TableCell>{item.quantity.toLocaleString()}</TableCell>
                           <TableCell>{itemUnit}</TableCell>
                           <TableCell>{formatCurrency(item.price)}</TableCell>
                           <TableCell>

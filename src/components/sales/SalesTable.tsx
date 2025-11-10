@@ -130,22 +130,13 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
   };
 
   const handleMakePayment = () => {
-    if (!selectedSale || !paymentAmount) return;
+    if (!selectedSale) return;
 
-    const amount = parseFloat(paymentAmount);
+    const amount = selectedSale.outstandingBalance || 0;
     if (amount <= 0) {
       toast({
         title: "Invalid Amount",
-        description: "Payment amount must be greater than 0",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (amount > (selectedSale.outstandingBalance || 0)) {
-      toast({
-        title: "Invalid Amount",
-        description: "Payment amount cannot exceed outstanding balance",
+        description: "No outstanding balance to pay",
         variant: "destructive",
       });
       return;
@@ -394,7 +385,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
 
               <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
               <TableCell className="py-1">
-                <Badge variant={getStatusVariant(sale.status)}>
+                <Badge variant={getStatusVariant(sale.status)} className='text-[11px] p-1'>
                   {sale.status.toUpperCase()}
                 </Badge>
               </TableCell>
@@ -411,62 +402,20 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                   </Button>
                   {isUnpaid && (
                     sale.status === 'unpaid' ? (
-                      <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelectedSale(sale);
-                              setIsPaymentDialogOpen(true);
-                            }}
-                            disabled={createPaymentMutation.isPending}
-                            className="mr-2"
-                          >
-                            {createPaymentMutation.isPending ? (
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : null}
-                            Record Payment
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Record Payment for Sale #{selectedSale?.id}</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label htmlFor="amount">Payment Amount</Label>
-                              <Input
-                                id="amount"
-                                type="number"
-                                step="0.01"
-                                value={paymentAmount}
-                                onChange={(e) => setPaymentAmount(e.target.value)}
-                                placeholder="Enter payment amount"
-                              />
-                              {selectedSale && (
-                                <p className="text-sm text-muted-foreground mt-1">
-                                  Outstanding balance: {formatCurrency(selectedSale.outstandingBalance || 0)}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => {
-                                  setIsPaymentDialogOpen(false);
-                                  setPaymentAmount('');
-                                  setSelectedSale(null);
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                              <Button onClick={handleMakePayment}>
-                                Record Payment
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSale(sale);
+                          handleMakePayment();
+                        }}
+                        disabled={createPaymentMutation.isPending}
+                        className="mr-2"
+                      >
+                        {createPaymentMutation.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
+                        Record Payment
+                      </Button>
                     ) : null
                   )}
                 </TableCell>

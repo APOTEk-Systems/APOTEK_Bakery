@@ -229,6 +229,30 @@ export default function SuppliersTab() {
     },
   });
 
+  const activateMutation = useMutation({
+    mutationFn: (id: number) =>
+      suppliersService.update(id, { status: "active" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+      toast({
+        title: "Supplier Activated",
+        description: `Supplier activated.`,
+        variant: "default",
+      });
+    },
+    onError: (err) => {
+      let errorMessage = "Failed to activate";
+      if (axios.isAxiosError(err) && err.response?.status !== 500) {
+        errorMessage = err.response?.data?.message || err.message;
+      }
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: (id: number) => suppliersService.delete(id),
     onSuccess: () => {
@@ -437,6 +461,21 @@ export default function SuppliersTab() {
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
+                      </Button>
+                      <Button
+                        variant={sup.status === "active" ? "secondary" : "default"}
+                        size="sm"
+                        onClick={() => {
+                          if (sup.status === "active") {
+                            deactivateMutation.mutate(sup.id);
+                          } else {
+                            activateMutation.mutate(sup.id);
+                          }
+                        }}
+                        className="ml-2"
+                        disabled={deactivateMutation.isPending || activateMutation.isPending}
+                      >
+                        {sup.status === "active" ? "Deactivate" : "Activate"}
                       </Button>
                       <Button
                         variant="destructive"

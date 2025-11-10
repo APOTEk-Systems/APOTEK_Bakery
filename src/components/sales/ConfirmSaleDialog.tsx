@@ -13,6 +13,8 @@ import { formatCurrency } from "@/lib/funcs";
 import { type Customer } from "@/services/customers";
 import ReceiptPreview from "./ReceiptPreview";
 import { useAuth } from "@/contexts/AuthContext";
+import { settingsService } from "@/services/settings";
+import { useQuery } from "@tanstack/react-query";
 
 interface CartItem {
   id: number;
@@ -72,6 +74,14 @@ const ConfirmSaleDialog = ({
 
    const {user} = useAuth()
    console.log(user)
+
+   const settingsQuery = useQuery({
+     queryKey: ['settings'],
+     queryFn: () => settingsService.getAll(),
+   });
+
+   const settings = settingsQuery.data;
+   const receiptSize = settings?.configuration?.receiptSize || 'a5';
   const handleCloseDialog = () => {
     setShowConfirmDialog(false);
     // Reset sale state when dialog closes after completion
@@ -100,7 +110,7 @@ const ConfirmSaleDialog = ({
               font-size: 10px;
               line-height: 1.2;
               margin: 10px 0;
-              max-width: ${previewFormat === 'a5' ? '210mm' : '48mm'};
+              max-width: ${receiptSize === 'a5' ? '210mm' : '48mm'};
               padding: 0;
             }
             .header {
@@ -180,7 +190,7 @@ const ConfirmSaleDialog = ({
             <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>
           </div>
 
-          ${previewFormat === 'a5' ?
+          ${receiptSize === 'a5' ?
             `<table>
               <thead>
                 <tr>
@@ -264,10 +274,10 @@ const ConfirmSaleDialog = ({
       <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
         <DialogHeader>
           <DialogTitle>
-            {saleCompleted ? (previewFormat ? `Receipt Preview (${previewFormat.toUpperCase()})` : "Sale Completed") : "Confirm Sale"}
+            {saleCompleted ? (previewFormat ? `Receipt Preview (${receiptSize.toUpperCase()})` : "Sale Completed") : "Confirm Sale"}
           </DialogTitle>
           <DialogDescription>
-            {saleCompleted ? (previewFormat ? "Review the receipt before printing." : "Sale created successfully. Choose a receipt format to preview.") : "Are you sure you want to complete this sale?"}
+            {saleCompleted ? (previewFormat ? "Review the receipt before printing." : "Sale created successfully.") : "Are you sure you want to complete this sale?"}
           </DialogDescription>
         </DialogHeader>
 
@@ -333,7 +343,7 @@ const ConfirmSaleDialog = ({
           </div>
         ) : previewFormat ? (
           <ReceiptPreview
-            receiptFormat={previewFormat}
+            receiptFormat={receiptSize === 'a5' ? 'a5' : 'thermal'}
             sale={newSale}
             cart={soldCart}
             customer={soldCustomer}
@@ -347,15 +357,9 @@ const ConfirmSaleDialog = ({
           />
         ) : (
           <div className="text-center space-y-4">
-            <p className="text-lg font-semibold">Choose Receipt Format</p>
-            <div className="flex gap-4 justify-center">
-              <Button onClick={() => setPreviewFormat('a5')} variant="outline">
-                A5 Paper
-              </Button>
-              <Button onClick={() => setPreviewFormat('thermal')} variant="outline">
-                Thermal Paper
-              </Button>
-            </div>
+            <Button onClick={() => handlePrintReceipt()}>
+              Print Receipt
+            </Button>
           </div>
         )}
 
@@ -382,18 +386,6 @@ const ConfirmSaleDialog = ({
                   null
                 )}
                 {createSaleMutation.isPending ? "Processing..." : "Confirm Sale"}
-              </Button>
-            </>
-          ) : previewFormat ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setPreviewFormat(null)}
-              >
-                Back
-              </Button>
-              <Button onClick={() => handlePrintReceipt()}>
-                Print Receipt
               </Button>
             </>
           ) : (

@@ -239,7 +239,7 @@ const InventoryAdjustmentsTab = ({
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Add Adjustment</DialogTitle>
+            <DialogTitle>New Material Adjustment</DialogTitle>
             {/* <DialogDescription>
               Create a new adjustment for {title.toLowerCase()} inventory.
             </DialogDescription> */}

@@ -110,7 +110,7 @@ const PaymentHistoryTab: React.FC = () => {
                 <TableHead>Customer</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Payment Date</TableHead>
-                {/* <TableHead>Notes</TableHead> */}
+                <TableHead>Received By</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -125,7 +125,7 @@ const PaymentHistoryTab: React.FC = () => {
                     {formatCurrency(payment.amount)}
                   </TableCell>
                   <TableCell>{formatDate(payment.paymentDate)}</TableCell>
-                  {/* <TableCell>{payment.notes || '-'}</TableCell> */}
+                   <TableCell>{payment.receivedBy.name || '-'}</TableCell> 
                 </TableRow>
               ))}
             </TableBody>

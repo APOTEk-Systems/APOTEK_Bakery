@@ -51,7 +51,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       const lowStockItems = allItems.filter((item) => {
         // Run check only for raw materials
-        if (item.type?.toLowerCase() !== "raw material") return false;
+        if (item.type?.toLowerCase() !== "raw_material") return false;
 
         const displayQuantity =
           item.unit?.toLowerCase() === "kg" || item.unit?.toLowerCase() === "l"
@@ -64,7 +64,7 @@ const Layout = ({ children }: LayoutProps) => {
 
       const outOfStockItems = allItems.filter((item) => {
         // Run check only for raw materials
-        if (item.type?.toLowerCase() !== "raw material") return false;
+        if (item.type?.toLowerCase() !== "raw_material") return false;
 
         const displayQuantity =
           item.unit?.toLowerCase() === "kg" || item.unit?.toLowerCase() === "l"

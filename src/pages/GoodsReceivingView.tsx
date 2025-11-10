@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -72,7 +73,8 @@ const GoodsReceivingView = () => {
     if (po && po.status === "approved" && !hasReceipt) {
       const initialForm = po.items.map(item => ({
         inventoryItemId: item.inventoryItemId,
-        receivedQuantity: item.quantity
+        receivedQuantity: item.quantity,
+        cost: item.price
       }));
       setReceiveForm(initialForm);
     }
@@ -121,10 +123,6 @@ const GoodsReceivingView = () => {
     setSubmitLoading(true)
     if (!po) return;
     try {
-      const items = po.items.map(item => ({
-        inventoryItemId: item.inventoryItemId,
-        receivedQuantity: item.quantity // Assume full receipt
-      }));
       const newReceipt = await purchasesService.createReceipt({
         purchaseOrderId: po.id,
         items: receiveForm,
@@ -212,7 +210,7 @@ const GoodsReceivingView = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-               
+
                 Ordered Items
               </CardTitle>
             </CardHeader>
@@ -221,14 +219,16 @@ const GoodsReceivingView = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Item Name</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Unit Price</TableHead>
-                    <TableHead>Total</TableHead>
+                    <TableHead>Ordered Quantity</TableHead>
+                    <TableHead>Received Quantity</TableHead>
+                    <TableHead>Unit Cost</TableHead>
+                    <TableHead>Total Cost</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {po.items.map((item, index) => {
                     const inventoryItem = inventory.find(i => i.id === item.inventoryItemId);
+                    const formItem = receiveForm[index];
                     return (
                       <TableRow key={index}>
                         <TableCell className="font-medium">
@@ -237,9 +237,14 @@ const GoodsReceivingView = () => {
                         <TableCell>
                           {item.quantity} {inventoryItem?.unit || 'units'}
                         </TableCell>
-                        <TableCell>{formatCurrency(item.price)}</TableCell>
+                        <TableCell>
+                          {formItem?.receivedQuantity || item.quantity} {inventoryItem?.unit || 'units'}
+                        </TableCell>
+                        <TableCell>
+                          {formatCurrency(formItem?.cost || item.price)}
+                        </TableCell>
                         <TableCell className="font-semibold">
-                          {formatCurrency(item.quantity * item.price)}
+                          {formatCurrency((formItem?.receivedQuantity || item.quantity) * (formItem?.cost || item.price))}
                         </TableCell>
                       </TableRow>
                     );

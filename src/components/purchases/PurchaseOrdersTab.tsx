@@ -322,6 +322,7 @@ export default function PurchaseOrdersTab() {
     const initialItems = po.items.map((item) => ({
       inventoryItemId: item.inventoryItemId,
       receivedQuantity: item.quantity,
+      cost: item.price,
     }));
     setReceiveForm(initialItems);
     setReceiveNotes("");
@@ -612,10 +613,10 @@ export default function PurchaseOrdersTab() {
                       <div className="w-20">
                         <Label className="sr-only">Quantity</Label>
                         <Input
-                          type="number"
-                          value={item.quantity || ""} // 👈 if 0, show empty
+                          type="text"
+                          value={item.quantity ? item.quantity.toLocaleString() : ""}
                           onChange={(e) => {
-                            const val = e.target.value;
+                            const val = e.target.value.replace(/,/g, "");
                             updateItemQuantity(
                               index,
                               val === "" ? 0 : parseInt(val, 10)
@@ -728,18 +729,20 @@ export default function PurchaseOrdersTab() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              Receive Goods for PO {selectedPOForReceive?.id}
+              Receive Goods for PO # {selectedPOForReceive?.id}
             </DialogTitle>
           </DialogHeader>
           {selectedPOForReceive && (
             <form onSubmit={handleSubmitReceipt} className="space-y-4">
               <div>
-                <Label>Items and Costs</Label>
+                {/* <Label>Items and Costs</Label> */}
                 <div className="space-y-2">
                   <div className="flex gap-2 text-xs font-medium text-muted-foreground mb-1">
                     <div className="flex-1">Item</div>
                     <div className="w-20">Quantity</div>
                     <div className="w-20">Unit</div>
+                    {/* <div className="w-24">Unit Cost</div> */}
+                    <div className="w-24">Total Cost</div>
                   </div>
                   {selectedPOForReceive.items.map((item, index) => (
                     <div key={index} className="flex gap-2 items-end">
@@ -756,7 +759,13 @@ export default function PurchaseOrdersTab() {
                       </div>
                       <div className="w-20">
                         <Input
-                          value={item.quantity}
+                          type="number"
+                          value={receiveForm[index]?.receivedQuantity?.toString() || ''}
+                          onChange={(e) => {
+                            const newForm = [...receiveForm];
+                            newForm[index] = { ...newForm[index], receivedQuantity: parseFloat(e.target.value) || 0 };
+                            setReceiveForm(newForm);
+                          }}
                           className="bg-muted text-center"
                           readOnly
                         />
@@ -768,6 +777,27 @@ export default function PurchaseOrdersTab() {
                               (i) => i.id === item.inventoryItemId
                             )?.unit || ""
                           }
+                          className="bg-muted text-center"
+                          readOnly
+                        />
+                      </div>
+                      {/* <div className="w-24">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={receiveForm[index]?.cost?.toString() || ''}
+                          onChange={(e) => {
+                            const newForm = [...receiveForm];
+                            newForm[index] = { ...newForm[index], cost: parseFloat(e.target.value) || 0 };
+                            setReceiveForm(newForm);
+                          }}
+                          className="bg-muted text-center"
+                          readOnly
+                        />
+                      </div> */}
+                      <div className="w-24">
+                        <Input
+                          value={formatCurrency((receiveForm[index]?.receivedQuantity || 0) * (receiveForm[index]?.cost || 0)).replace('TSH', '')}
                           className="bg-muted text-center"
                           readOnly
                         />
