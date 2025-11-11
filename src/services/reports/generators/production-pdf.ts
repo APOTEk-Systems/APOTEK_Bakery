@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
 import type { ProductionReport, FinishedGoodsSummaryReport, IngredientUsageReport } from "@/types/reports";
 
 // Production Report PDF
@@ -40,24 +40,29 @@ export const generateProductionPDF = (
     ...getDefaultTableStyles(),
   });
 
-  // Summary (after table)
+  // Summary (after table) - positioned bottom right of table
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  yPos = finalY + 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
 
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Summary", 20, yPos);
-  yPos += 10;
+  // Position summary at bottom right of table area
+  let summaryY = finalY + 10;
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text(`Total Produced: ${data.data.totalProduced} units`, 20, yPos);
-  yPos += 8;
-  doc.text(
-    `Total Cost: ${formatCurrencyPDF(data.data.totalCost)}`,
-    20,
-    yPos
-  );
+
+  // Right-align the summary values
+  const totalProducedText = `Total Produced: ${data.data.totalProduced} units`;
+  const totalCostText = `Total Cost: ${formatCurrencyPDF(data.data.totalCost)}`;
+
+  const totalProducedWidth = doc.getTextWidth(totalProducedText);
+  const totalCostWidth = doc.getTextWidth(totalCostText);
+
+  doc.text(totalProducedText, pageWidth - totalProducedWidth - 20, summaryY);
+  summaryY += 8;
+  doc.text(totalCostText, pageWidth - totalCostWidth - 20, summaryY);
+
+  // Add generated date at bottom
+  addGeneratedDate(doc, summaryY + 20);
 
   return doc.output("blob");
 };

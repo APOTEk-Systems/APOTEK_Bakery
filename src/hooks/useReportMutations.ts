@@ -1,8 +1,8 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { reportsService } from "@/services/reports";
-import { useToast } from "@/hooks/use-toast";
 import { DateRange } from "@/components/ui/DateRange";
+import { useToast } from "@/hooks/use-toast";
 
 const generateFilename = (reportType: string, dateRange?: DateRange): string => {
   const startDateStr = dateRange?.from?.toISOString().split('T')[0];
@@ -219,7 +219,14 @@ export const useReportMutations = (dateRange?: DateRange, selectedSupplier?: str
     "Outstanding payments report generated successfully",
     "Failed to export outstanding payments report"
   );
-  
+
+  const exportPurchaseOrderDetailedMutation = createReportMutation(
+    (from, to, supplierId) => reportsService.exportPurchaseOrderDetailedReport(from, to, supplierId),
+    'purchase-orders-detailed',
+    "Purchase order detailed report generated successfully",
+    "Failed to export purchase order detailed report"
+  );
+
   const exportProductsMutation = createReportMutation(
     () => reportsService.exportProductsReport(),
     'products',
@@ -232,6 +239,7 @@ export const useReportMutations = (dateRange?: DateRange, selectedSupplier?: str
     'cash-sales': exportCashSalesMutation,
     'credit-sales': exportCreditSalesMutation,
     'goods-received': exportGoodsReceivedMutation,
+    'purchase-orders-detailed': exportPurchaseOrderDetailedMutation,
     'materials-current': exportMaterialsInventoryMutation,
     'supplies-current': exportSuppliesInventoryMutation,
     'materials-adjustment': exportMaterialsAdjustmentsMutation,

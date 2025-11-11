@@ -44,6 +44,7 @@ import {
   getProductionSummary,
   getExpensesReport,
   getOutstandingPaymentsReport,
+  getPurchaseOrderDetailedReport,
 } from "./data";
 
 // Import PDF utilities
@@ -78,6 +79,7 @@ export {
   getProductionSummary,
   getExpensesReport,
   getOutstandingPaymentsReport,
+  getPurchaseOrderDetailedReport,
   addCompanyHeader,
   testPDFGeneration,
   getDefaultTableStyles,
@@ -96,6 +98,7 @@ import {
   generatePurchasesPDF,
   generateSupplierWisePurchasesPDF,
   generateGoodsReceivedPDF,
+  generatePurchaseOrderDetailedPDF,
 } from "./generators/purchases-pdf";
 
 import {
@@ -136,6 +139,7 @@ export {
   generatePurchasesPDF,
   generateSupplierWisePurchasesPDF,
   generateGoodsReceivedPDF,
+  generatePurchaseOrderDetailedPDF,
   generateProductionPDF,
   generateFinishedGoodsSummaryPDF,
   generateIngredientUsagePDF,
@@ -874,6 +878,34 @@ export const reportsService = {
       return pdfBlob;
     } catch (error) {
       console.error("❌ Error exporting outstanding payments report:", error);
+      throw error;
+    }
+  },
+
+  exportPurchaseOrderDetailedReport: async (
+    startDate?: string,
+    endDate?: string,
+    supplierId?: number
+  ): Promise<Blob> => {
+    console.log("📊 Starting purchase order detailed report export...", {startDate, endDate, supplierId});
+    try {
+      const data = await getPurchaseOrderDetailedReport(startDate, endDate, supplierId);
+      console.log("✅ Purchase order detailed data fetched successfully:", data);
+
+      // Fetch settings for company header
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generatePurchaseOrderDetailedPDF(data, startDate, endDate, settings);
+      console.log("📄 Purchase order detailed PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting purchase order detailed report:", error);
       throw error;
     }
   },

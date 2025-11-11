@@ -321,3 +321,18 @@ export const getOutstandingPaymentsReport = async (startDate?: string, endDate?:
   const response = await api.get(`/reports/outstanding-payments?${params.toString()}`);
   return response.data;
 };
+
+// Purchase Order Detailed Report
+export const getPurchaseOrderDetailedReport = async (
+  startDate?: string,
+  endDate?: string,
+  supplierId?: number
+): Promise<any> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append("startDate", startDate);
+  if (endDate) params.append("endDate", endDate);
+  if (supplierId) params.append("supplierId", supplierId.toString());
+
+  const response = await api.get(`/purchases/detailed?${params.toString()}`);
+  return response.data;
+};

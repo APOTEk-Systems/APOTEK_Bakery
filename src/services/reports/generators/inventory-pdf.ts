@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { format } from "date-fns";
 import { fromBaseUnits } from "@/lib/funcs";
 import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../pdf-utils";
 import type { InventoryReport, InventoryAdjustmentsReport, LowStockReport, OutOfStockReport } from "@/types/reports";
@@ -101,7 +102,7 @@ export const generateInventoryAdjustmentsPDF = (
     return [
       (index + 1).toString(),
       adjustment.inventoryItem.name,
-      adjustment.createdAt.split('T')[0], // Format date
+      format(new Date(adjustment.createdAt), "dd-MM-yyyy"), // Format date
       adjustmentType,
       `${displayQuantity.toFixed(2)} ${displayUnit}`,
       adjustment.reason || "No reason provided",

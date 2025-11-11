@@ -80,7 +80,7 @@ const Notifications = () => {
     <Layout>
       <div className="p-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Notifications</h1>
+          <h1 className="text-3xl font-bold text-foreground">Alerts</h1>
         </div>
 
         {/* Notifications */}
@@ -88,7 +88,7 @@ const Notifications = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
-              Notifications
+              Alerts
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -96,7 +96,7 @@ const Notifications = () => {
               <div>
                 <Label>Low Inventory Alerts</Label>
                 <p className="text-sm text-muted-foreground">
-                  Get notified when items are running low
+                  Get alerted when items are running low
                 </p>
               </div>
               <Switch
@@ -130,7 +130,7 @@ const Notifications = () => {
               <div>
                 <Label>Out of Stock Alerts</Label>
                 <p className="text-sm text-muted-foreground">
-                  Get notified when items are completely out of stock
+                  Get alerted when items are completely out of stock
                 </p>
               </div>
               <Switch

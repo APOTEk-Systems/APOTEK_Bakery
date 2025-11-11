@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
 import type { SalesReport } from "@/types/reports";
 
 // Sales Report PDF
@@ -43,30 +43,44 @@ export const generateSalesPDF = (
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
+      columnStyles: {
+        5: { halign: 'right' } // Right-align the Total column (index 5)
+      },
+      headStyles: {
+        ...getDefaultTableStyles().headStyles,
+        halign: 'left' // Keep other headers left-aligned
+      },
+      didParseCell: function(data: any) {
+        // Right-align only the "Total" header (column index 5)
+        if (data.section === 'head' && data.column.index === 5) {
+          data.cell.styles.halign = 'right';
+        }
+      },
     });
 
-    // Summary (after table)
+    // Summary (after table) - positioned bottom right of table
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    yPos = finalY + 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Summary", 20, yPos);
-    yPos += 10;
+    // Position summary at bottom right of table area
+    let summaryY = finalY + 10;
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `Total Sales: ${formatCurrencyPDF(data.data.totalSales)}`,
-      20,
-      yPos
-    );
-    yPos += 8;
-    doc.text(
-      `Credit Outstanding: ${formatCurrencyPDF(data.data.creditOutstanding)}`,
-      20,
-      yPos
-    );
+
+    // Right-align the summary values
+    const totalSalesText = `Total Sales: ${formatCurrencyPDF(data.data.totalSales)}`;
+    const creditOutstandingText = `Credit Outstanding: ${formatCurrencyPDF(data.data.creditOutstanding)}`;
+
+    const totalSalesWidth = doc.getTextWidth(totalSalesText);
+    const creditOutstandingWidth = doc.getTextWidth(creditOutstandingText);
+
+    doc.text(totalSalesText, pageWidth - totalSalesWidth - 20, summaryY);
+    summaryY += 8;
+    doc.text(creditOutstandingText, pageWidth - creditOutstandingWidth - 20, summaryY);
+
+    // Add generated date at bottom
+    addGeneratedDate(doc, summaryY + 20);
 
     const blob = doc.output("blob");
     console.log("✅ Sales PDF blob created, size:", blob.size, "bytes");
@@ -116,24 +130,39 @@ export const generateCashSalesPDF = (
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
+      columnStyles: {
+        5: { halign: 'right' } // Right-align the Total column (index 5)
+      },
+      headStyles: {
+        ...getDefaultTableStyles().headStyles,
+        halign: 'left' // Keep other headers left-aligned
+      },
+      didParseCell: function(data: any) {
+        // Right-align only the "Total" header (column index 5)
+        if (data.section === 'head' && data.column.index === 5) {
+          data.cell.styles.halign = 'right';
+        }
+      },
     });
 
-    // Summary (after table)
+    // Summary (after table) - positioned bottom right of table
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    yPos = finalY + 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Summary", 20, yPos);
-    yPos += 10;
+    // Position summary at bottom right of table area
+    let summaryY = finalY + 10;
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `Total Cash Sales: ${formatCurrencyPDF(data.data.totalSales)}`,
-      20,
-      yPos
-    );
+
+    // Right-align the summary value
+    const totalCashSalesText = `Total Cash Sales: ${formatCurrencyPDF(data.data.totalSales)}`;
+    const totalCashSalesWidth = doc.getTextWidth(totalCashSalesText);
+
+    doc.text(totalCashSalesText, pageWidth - totalCashSalesWidth - 20, summaryY);
+
+    // Add generated date at bottom
+    addGeneratedDate(doc, summaryY + 20);
 
     const blob = doc.output("blob");
     console.log("✅ Cash sales PDF blob created, size:", blob.size, "bytes");
@@ -184,30 +213,44 @@ export const generateCreditSalesPDF = (
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
+      columnStyles: {
+        5: { halign: 'right' } // Right-align the Total column (index 5)
+      },
+      headStyles: {
+        ...getDefaultTableStyles().headStyles,
+        halign: 'left' // Keep other headers left-aligned
+      },
+      didParseCell: function(data: any) {
+        // Right-align only the "Total" header (column index 5)
+        if (data.section === 'head' && data.column.index === 5) {
+          data.cell.styles.halign = 'right';
+        }
+      },
     });
 
-    // Summary (after table)
+    // Summary (after table) - positioned bottom right of table
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    yPos = finalY + 15;
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("Summary", 20, yPos);
-    yPos += 10;
+    // Position summary at bottom right of table area
+    let summaryY = finalY + 10;
 
     doc.setFontSize(12);
     doc.setFont("helvetica", "normal");
-    doc.text(
-      `Total Credit Sales: ${formatCurrencyPDF(data.data.totalSales)}`,
-      20,
-      yPos
-    );
-    yPos += 8;
-    doc.text(
-      `Credit Outstanding: ${formatCurrencyPDF(data.data.creditOutstanding)}`,
-      20,
-      yPos
-    );
+
+    // Right-align the summary values
+    const totalCreditSalesText = `Total Credit Sales: ${formatCurrencyPDF(data.data.totalSales)}`;
+    const creditOutstandingText = `Credit Outstanding: ${formatCurrencyPDF(data.data.creditOutstanding)}`;
+
+    const totalCreditSalesWidth = doc.getTextWidth(totalCreditSalesText);
+    const creditOutstandingWidth = doc.getTextWidth(creditOutstandingText);
+
+    doc.text(totalCreditSalesText, pageWidth - totalCreditSalesWidth - 20, summaryY);
+    summaryY += 8;
+    doc.text(creditOutstandingText, pageWidth - creditOutstandingWidth - 20, summaryY);
+
+    // Add generated date at bottom
+    addGeneratedDate(doc, summaryY + 20);
 
     const blob = doc.output("blob");
     console.log("✅ Credit sales PDF blob created, size:", blob.size, "bytes");

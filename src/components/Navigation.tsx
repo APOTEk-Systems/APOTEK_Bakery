@@ -512,7 +512,7 @@ const Navigation = ({
 
                       {/* Notifications */}
                       <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Notifications
+                        Alerts
                       </div>
                       <div className="ml-2 space-y-1">
                         {(hasPermission(user, "view:notifications") ||
@@ -538,7 +538,7 @@ const Navigation = ({
                       </div>
 
                       {/* Tools */}
-                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      {/* <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Tools
                       </div>
                       <div className="ml-2 space-y-1">
@@ -559,7 +559,7 @@ const Navigation = ({
                             {(!collapsed || isMobile) && "Export to Excel"}
                           </Link>
                         </Button>
-                      </div>
+                      </div> */}
                     </CollapsibleContent>
                   </Collapsible>
                 );

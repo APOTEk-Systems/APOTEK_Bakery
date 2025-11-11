@@ -271,14 +271,15 @@ const ExpenseModal = ({
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="notes" className="text-right">
-                Notes
+                Description
               </Label>
               <Textarea
                 id="notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="col-span-3"
+                className="col-span-3 min-h-10 resize-none"
                 placeholder="Brief description of the expense"
+                
               />
             </div>
           </div>

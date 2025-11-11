@@ -53,6 +53,7 @@ export default function SuppliersTab() {
     contactInfo: string;
     email: string;
     address: string;
+    status?: string;
   }>({ name: "", contactInfo: "", email: "", address: "" });
   const [validationErrors, setValidationErrors] = useState<{
     email?: string;
@@ -293,6 +294,7 @@ export default function SuppliersTab() {
         : "",
       email: newSupplier.email,
       address: newSupplier.address,
+      ...(newSupplier.status && { status: newSupplier.status }),
     };
     updateSupplierMutation.mutate(data);
   };
@@ -309,6 +311,7 @@ export default function SuppliersTab() {
         : "",
       email: supplier.email || "",
       address: supplier.address || "",
+      status: supplier.status || "active",
     });
     setIsSupplierDialogOpen(true);
   };
@@ -351,6 +354,7 @@ export default function SuppliersTab() {
               contactInfo: "",
               email: "",
               address: "",
+              status: "active",
             });
             setValidationErrors({});
             setIsSupplierDialogOpen(true);
@@ -461,21 +465,6 @@ export default function SuppliersTab() {
                       >
                         <Edit className="h-4 w-4 mr-1" />
                         Edit
-                      </Button>
-                      <Button
-                        variant={sup.status === "active" ? "secondary" : "default"}
-                        size="sm"
-                        onClick={() => {
-                          if (sup.status === "active") {
-                            deactivateMutation.mutate(sup.id);
-                          } else {
-                            activateMutation.mutate(sup.id);
-                          }
-                        }}
-                        className="ml-2"
-                        disabled={deactivateMutation.isPending || activateMutation.isPending}
-                      >
-                        {sup.status === "active" ? "Deactivate" : "Activate"}
                       </Button>
                       <Button
                         variant="destructive"
@@ -640,7 +629,7 @@ export default function SuppliersTab() {
                   }
                 }}
                 placeholder="Supplier address..."
-                className={validationErrors.address ? "border-destructive" : ""}
+                className={validationErrors.address ? "border-destructive" : "" + "min-h-10 resize-none"}
               />
               {validationErrors.address && (
                 <p className="text-sm text-destructive mt-1">
@@ -648,6 +637,25 @@ export default function SuppliersTab() {
                 </p>
               )}
             </div>
+            {editingSupplierId && (
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <select
+                  id="status"
+                  value={newSupplier.status || "active"}
+                  onChange={(e) =>
+                    setNewSupplier((prev) => ({
+                      ...prev,
+                      status: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-input bg-background rounded-md"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            )}
             <DialogFooter>
               <Button
                 type="button"
@@ -658,6 +666,7 @@ export default function SuppliersTab() {
                     contactInfo: "",
                     email: "",
                     address: "",
+                    status: "active",
                   });
                   setValidationErrors({});
                   setEditingSupplierId(null);

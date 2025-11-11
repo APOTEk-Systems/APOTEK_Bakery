@@ -19,7 +19,7 @@ export const addCompanyHeader = (
     address: "123 Baker Street, Pastry City, PC 12345",
     phone: "(555) 123-BAKE",
     email: "info@goldencrustbakery.com",
-    website: "www.goldencrustbakery.com",
+    website: "",
     logo: "",
   };
 
@@ -54,8 +54,14 @@ export const addCompanyHeader = (
     try {
       // Add logo image to PDF - assuming logo is a base64 data URL
       if (companyInfo.logo.startsWith('data:image')) {
-        doc.addImage(companyInfo.logo, 'JPEG', (pageWidth - 50) / 2, yPos, 50, 30);
-        yPos += 35;
+        // For jsPDF, we need to handle image dimensions differently
+        // We'll use a fixed width and calculate height based on aspect ratio
+        // Since we can't load the image synchronously, we'll assume a reasonable aspect ratio
+        // or use a callback-based approach, but for simplicity, let's use a standard approach
+        const logoWidth = 60;
+        const logoHeight = 25; // Default height, will be adjusted if possible
+        doc.addImage(companyInfo.logo, 'JPEG', (pageWidth - logoWidth) / 2, yPos, logoWidth, logoHeight);
+        yPos += logoHeight + 5;
       }
     } catch (error) {
       console.warn("Could not load logo for PDF:", error);
@@ -67,7 +73,7 @@ export const addCompanyHeader = (
   doc.setFont("helvetica", "bold");
   const companyNameWidth = doc.getTextWidth(companyInfo.bakeryName);
   doc.text(companyInfo.bakeryName, (pageWidth - companyNameWidth) / 2, yPos);
-  yPos += 10;
+  yPos += 6;
 
   // Company details (centered, smaller)
   doc.setFontSize(10);
@@ -114,24 +120,30 @@ export const addCompanyHeader = (
   doc.setFont("helvetica", "bold");
   const titleWidth = doc.getTextWidth(reportTitle);
   doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPos);
-  yPos += 10;
+  yPos += 6;
 
   // Date range
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
   const dateRange =
-    startDate && endDate ? `From: ${startDate} to ${endDate}` : "All Time";
+    startDate && endDate ? `Date Range: From ${startDate} to ${endDate}` : "Date Range: All Time";
   const dateRangeWidth = doc.getTextWidth(dateRange);
   doc.text(dateRange, (pageWidth - dateRangeWidth) / 2, yPos);
-  yPos += 6;
+  yPos += 4;
 
-  // Generated date
+  // Generated date - moved to bottom of function, will be handled by caller
+
+  return yPos; // Return the Y position after the header with further reduced spacing to table
+};
+
+// Helper function to add generated date at bottom of report
+export const addGeneratedDate = (doc: jsPDF, yPos: number): void => {
+  const pageWidth = doc.internal.pageSize.getWidth();
   const generatedText = `Generated: ${format(new Date(), "dd-MM-yyyy")}`;
   const generatedWidth = doc.getTextWidth(generatedText);
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
   doc.text(generatedText, (pageWidth - generatedWidth) / 2, yPos);
-  yPos += 10;
-
-  return yPos; // Return the Y position after the header
 };
 
 // Test function to check if PDF generation works

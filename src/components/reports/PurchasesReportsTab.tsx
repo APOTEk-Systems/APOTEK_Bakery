@@ -35,7 +35,8 @@ const PurchasesReportsTab = () => {
               <SelectValue placeholder="Select purchases report type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="goods-received">Material Receiving Report</SelectItem>
+              <SelectItem value="goods-received">Material Received Report</SelectItem>
+              <SelectItem value="purchase-orders-detailed">Purchase Order Detailed Report</SelectItem>
             </SelectContent>
           </Select>
         </div>

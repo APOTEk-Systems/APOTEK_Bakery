@@ -27,9 +27,9 @@ const SalesReportsTab = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="sales">Sales Report</SelectItem>
-              <SelectItem value="cash-sales">Cash Report</SelectItem>
-              <SelectItem value="credit-sales">Credit Report</SelectItem>
-              <SelectItem value="products">Price List</SelectItem>
+              <SelectItem value="cash-sales">Cash Sales Report</SelectItem>
+              <SelectItem value="credit-sales">Credit Sales Report</SelectItem>
+              <SelectItem value="products">Price List Report</SelectItem>
             </SelectContent>
           </Select>
         </div>

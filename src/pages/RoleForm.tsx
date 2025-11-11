@@ -42,7 +42,6 @@ const permissionModules = {
   "Purchases": [
     "view:purchases",
     "create:purchases",
-    "update:purchases",
     "approve:purchases",
     "receive:goods",
     "view:suppliers",
@@ -84,6 +83,9 @@ const permissionModules = {
     "view:inventory-reports",
     "view:production-reports",
     "view:accounting-reports",
+    "view:received",
+    "view:profit-loss",
+    "view:cash-flow",
     //"view:audit",
   ],
    "Settings": [
@@ -387,6 +389,28 @@ const RoleForm = () => {
                                 // Module-specific transformations
                                 if (permissionModules["Dashboard"].includes(permission)) {
                                   label = label.replace(/Dashboard/g, "");
+                                } else if (permissionModules["Sales"].includes(permission)) {
+                                  if (permission === "create:sales") {
+                                    label = "Create New Sale";
+                                  } else if (permission === "view:sales") {
+                                    label = "View Sales History";
+                                  }
+                                } else if (permissionModules["Purchases"].includes(permission)) {
+                                  if (permission === "view:purchases") {
+                                    label = "View Purchase Orders";
+                                  } else if (permission === "create:purchases") {
+                                    label = "Create Purchase Order";
+                                  } else if (permission === "approve:purchases") {
+                                    label = "Approve Purchase Order";
+                                  }
+                                } else if (permissionModules["Reports"].includes(permission)) {
+                                  if (permission === "view:received") {
+                                    label = "View Materials Received";
+                                  } else if (permission === "view:profit-loss") {
+                                    label = "View Profit Loss";
+                                  } else if (permission === "view:cash-flow") {
+                                    label = "View Cash Flow";
+                                  }
                                 } else if (permissionModules["Inventory"].includes(permission)) {
                                   label = label.replace(/Inventory/g, "Materials & Supplies");
                                   if (permission.includes("adjustment")) {

@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
 import type {
   FinancialReport,
   ProfitAndLossReport,
@@ -31,31 +31,37 @@ export const generateFinancialPDF = (
   // Add some spacing before financial summary
   yPos += 10;
 
-  // Financial summary
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Financial Summary", 20, yPos);
-  yPos += 15;
+  // Financial summary - positioned bottom right
+  const pageWidth = doc.internal.pageSize.getWidth();
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  doc.text(`Revenue: ${formatCurrencyPDF(data.data.revenue)}`, 20, yPos);
+
+  // Right-align the financial summary values
+  const revenueText = `Revenue: ${formatCurrencyPDF(data.data.revenue)}`;
+  const expensesText = `Expenses: ${formatCurrencyPDF(data.data.expenses)}`;
+  const profitText = `Profit: ${formatCurrencyPDF(data.data.profit)}`;
+  const outstandingCreditsText = `Outstanding Credits: ${formatCurrencyPDF(data.data.outstandingCredits)}`;
+  const inventoryValueText = `Inventory Value: ${formatCurrencyPDF(data.data.inventoryValue)}`;
+
+  const revenueWidth = doc.getTextWidth(revenueText);
+  const expensesWidth = doc.getTextWidth(expensesText);
+  const profitWidth = doc.getTextWidth(profitText);
+  const outstandingCreditsWidth = doc.getTextWidth(outstandingCreditsText);
+  const inventoryValueWidth = doc.getTextWidth(inventoryValueText);
+
+  doc.text(revenueText, pageWidth - revenueWidth - 20, yPos);
   yPos += 10;
-  doc.text(`Expenses: ${formatCurrencyPDF(data.data.expenses)}`, 20, yPos);
+  doc.text(expensesText, pageWidth - expensesWidth - 20, yPos);
   yPos += 10;
-  doc.text(`Profit: ${formatCurrencyPDF(data.data.profit)}`, 20, yPos);
+  doc.text(profitText, pageWidth - profitWidth - 20, yPos);
   yPos += 10;
-  doc.text(
-    `Outstanding Credits: ${formatCurrencyPDF(data.data.outstandingCredits)}`,
-    20,
-    yPos
-  );
+  doc.text(outstandingCreditsText, pageWidth - outstandingCreditsWidth - 20, yPos);
   yPos += 10;
-  doc.text(
-    `Inventory Value: ${formatCurrencyPDF(data.data.inventoryValue)}`,
-    20,
-    yPos
-  );
+  doc.text(inventoryValueText, pageWidth - inventoryValueWidth - 20, yPos);
+
+  // Add generated date at bottom
+  addGeneratedDate(doc, yPos + 20);
 
   return doc.output("blob");
 };
@@ -301,13 +307,24 @@ export const generateExpenseBreakdownPDF = (
     ...getDefaultTableStyles(),
   });
 
-  // Add total
+  // Add total - positioned bottom right of table
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  let totalY = finalY + 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // Position total at bottom right of table area
+  let totalY = finalY + 10;
 
   doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Total Expenses: ${formatCurrencyPDF(data.data.totalExpenses)}`, 20, totalY);
+  doc.setFont("helvetica", "normal");
+
+  // Right-align the total
+  const totalExpensesText = `Total Expenses: ${formatCurrencyPDF(data.data.totalExpenses)}`;
+  const totalExpensesWidth = doc.getTextWidth(totalExpensesText);
+
+  doc.text(totalExpensesText, pageWidth - totalExpensesWidth - 20, totalY);
+
+  // Add generated date at bottom
+  addGeneratedDate(doc, totalY + 20);
 
   return doc.output("blob");
 };

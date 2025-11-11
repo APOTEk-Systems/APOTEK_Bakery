@@ -44,14 +44,17 @@ const Users = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [formData, setFormData] = useState<
-    Omit<CreateUserData, "permissions"> & { confirmPassword: string; status?: string }
+    Omit<CreateUserData, "permissions"> & {
+      confirmPassword: string;
+      status?: string;
+    }
   >({
     name: "",
     email: "",
     password: "",
     phoneNumber: "",
     confirmPassword: "",
-    roleId: 2, // default to cashier
+    roleId: null, // default to cashier
     status: "active",
   });
 
@@ -103,7 +106,7 @@ const Users = () => {
         password: "",
         phoneNumber: "",
         confirmPassword: "",
-        roleId: 2,
+        roleId: null,
       });
     },
     onError: () => {
@@ -133,7 +136,7 @@ const Users = () => {
         password: "",
         phoneNumber: "",
         confirmPassword: "",
-        roleId: 2,
+        roleId: null,
         status: "active",
       });
     },
@@ -217,7 +220,7 @@ const Users = () => {
       password: "", // Don't prefill password for security
       phoneNumber: user.phoneNumber || "",
       confirmPassword: "",
-      roleId: typeof user.role === "object" ? Number(user.role?.id) || 2 : 2,
+      roleId: typeof user.role === "object" ? Number(user.role?.id) || null : null,
       status: user.status || "active",
     });
     setDialogOpen(true);
@@ -228,9 +231,7 @@ const Users = () => {
     const { confirmPassword, password, ...finalData } = formData;
 
     // Only include password if it's not empty (to avoid setting it to null)
-    const updateData = password.trim()
-      ? { ...finalData, password }
-      : finalData;
+    const updateData = password.trim() ? { ...finalData, password } : finalData;
 
     updateUserMutation.mutate({
       id: editingUser.id,
@@ -268,7 +269,7 @@ const Users = () => {
       password: "",
       phoneNumber: "",
       confirmPassword: "",
-      roleId: 2,
+      roleId: null,
       status: "active",
     });
     setDialogOpen(true);
@@ -408,7 +409,7 @@ const Users = () => {
                         value={
                           formData.roleId
                             ? getRoleNameFromId(formData.roleId)
-                            : undefined
+                            : ""
                         }
                         onValueChange={handleRoleChange}
                       >
@@ -416,6 +417,7 @@ const Users = () => {
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>
+                          
                           {roles.map((role) => (
                             <SelectItem key={role.id} value={role.name}>
                               {role.name}

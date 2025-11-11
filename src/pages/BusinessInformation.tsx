@@ -23,7 +23,6 @@ const BusinessInformation = () => {
         registrationNumber: '',
         tin: '',
         vrnNumber: '',
-        niche: '', 
         slogan: '',
         logo: '',
         address: '',
@@ -31,7 +30,7 @@ const BusinessInformation = () => {
         email: '',
         website: '',
         description: '',
-        workingHours: '09:00 - 17:00',
+      
     });
 
     // Logo preview state
@@ -100,7 +99,6 @@ const BusinessInformation = () => {
                 registrationNumber: settings.information.registrationNumber || '',
                 tin: settings.information.tin || '',
                 vrnNumber: settings.information.vrnNumber || '',
-                niche: settings.information.niche || '', 
                 slogan: settings.information.slogan || '',
                 logo: settings.information.logo || '',
                 address: settings.information.address || '',
@@ -112,7 +110,6 @@ const BusinessInformation = () => {
                 email: settings.information.email || '',
                 website: settings.information.website || '',
                 description: settings.information.description || '',
-                workingHours: settings.information.workingHours || '09:00 - 17:00',
             });
             setLogoPreview(settings.information.logo || null);
         }
@@ -141,7 +138,6 @@ const BusinessInformation = () => {
                 registrationNumber: settings.information.registrationNumber || '',
                 tin: settings.information.tin || '',
                 vrnNumber: settings.information.vrnNumber || '',
-                niche: settings.information.niche || '', // Reset niche
                 slogan: settings.information.slogan || '',
                 logo: settings.information.logo || '',
                 address: settings.information.address || '',
@@ -153,7 +149,6 @@ const BusinessInformation = () => {
                 email: settings.information.email || '',
                 website: settings.information.website || '',
                 description: settings.information.description || '',
-                workingHours: settings.information.workingHours || '09:00 - 17:00', // Reset working hours
             });
             setLogoPreview(settings.information.logo || null);
         }
@@ -402,92 +397,7 @@ const BusinessInformation = () => {
                                 )}
                             </div>
 
-                            {/* Row 3 - Niche & Slogan */}
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                {renderField(
-                                    'Business Niche', 
-                                    informationData.niche,
-                                    <div>
-                                        <Label htmlFor='niche'>Business Niche</Label>
-                                        <Textarea
-                                            id='niche'
-                                            value={informationData.niche}
-                                            onChange={(e) =>
-                                                setInformationData((prev) => ({
-                                                    ...prev,
-                                                    niche: e.target.value,
-                                                }))
-                                            }
-                                            rows={2}
-                                            disabled={settingsLoading}
-                                        />
-                                    </div>
-                                )}
-                                {renderField(
-
-                                			 'Address',
-                                    informationData.address,
-                                    <div>
-                                        <Label htmlFor='address'>Address</Label>
-                                        <Textarea
-                                            id='address'
-                                            value={informationData.address}
-                                            onChange={(e) =>
-                                                setInformationData((prev) => ({
-                                                    ...prev,
-                                                    address: e.target.value,
-                                                }))
-                                            }
-                                            rows={2}
-                                            disabled={settingsLoading}
-                                        />
-
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Row 4 - Address & Working Hours */}
-                            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                                {renderField(
-                                    'Slogan',
-                                    informationData.slogan,
-                                    <div>
-                                        <Label htmlFor='slogan'>Slogan</Label>
-                                        <Input
-                                            id='slogan'
-                                            value={informationData.slogan}
-                                            onChange={(e) =>
-                                                setInformationData((prev) => ({
-                                                    ...prev,
-                                                    slogan: e.target.value,
-                                                }))
-                                            }
-                                            disabled={settingsLoading}
-                                        
-                                        />
-                                    </div>
-                                )}
-                                {renderField(
-                                    'Working Hours (Daily)', // NEW FIELD
-                                    informationData.workingHours,
-                                    <div>
-                                        <Label htmlFor='workingHours'>Working Hours (e.g., 09:00 - 17:00)</Label>
-                                        <Input
-                                            id='workingHours'
-                                            type='text' // Use type='text' if you want flexible entry (e.g., '24/7' or '09:00 - 17:00')
-                                            placeholder='e.g., 09:00 - 17:00'
-                                            value={informationData.workingHours}
-                                            onChange={(e) =>
-                                                setInformationData((prev) => ({
-                                                    ...prev,
-                                                    workingHours: e.target.value,
-                                                }))
-                                            }
-                                            disabled={settingsLoading}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                           
 
                             {/* Row 5 - Phone & Email */}
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
