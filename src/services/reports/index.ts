@@ -120,15 +120,13 @@ import {
   generateGrossProfitPDF,
   generateNetProfitPDF,
   generateExpenseBreakdownPDF,
-  generateCustomerSalesPDF,
-  generateIngredientPurchaseTrendPDF,
+  generateExpensesPDF,
+  generateOutstandingPaymentsPDF,
 } from "./generators/financial-pdf";
 
 import {
   generateProductsPDF,
   generateProductDetailsPDF,
-  generateExpensesPDF,
-  generateOutstandingPaymentsPDF,
 } from "./generators/products-pdf";
 
 // Re-export PDF generators
@@ -152,12 +150,9 @@ export {
   generateGrossProfitPDF,
   generateNetProfitPDF,
   generateExpenseBreakdownPDF,
-  generateCustomerSalesPDF,
-  generateIngredientPurchaseTrendPDF,
   generateProductsPDF,
   generateProductDetailsPDF,
   generateExpensesPDF,
-  generateOutstandingPaymentsPDF,
 };
 
 // Legacy service object for backward compatibility
@@ -688,32 +683,6 @@ export const reportsService = {
     } catch (error) {
       console.error(
         "❌ Error exporting supplier-wise purchases report:",
-        error
-      );
-      throw error;
-    }
-  },
-
-  exportIngredientPurchaseTrendReport: async (
-    startDate?: string,
-    endDate?: string
-  ): Promise<Blob> => {
-    console.log("📊 Starting ingredient purchase trend report export...", {
-      startDate,
-      endDate,
-    });
-    try {
-      const data = await getIngredientPurchaseTrendReport(startDate, endDate);
-      console.log(
-        "✅ Ingredient purchase trend data fetched successfully:",
-        data
-      );
-      const pdfBlob = generateIngredientPurchaseTrendPDF(data, startDate, endDate);
-      console.log("📄 Ingredient purchase trend PDF generated successfully");
-      return pdfBlob;
-    } catch (error) {
-      console.error(
-        "❌ Error exporting ingredient purchase trend report:",
         error
       );
       throw error;

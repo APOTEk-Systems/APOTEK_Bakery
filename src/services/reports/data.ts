@@ -58,6 +58,8 @@ export const getSalesReport = async (
         isCredit: sale.isCredit || false,
         creditDueDate: sale.creditDueDate,
         total: sale.total,
+        paid: sale.paid,
+        outstandingBalance: sale.outstandingBalance,
         status: sale.status,
         createdAt: sale.createdAt,
         updatedAt: sale.updatedAt,
@@ -272,14 +274,14 @@ export const getProductsReport = async (): Promise<ProductsReport> => {
 
 // Product Details Report
 export const getProductDetailsReport = async (): Promise<ProductDetailsReport> => {
-  const response = await api.get('/products');
-  // Transform the data to include averageProductionCost and profit
+  const response = await api.get('/production/detailed');
+  // Transform the data to match the expected format
   const transformedData = response.data.map((product: any) => ({
-    id: product.id,
+    id: product.id || 0, // Add id if not present
     name: product.name,
     price: product.price,
-    averageProductionCost: product.averageProductionCost, // Assuming this field exists
-    profit: product.profit // As specified in the task
+    averageProductionCost: product.productionCost,
+    profit: product.profit
   }));
   return { data: transformedData };
 };
@@ -314,12 +316,28 @@ export const getExpensesReport = async (startDate?: string, endDate?: string): P
 
 // Outstanding Payments Report
 export const getOutstandingPaymentsReport = async (startDate?: string, endDate?: string): Promise<any> => {
-  const params = new URLSearchParams();
-  if (startDate) params.append("startDate", startDate);
-  if (endDate) params.append("endDate", endDate);
+  // Use the same approach as OutstandingPaymentsTab component
+  const allSales = await salesService.getPaginatedSales({
+    status: 'unpaid',
+    isCredit: true,
+    startDate,
+    endDate,
+    limit: 10000 // Get all records for reports
+  });
 
-  const response = await api.get(`/reports/outstanding-payments?${params.toString()}`);
-  return response.data;
+  //console.log("All Sales for Outstanding Payments Report", allSales);
+  // Filter sales with outstanding balances
+  const outstandingSales = allSales.sales.filter(sale =>
+    sale.outstandingBalance && sale.outstandingBalance > 0
+  );
+
+  //console.log("Outstanding Sales", outstandingSales)
+
+  return {
+    data: outstandingSales,
+    totalOutstanding: outstandingSales.reduce((sum, sale) => sum + (sale.outstandingBalance || 0), 0),
+    totalCount: outstandingSales.length
+  };
 };
 
 // Purchase Order Detailed Report

@@ -7,14 +7,41 @@ import { useToast } from "@/hooks/use-toast";
 const generateFilename = (reportType: string, dateRange?: DateRange): string => {
   const startDateStr = dateRange?.from?.toISOString().split('T')[0];
   const endDateStr = dateRange?.to?.toISOString().split('T')[0];
-  const baseName = `${reportType}-report`;
+
+  // Map report types to readable names
+  const reportNames: Record<string, string> = {
+    'sales': 'Sales Report',
+    'cash-sales': 'Cash Sales Report',
+    'credit-sales': 'Credit Sales Report',
+    'products': 'Price List Report',
+    'product-details': 'Product Details Report',
+    'goods-received': 'Goods Received Report',
+    'purchase-orders-detailed': 'Purchase Orders Detailed Report',
+    'materials-current': 'Materials Current Stock Report',
+    'supplies-current': 'Supplies Current Stock Report',
+    'materials-adjustment': 'Materials Adjustments Report',
+    'supplies-adjustment': 'Supplies Adjustments Report',
+    'materials-low-stock': 'Materials Low Stock Report',
+    'supplies-low-stock': 'Supplies Low Stock Report',
+    'materials-out-of-stock': 'Materials Out of Stock Report',
+    'supplies-out-of-stock': 'Supplies Out of Stock Report',
+    'production': 'Production Report',
+    'finished-goods': 'Finished Goods Summary Report',
+    'ingredient-usage': 'Ingredient Usage Report',
+    'gross-profit': 'Gross Profit Report',
+    'net-profit': 'Net Profit Report',
+    'expenses': 'Expenses Report',
+    'outstanding-payments': 'Outstanding Payments Report',
+  };
+
+  const baseName = reportNames[reportType] || `${reportType.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} Report`;
 
   if (startDateStr && endDateStr) {
-    return `${baseName}-${startDateStr}-to-${endDateStr}.pdf`;
+    return `${baseName} (${startDateStr} to ${endDateStr}).pdf`;
   } else if (startDateStr) {
-    return `${baseName}-from-${startDateStr}.pdf`;
+    return `${baseName} (from ${startDateStr}).pdf`;
   } else if (endDateStr) {
-    return `${baseName}-to-${endDateStr}.pdf`;
+    return `${baseName} (to ${endDateStr}).pdf`;
   } else {
     return `${baseName}.pdf`;
   }
@@ -22,8 +49,41 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 
 const previewBlob = (blob: Blob, filename: string) => {
   try {
-    const url = window.URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    // Convert blob to data URL
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      const newWindow = window.open('', '_blank');
+      if (newWindow) {
+        newWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>${filename.replace('.pdf', '')}</title>
+              <style>
+                html, body {
+                  margin: 0;
+                  padding: 0;
+                  height: 100%;
+                  overflow: hidden;
+                }
+                iframe {
+                  width: 100%;
+                  height: 100%;
+                  border: none;
+                  display: block;
+                }
+              </style>
+            </head>
+            <body>
+              <iframe src="${dataUrl}"></iframe>
+            </body>
+          </html>
+        `);
+        newWindow.document.close();
+      }
+    };
+    reader.readAsDataURL(blob);
   } catch (error) {
     console.error('Error in previewBlob:', error);
   }

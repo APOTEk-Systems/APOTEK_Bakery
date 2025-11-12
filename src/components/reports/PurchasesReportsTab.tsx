@@ -50,7 +50,7 @@ const PurchasesReportsTab = () => {
         </div>
       </div>
       <div className="mt-4">
-        <Label className="text-sm font-medium">Supplier Filter</Label>
+        <Label className="text-sm font-medium">Supplier</Label>
         <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
           <SelectTrigger className="my-1 max-w-md">
             <SelectValue placeholder="All Suppliers" />

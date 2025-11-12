@@ -120,7 +120,6 @@ export default function GoodsReceivingTab() {
                 <TableHead>Supplier</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead>Received By</TableHead>
-                
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>

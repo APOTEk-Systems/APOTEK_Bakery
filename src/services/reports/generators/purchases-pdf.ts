@@ -33,31 +33,29 @@ export const generatePurchasesPDF = (
     "System", // Received By - placeholder
   ]);
 
+  // Add summary row
+  const totalPurchases = data.data.totalPurchases;
+  tableData.push(
+    ["", "", "", "", "", "Total Purchases:", formatCurrencyPDF(totalPurchases)]
+  );
+
   autoTable(doc, {
     head: [["Item Name", "Qty", "Price", "Total", "Received Date", "Received By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    didParseCell: function(data: any) {
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
   });
 
-  // Summary (after table) - positioned bottom right of table
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  // Position summary at bottom right of table area
-  let summaryY = finalY + 10;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Right-align the summary value
-  const totalPurchasesText = `Total Purchases: ${formatCurrencyPDF(data.data.totalPurchases)}`;
-  const totalPurchasesWidth = doc.getTextWidth(totalPurchasesText);
-
-  doc.text(totalPurchasesText, pageWidth - totalPurchasesWidth - 20, summaryY);
-
   // Add generated date at bottom
-  addGeneratedDate(doc, summaryY + 20);
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -88,11 +86,26 @@ export const generateSupplierWisePurchasesPDF = (
     ]
   );
 
+  // Add summary row
+  const totalAllPurchases = Object.values(data.data.bySupplier).reduce(
+    (sum: number, info: any) => sum + info.totalPurchases, 0
+  );
+  tableData.push(
+    ["Total Purchases:", formatCurrencyPDF(totalAllPurchases)]
+  );
+
   autoTable(doc, {
     head: [["Supplier", "Total Purchases"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    didParseCell: function(data: any) {
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
   });
 
   return doc.output("blob");
@@ -132,7 +145,7 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
   }
 
   autoTable(doc, {
-    head: [["S/N", "Supplier", "Item Name", "Qty", "Price", "Received Date", "Received By"]],
+    head: [["#", "Supplier", "Item Name", "Qty", "Price", "Received Date", "Received By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -166,7 +179,6 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
         order.status || "",
         order.supplierName || "",
         order.itemName || "",
-        order.unit || "",
         order.quantity?.toString() || "",
         formatCurrencyPDF(order.price || 0),
         formatCurrencyPDF(order.total || 0),
@@ -174,36 +186,53 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
     });
   }
 
+  // Add summary row
+  const totalAmount = data && Array.isArray(data)
+    ? data.reduce((sum: number, order: any) => sum + (order.total || 0), 0)
+    : 0;
+
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "Total:",
+    ` ${formatCurrencyPDF(totalAmount)}`
+  ]);
+
   autoTable(doc, {
     head: [["S/N", "PO ID", "Date", "Status", "Supplier", "Item", "Qty", "Price", "Total"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      4: { cellWidth: 30 }, // Increase width of Supplier column (index 4)
+      7: { halign: 'right' }, // Right-align Price column (index 7)
+      8: { halign: 'right' }, // Right-align Total column (index 8)
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Total header (column index 8)
+      if (data.section === 'head' && data.column.index === 8) {
+        data.cell.styles.halign = 'right';
+      }
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
   });
 
-  // Summary (after table) - positioned bottom right of table
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  // Position summary at bottom right of table area
-  let summaryY = finalY + 10;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Calculate total
-  const totalAmount = data && Array.isArray(data)
-    ? data.reduce((sum: number, order: any) => sum + (order.total || 0), 0)
-    : 0;
-
-  // Right-align the summary value
-  const totalText = `Total Amount: ${formatCurrencyPDF(totalAmount)}`;
-  const totalWidth = doc.getTextWidth(totalText);
-
-  doc.text(totalText, pageWidth - totalWidth - 20, summaryY);
-
   // Add generated date at bottom
-  addGeneratedDate(doc, summaryY + 20);
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };

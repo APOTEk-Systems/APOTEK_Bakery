@@ -36,10 +36,20 @@ export const generateSalesPDF = (
       formatCurrencyPDF(sale.total),
     ]);
 
+    // Add summary rows
+    const totalSales = data.data.totalSales;
+    const creditOutstanding = data.data.creditOutstanding;
+    tableData.push(
+      ["", "", "", "", "Total Sales:", formatCurrencyPDF(totalSales), ""],
+      ["", "", "", "", "Credit Outstanding:", formatCurrencyPDF(creditOutstanding), ""]
+    );
+
+    console.log("Summary rows added:", tableData.slice(-2));
+
     console.log("📋 Sales table data prepared:", tableData.length, "rows");
 
     autoTable(doc, {
-      head: [["S/N", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
+      head: [["#", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
@@ -55,32 +65,17 @@ export const generateSalesPDF = (
         if (data.section === 'head' && data.column.index === 5) {
           data.cell.styles.halign = 'right';
         }
+        // Style summary rows
+        if (data.section === 'body' && (data.row.index >= tableData.length - 2)) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [240, 240, 240];
+        }
       },
     });
 
-    // Summary (after table) - positioned bottom right of table
-    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Position summary at bottom right of table area
-    let summaryY = finalY + 10;
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-
-    // Right-align the summary values
-    const totalSalesText = `Total Sales: ${formatCurrencyPDF(data.data.totalSales)}`;
-    const creditOutstandingText = `Credit Outstanding: ${formatCurrencyPDF(data.data.creditOutstanding)}`;
-
-    const totalSalesWidth = doc.getTextWidth(totalSalesText);
-    const creditOutstandingWidth = doc.getTextWidth(creditOutstandingText);
-
-    doc.text(totalSalesText, pageWidth - totalSalesWidth - 20, summaryY);
-    summaryY += 8;
-    doc.text(creditOutstandingText, pageWidth - creditOutstandingWidth - 20, summaryY);
-
     // Add generated date at bottom
-    addGeneratedDate(doc, summaryY + 20);
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    addGeneratedDate(doc, finalY + 20);
 
     const blob = doc.output("blob");
     console.log("✅ Sales PDF blob created, size:", blob.size, "bytes");
@@ -123,10 +118,18 @@ export const generateCashSalesPDF = (
       formatCurrencyPDF(sale.total),
     ]);
 
+    // Add summary row
+    const totalCashSales = data.data.totalSales;
+    tableData.push(
+      ["", "", "", "", "Total Cash Sales:", formatCurrencyPDF(totalCashSales), ""]
+    );
+
+    console.log("Summary row added:", tableData.slice(-1));
+
     console.log("📋 Cash sales table data prepared:", tableData.length, "rows");
 
     autoTable(doc, {
-      head: [["S/N", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
+      head: [["#", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
@@ -142,27 +145,17 @@ export const generateCashSalesPDF = (
         if (data.section === 'head' && data.column.index === 5) {
           data.cell.styles.halign = 'right';
         }
+        // Style summary row
+        if (data.section === 'body' && data.row.index === tableData.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [240, 240, 240];
+        }
       },
     });
 
-    // Summary (after table) - positioned bottom right of table
-    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Position summary at bottom right of table area
-    let summaryY = finalY + 10;
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-
-    // Right-align the summary value
-    const totalCashSalesText = `Total Cash Sales: ${formatCurrencyPDF(data.data.totalSales)}`;
-    const totalCashSalesWidth = doc.getTextWidth(totalCashSalesText);
-
-    doc.text(totalCashSalesText, pageWidth - totalCashSalesWidth - 20, summaryY);
-
     // Add generated date at bottom
-    addGeneratedDate(doc, summaryY + 20);
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    addGeneratedDate(doc, finalY + 20);
 
     const blob = doc.output("blob");
     console.log("✅ Cash sales PDF blob created, size:", blob.size, "bytes");
@@ -203,54 +196,53 @@ export const generateCreditSalesPDF = (
       sale.customer?.name || "Cash",
       sale.soldBy || "Unknown",
       formatCurrencyPDF(sale.total),
-      sale.status,
+      formatCurrencyPDF((sale as any).paid || 0),
+      formatCurrencyPDF((sale as any).outstandingBalance || 0),
     ]);
+
+    // Add summary rows
+    const totalCreditSales = data.data.totalSales;
+    const totalPaid = data.data.sales.reduce((sum, sale) => sum + ((sale as any).paid || 0), 0);
+    const totalBalance = data.data.sales.reduce((sum, sale) => sum + ((sale as any).outstandingBalance || 0), 0);
+
+    tableData.push(
+      ["", "", "", "", "","" ,"Total:", formatCurrencyPDF(totalCreditSales), ""],
+      ["", "", "", "", "", "","Paid:", formatCurrencyPDF(totalPaid), ""],
+      ["", "", "", "", "","" ,"Balance:", formatCurrencyPDF(totalBalance), ""]
+    );
 
     console.log("📋 Credit sales table data prepared:", tableData.length, "rows");
 
     autoTable(doc, {
-      head: [["S/N", "Receipt #", "Date", "Customer", "Sold By", "Total", "Status"]],
+      head: [["#", "Receipt #", "Date", "Customer", "Sold By", "Total", "Paid", "Balance"]],
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
       columnStyles: {
-        5: { halign: 'right' } // Right-align the Total column (index 5)
+        5: { halign: 'right' }, // Right-align Total (index 5)
+        6: { halign: 'right' }, // Right-align Paid (index 6)
+        7: { halign: 'right' }, // Right-align Balance (index 7)
       },
       headStyles: {
         ...getDefaultTableStyles().headStyles,
         halign: 'left' // Keep other headers left-aligned
       },
       didParseCell: function(data: any) {
-        // Right-align only the "Total" header (column index 5)
-        if (data.section === 'head' && data.column.index === 5) {
+        // Right-align Total, Paid, and Balance headers (columns 5, 6, 7)
+        if (data.section === 'head' && (data.column.index === 5 || data.column.index === 6 || data.column.index === 7)) {
           data.cell.styles.halign = 'right';
+        }
+        // Style summary rows
+        if (data.section === 'body' && data.row.index >= tableData.length - 3) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [240, 240, 240];
         }
       },
     });
 
-    // Summary (after table) - positioned bottom right of table
-    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    const pageWidth = doc.internal.pageSize.getWidth();
-
-    // Position summary at bottom right of table area
-    let summaryY = finalY + 10;
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "normal");
-
-    // Right-align the summary values
-    const totalCreditSalesText = `Total Credit Sales: ${formatCurrencyPDF(data.data.totalSales)}`;
-    const creditOutstandingText = `Credit Outstanding: ${formatCurrencyPDF(data.data.creditOutstanding)}`;
-
-    const totalCreditSalesWidth = doc.getTextWidth(totalCreditSalesText);
-    const creditOutstandingWidth = doc.getTextWidth(creditOutstandingText);
-
-    doc.text(totalCreditSalesText, pageWidth - totalCreditSalesWidth - 20, summaryY);
-    summaryY += 8;
-    doc.text(creditOutstandingText, pageWidth - creditOutstandingWidth - 20, summaryY);
-
     // Add generated date at bottom
-    addGeneratedDate(doc, summaryY + 20);
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    addGeneratedDate(doc, finalY + 20);
 
     const blob = doc.output("blob");
     console.log("✅ Credit sales PDF blob created, size:", blob.size, "bytes");

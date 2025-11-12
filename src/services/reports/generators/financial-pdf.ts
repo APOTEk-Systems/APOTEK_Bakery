@@ -28,40 +28,39 @@ export const generateFinancialPDF = (
     settings
   );
 
-  // Add some spacing before financial summary
-  yPos += 10;
+  // Financial summary table
+  const tableData = [
+    ["Revenue:", formatCurrencyPDF(data.data.revenue)],
+    ["Expenses:", formatCurrencyPDF(data.data.expenses)],
+    ["Profit:", formatCurrencyPDF(data.data.profit)],
+    ["Outstanding Credits:", formatCurrencyPDF(data.data.outstandingCredits)],
+    ["Inventory Value:", formatCurrencyPDF(data.data.inventoryValue)],
+  ];
 
-  // Financial summary - positioned bottom right
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Right-align the financial summary values
-  const revenueText = `Revenue: ${formatCurrencyPDF(data.data.revenue)}`;
-  const expensesText = `Expenses: ${formatCurrencyPDF(data.data.expenses)}`;
-  const profitText = `Profit: ${formatCurrencyPDF(data.data.profit)}`;
-  const outstandingCreditsText = `Outstanding Credits: ${formatCurrencyPDF(data.data.outstandingCredits)}`;
-  const inventoryValueText = `Inventory Value: ${formatCurrencyPDF(data.data.inventoryValue)}`;
-
-  const revenueWidth = doc.getTextWidth(revenueText);
-  const expensesWidth = doc.getTextWidth(expensesText);
-  const profitWidth = doc.getTextWidth(profitText);
-  const outstandingCreditsWidth = doc.getTextWidth(outstandingCreditsText);
-  const inventoryValueWidth = doc.getTextWidth(inventoryValueText);
-
-  doc.text(revenueText, pageWidth - revenueWidth - 20, yPos);
-  yPos += 10;
-  doc.text(expensesText, pageWidth - expensesWidth - 20, yPos);
-  yPos += 10;
-  doc.text(profitText, pageWidth - profitWidth - 20, yPos);
-  yPos += 10;
-  doc.text(outstandingCreditsText, pageWidth - outstandingCreditsWidth - 20, yPos);
-  yPos += 10;
-  doc.text(inventoryValueText, pageWidth - inventoryValueWidth - 20, yPos);
+  autoTable(doc, {
+    head: [["Financial Summary", "Amount"]],
+    body: tableData,
+    startY: yPos,
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      1: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Style summary rows
+      if (data.section === 'body') {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
+  });
 
   // Add generated date at bottom
-  addGeneratedDate(doc, yPos + 20);
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -84,48 +83,35 @@ export const generateProfitAndLossPDF = (
     settings
   );
 
-  // Add some spacing
-  yPos += 10;
+  // Profit and Loss table
+  const tableData = [
+    ["Revenue:", formatCurrencyPDF(data.data.revenue)],
+    ["Cost of Goods Sold:", formatCurrencyPDF(data.data.cogs)],
+    ["Gross Profit:", formatCurrencyPDF(data.data.grossProfit.result)],
+    ["Operating Expenses:", formatCurrencyPDF(data.data.operatingExpenses)],
+    ["Net Profit:", formatCurrencyPDF(data.data.netProfit.result)],
+  ];
 
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Profit and Loss Statement", 20, yPos);
-  yPos += 15;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Revenue
-  doc.text(`Revenue: ${formatCurrencyPDF(data.data.revenue)}`, 20, yPos);
-  yPos += 10;
-
-  // Cost of Goods Sold
-  doc.text(`Cost of Goods Sold: ${formatCurrencyPDF(data.data.cogs)}`, 20, yPos);
-  yPos += 10;
-
-  // Gross Profit Section
-  doc.setFont("helvetica", "bold");
-  doc.text(`Gross Profit: ${formatCurrencyPDF(data.data.grossProfit.result)}`, 20, yPos);
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`(Revenue: ${formatCurrencyPDF(data.data.grossProfit.parameters.totalSales)} - COGS: ${formatCurrencyPDF(data.data.grossProfit.parameters.costOfGoodsSold)})`, 30, yPos);
-  yPos += 15;
-
-  // Operating Expenses
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Operating Expenses: ${formatCurrencyPDF(data.data.operatingExpenses)}`, 20, yPos);
-  yPos += 15;
-
-  // Net Profit Section
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(`Net Profit: ${formatCurrencyPDF(data.data.netProfit.result)}`, 20, yPos);
-  yPos += 8;
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`(Gross Profit: ${formatCurrencyPDF(data.data.netProfit.parameters.grossProfit)} - Operating Expenses: ${formatCurrencyPDF(data.data.netProfit.parameters.operatingExpenses)})`, 30, yPos);
+  autoTable(doc, {
+    head: [["Profit and Loss Statement", "Amount"]],
+    body: tableData,
+    startY: yPos,
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      1: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Style key profit figures
+      if (data.section === 'body' && (data.row.index === 2 || data.row.index === 4)) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
+  });
 
   return doc.output("blob");
 };
@@ -148,57 +134,37 @@ export const generateGrossProfitPDF = (
     settings
   );
 
-  // Add some spacing
-  yPos += 10;
+  // Gross Profit Analysis table
+  const tableData = [
+    ["Revenue:", formatCurrencyPDF(data.data.revenue)],
+    ["Cost of Production:", formatCurrencyPDF(data.data.cogs)],
+    ["Gross Profit:", formatCurrencyPDF(data.data.grossProfit.result)],
+  ];
 
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("Gross Profit Analysis", 20, yPos);
-  yPos += 20;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Revenue section
-  doc.setFont("helvetica", "bold");
-  doc.text("Revenue", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Value: ${formatCurrencyPDF(data.data.revenue)}`, 40, yPos);
-  yPos += 12;
-
-  // Separator line
-  doc.setLineWidth(0.5);
-  doc.line(20, yPos, 180, yPos);
-  yPos += 8;
-
-  // Cost of Production section
-  doc.setFont("helvetica", "bold");
-  doc.text("Cost of Production", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Value: ${formatCurrencyPDF(data.data.cogs)}`, 40, yPos);
-  yPos += 12;
-
-  // Separator line
-  doc.line(20, yPos, 180, yPos);
-  yPos += 8;
-
-  // Gross Profit (highlighted)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(`Gross Profit: ${formatCurrencyPDF(data.data.grossProfit.result)}`, 20, yPos);
-  yPos += 12;
-
-  // Calculation details
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Calculation: Revenue (${formatCurrencyPDF(data.data.grossProfit.parameters.totalSales)}) - Cost of Production (${formatCurrencyPDF(data.data.grossProfit.parameters.costOfGoodsSold)})`, 20, yPos);
-  yPos += 15;
-
-  // Gross Profit Margin
+  // Calculate margin
   const margin = data.data.revenue > 0 ? ((data.data.grossProfit.result / data.data.revenue) * 100) : 0;
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Gross Profit Margin: ${margin.toFixed(2)}%`, 20, yPos);
+  tableData.push(["Gross Profit Margin:", `${margin.toFixed(2)}%`]);
+
+  autoTable(doc, {
+    head: [["Gross Profit Analysis", "Amount"]],
+    body: tableData,
+    startY: yPos,
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      1: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Style key figures
+      if (data.section === 'body' && data.row.index === 2) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
+  });
 
   return doc.output("blob");
 };
@@ -221,57 +187,41 @@ export const generateNetProfitPDF = (
     settings
   );
 
-  // Add some spacing
-  yPos += 10;
+  // Net Profit Analysis table
+  const tableData = [
+    ["Gross Profit:", formatCurrencyPDF(data.data.grossProfit.result)],
+    ["Operating Expenses:", formatCurrencyPDF(data.data.operatingExpenses)],
+    ["Net Profit:", formatCurrencyPDF(data.data.netProfit.result)],
+  ];
 
-  doc.setFontSize(16);
-  doc.setFont("helvetica", "bold");
-  doc.text("Net Profit Analysis", 20, yPos);
-  yPos += 20;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Gross Profit section
-  doc.setFont("helvetica", "bold");
-  doc.text("Gross Profit", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Value: ${formatCurrencyPDF(data.data.grossProfit.result)}`, 40, yPos);
-  yPos += 12;
-
-  // Separator line
-  doc.setLineWidth(0.5);
-  doc.line(20, yPos, 180, yPos);
-  yPos += 8;
-
-  // Operating Expenses section
-  doc.setFont("helvetica", "bold");
-  doc.text("Operating Expenses", 20, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Value: ${formatCurrencyPDF(data.data.operatingExpenses)}`, 40, yPos);
-  yPos += 12;
-
-  // Separator line
-  doc.line(20, yPos, 180, yPos);
-  yPos += 8;
-
-  // Net Profit (highlighted)
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text(`Net Profit: ${formatCurrencyPDF(data.data.netProfit.result)}`, 20, yPos);
-  yPos += 12;
-
-  // Calculation details
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Calculation: Gross Profit (${formatCurrencyPDF(data.data.netProfit.parameters.grossProfit)}) - Operating Expenses (${formatCurrencyPDF(data.data.netProfit.parameters.operatingExpenses)})`, 20, yPos);
-  yPos += 15;
-
-  // Net Profit Margin
+  // Calculate margin
   const margin = data.data.revenue > 0 ? ((data.data.netProfit.result / data.data.revenue) * 100) : 0;
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "bold");
-  doc.text(`Net Profit Margin: ${margin.toFixed(2)}%`, 20, yPos);
+  tableData.push(["Net Profit Margin:", `${margin.toFixed(2)}%`]);
+
+  autoTable(doc, {
+    head: [["Net Profit Analysis", "Amount"]],
+    body: tableData,
+    startY: yPos,
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      1: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Amount header (column index 1)
+      if (data.section === 'head' && data.column.index === 1) {
+        data.cell.styles.halign = 'right';
+      }
+      // Style key figures
+      if (data.section === 'body' && data.row.index === 2) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
+  });
 
   return doc.output("blob");
 };
@@ -300,38 +250,118 @@ export const generateExpenseBreakdownPDF = (
     formatCurrencyPDF(amount),
   ]);
 
+  // Add total as table row
+  tableData.push([
+    "Total Expenses:",
+    formatCurrencyPDF(data.data.totalExpenses)
+  ]);
+
   autoTable(doc, {
     head: [["Category", "Amount"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      1: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Amount header
+      if (data.section === 'head' && data.column.index === 1) {
+        data.cell.styles.halign = 'right';
+      }
+      // Style total row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
   });
-
-  // Add total - positioned bottom right of table
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  // Position total at bottom right of table area
-  let totalY = finalY + 10;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  // Right-align the total
-  const totalExpensesText = `Total Expenses: ${formatCurrencyPDF(data.data.totalExpenses)}`;
-  const totalExpensesWidth = doc.getTextWidth(totalExpensesText);
-
-  doc.text(totalExpensesText, pageWidth - totalExpensesWidth - 20, totalY);
 
   // Add generated date at bottom
-  addGeneratedDate(doc, totalY + 20);
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
 
-// Customer Sales Report PDF
-export const generateCustomerSalesPDF = (
-  data: CustomerSalesReport,
+// Expenses Report PDF
+export const generateExpensesPDF = (data: any, startDate?: string, endDate?: string, settings?: any): Blob => {
+  const doc = new jsPDF();
+
+  // Add company header
+  let yPos = addCompanyHeader(
+    doc,
+    "Expenses Report",
+    startDate,
+    endDate,
+    settings
+  );
+
+  // Expenses table
+  const expensesArray = Array.isArray(data) ? data : data.data || [];
+  const tableData = expensesArray.map((expense: any, index: number) => [
+    (index + 1).toString(),
+    expense.date.split('T')[0], // Format date
+    expense.expenseCategory?.name || 'Unknown',
+    formatCurrencyPDF(expense.amount),
+    (expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'),
+   // expense.notes || '',
+    //expense.createdBy?.name || 'Unknown',
+    expense.updatedBy?.name || 'N/A',
+  ]);
+
+  // Calculate total
+  const totalExpenses = expensesArray.reduce((sum: number, expense: any) => sum + expense.amount, 0) || 0;
+
+  // Add summary row to table
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "Total Expenses:",
+    formatCurrencyPDF(totalExpenses)
+  ]);
+
+  autoTable(doc, {
+    head: [["#", "Date", "Category", "Amount", "Payment Method", "Updated By"]],
+    body: tableData,
+    startY: yPos,
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      3: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Amount header
+      if (data.section === 'head' && data.column.index === 3) {
+        data.cell.styles.halign = 'right';
+      }
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
+  });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
+
+  return doc.output("blob");
+};
+
+// Outstanding Payments Report PDF
+export const generateOutstandingPaymentsPDF = (
+  data: any,
   startDate?: string,
   endDate?: string,
   settings?: any
@@ -341,65 +371,77 @@ export const generateCustomerSalesPDF = (
   // Add company header
   let yPos = addCompanyHeader(
     doc,
-    "Customer Sales Report",
+    "Outstanding Payments Report",
     startDate,
     endDate,
     settings
   );
 
-  // Customer sales table
-  const tableData = data.data.map((customer) => [
-    customer.id.toString(),
-    customer.name,
-    customer.email,
-    customer.totalSales.toString(),
-    formatCurrencyPDF(customer.totalSpent),
-    formatCurrencyPDF(customer.avgSpending),
+
+  if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+    console.log("No data to display");
+    // Add empty state message
+    autoTable(doc, {
+      head: [["Sale ID", "Date", "Customer", "Total", "Outstanding"]],
+      body: [["No outstanding payments found", "", "", "", ""]],
+      startY: yPos,
+      ...getDefaultTableStyles(),
+    });
+
+    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+    addGeneratedDate(doc, finalY + 20);
+    return doc.output("blob");
+  }
+
+  const tableData = data.data.map((sale: any) => [
+    sale.id.toString(),
+    format(sale.createdAt, "dd-MM-yyyy"),
+    sale.customer?.name || "Walk-in Customer",
+    formatCurrencyPDF(sale.total),
+    formatCurrencyPDF(sale.outstandingBalance || 0),
+  ]);
+  console.log("Table data prepared:", tableData);
+
+  // Add summary row
+  const totalOutstanding = data.totalOutstanding || data.data.reduce((sum: number, sale: any) => sum + (sale.outstandingBalance || 0), 0);
+  tableData.push([
+    "",
+    "",
+    "",
+    "Total Outstanding:",
+    formatCurrencyPDF(totalOutstanding)
   ]);
 
   autoTable(doc, {
-    head: [
-      ["ID", "Name", "Email", "Total Sales", "Total Spent", "Avg Spending"],
-    ],
+    head: [["Sale ID", "Date", "Customer", "Total", "Outstanding"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      3: { halign: 'right' }, // Right-align Total column
+      4: { halign: 'right' }, // Right-align Outstanding column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Total and Outstanding headers
+      if (data.section === 'head' && (data.column.index === 3 || data.column.index === 4)) {
+        data.cell.styles.halign = 'right';
+      }
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
   });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
 
-// Ingredient Purchase Trend Report PDF
-export const generateIngredientPurchaseTrendPDF = (
-  data: IngredientPurchaseTrendReport,
-  startDate?: string,
-  endDate?: string,
-  settings?: any
-): Blob => {
-  const doc = new jsPDF();
-
-  // Add company header
-  let yPos = addCompanyHeader(
-    doc,
-    "Ingredient Purchase Trend Report",
-    startDate,
-    endDate,
-    settings
-  );
-
-  // Ingredient purchase trend table
-  const tableData = data.data.map((item) => [
-    item.item,
-    item.quantity.toString(),
-    format(item.date, "dd-MM-yyyy"),
-  ]);
-
-  autoTable(doc, {
-    head: [["Item", "Quantity", "Date"]],
-    body: tableData,
-    startY: yPos,
-    ...getDefaultTableStyles(),
-  });
-
-  return doc.output("blob");
-};

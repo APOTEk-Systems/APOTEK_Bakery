@@ -28,67 +28,58 @@ const InventorySummaryTab = () => {
   return (
     <div className="space-y-6">
       {/* Summary Cards Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {(() => {
-          // Priority: show outOfStock if it has items, otherwise show lowStock if it has items
-          if (inventoryData?.outOfStock && inventoryData.outOfStock.count > 0) {
-            return (
-              <Card
-                className={`cursor-pointer transition-colors ${
-                  expandedCard === "outOfStock"
-                    ? "ring-2 ring-blue-500"
-                    : "hover:bg-muted/50"
-                }`}
-                onClick={() => toggleCard("outOfStock")}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Out of Stock
-                  </CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-red-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {inventoryData.outOfStock.count}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Items at zero stock
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          } else if (
-            inventoryData?.lowStock &&
-            inventoryData.lowStock.count > 0
-          ) {
-            return (
-              <Card
-                className={`cursor-pointer transition-colors ${
-                  expandedCard === "lowStock"
-                    ? "ring-2 ring-blue-500"
-                    : "hover:bg-muted/50"
-                }`}
-                onClick={() => toggleCard("lowStock")}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Low Stock Items
-                  </CardTitle>
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {inventoryData.lowStock.count}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Items below minimum
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          }
-          return null;
-        })()}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {inventoryData?.outOfStock && (
+          <Card
+            className={`cursor-pointer transition-colors ${
+              expandedCard === "outOfStock"
+                ? "ring-2 ring-blue-500"
+                : "hover:bg-muted/50"
+            }`}
+            onClick={() => toggleCard("outOfStock")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Out of Stock
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {inventoryData.outOfStock.count}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Items at zero stock
+              </p>
+            </CardContent>
+          </Card>
+        )}
+
+        {inventoryData?.lowStock && (
+          <Card
+            className={`cursor-pointer transition-colors ${
+              expandedCard === "lowStock"
+                ? "ring-2 ring-blue-500"
+                : "hover:bg-muted/50"
+            }`}
+            onClick={() => toggleCard("lowStock")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Low Stock Items
+              </CardTitle>
+              <AlertTriangle className="h-4 w-4 text-orange-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {inventoryData.lowStock.count}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Items below minimum
+              </p>
+            </CardContent>
+          </Card>
+        )}
 
         {inventoryData?.materialsUsed && (
           <Card

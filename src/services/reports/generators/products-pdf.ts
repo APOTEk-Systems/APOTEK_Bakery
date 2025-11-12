@@ -79,74 +79,56 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     expense.updatedBy?.name || 'N/A',
   ]);
 
-  autoTable(doc, {
-    head: [["S/N", "Date", "Category", "Amount", "Payment Method", "Updated By"]],
-    body: tableData,
-    startY: yPos,
-    ...getDefaultTableStyles(),
-  });
-
-  // Summary (after table)
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  yPos = finalY + 15;
-
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Summary", 20, yPos);
-  yPos += 10;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
+  // Calculate total
   const totalExpenses = expensesArray.reduce((sum: number, expense: any) => sum + expense.amount, 0) || 0;
-  doc.text(`Total Expenses: ${formatCurrencyPDF(totalExpenses)}`, 20, yPos);
 
-  return doc.output("blob");
-};
-
-// Outstanding Payments Report PDF
-export const generateOutstandingPaymentsPDF = (data: any, startDate?: string, endDate?: string, settings?: any): Blob => {
-  const doc = new jsPDF();
-
-  // Add company header
-  let yPos = addCompanyHeader(
-    doc,
-    "Outstanding Payments Report",
-    startDate,
-    endDate,
-    settings
-  );
-
-  // Outstanding payments table
-  const tableData = data.data?.sales?.map((sale: any, index: number) => [
-    (index + 1).toString(),
-    sale.id.toString(),
-    sale.customer?.name || 'Walk-in Customer',
-    formatCurrencyPDF(sale.total),
-    formatCurrencyPDF(sale.paid || 0),
-    formatCurrencyPDF(sale.outstandingBalance || 0),
-    sale.creditDueDate ? sale.creditDueDate.split('T')[0] : 'N/A',
-  ]) || [];
+  // Add summary row to table
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "Total Expenses:",
+    formatCurrencyPDF(totalExpenses)
+  ]);
 
   autoTable(doc, {
-    head: [["S/N", "Receipt #", "Customer", "Total Amount", "Paid", "Balance", "Due Date"]],
+    head: [["#", "Date", "Category", "Amount", "Payment Method", "Updated By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      3: { halign: 'right' }, // Right-align Amount column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Amount header
+      if (data.section === 'head' && data.column.index === 3) {
+        data.cell.styles.halign = 'right';
+      }
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
+    },
   });
 
-  // Summary (after table)
+  // Summary (after table) - positioned bottom right of table
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  yPos = finalY + 15;
+  const pageWidth = doc.internal.pageSize.getWidth();
 
-  doc.setFontSize(14);
-  doc.setFont("helvetica", "bold");
-  doc.text("Summary", 20, yPos);
-  yPos += 10;
+  // Position summary at bottom right of table area
+  let summaryY = finalY + 10;
 
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
-  const totalOutstanding = data.data?.sales?.reduce((sum: number, sale: any) => sum + (sale.outstandingBalance || 0), 0) || 0;
-  doc.text(`Total Outstanding: ${formatCurrencyPDF(totalOutstanding)}`, 20, yPos);
+
 
   return doc.output("blob");
 };
+
+

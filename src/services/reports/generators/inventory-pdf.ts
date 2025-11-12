@@ -45,14 +45,13 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
       displayQuantity.toFixed(2),
       item.minLevel.toString(),
       formatCurrencyPDF(displayCost),
-      item.type,
       status, // stock status
     ];
   });
 
   autoTable(doc, {
     head: [
-      ["Name", "Unit", "Current Qty", "Min Level", "Cost", "Type", "Status"],
+      ["Name", "Unit", "Current Qty", "Min Level", "Cost", "Status"],
     ],
     body: tableData,
     startY: yPos,
@@ -111,7 +110,7 @@ export const generateInventoryAdjustmentsPDF = (
   });
 
   autoTable(doc, {
-    head: [["S/N", "Item Name", "Date", "Type", "Quantity", "Reason", "Adj By"]],
+    head: [["#", "Item Name", "Date", "Type", "Quantity", "Reason", "Adj By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -139,14 +138,13 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
     return [
       (index + 1).toString(),
       item.name,
-      item.type === "raw_material" ? "Material" : "Supplies",
       `${displayMinQty.toFixed(2)} ${item.unit}`,
       `${displayCurrentQty.toFixed(2)} ${item.unit}`,
     ];
   });
 
   autoTable(doc, {
-    head: [["S/N", "Item Name", "Category", "Min Qty", "Available Qty"]],
+    head: [["#", "Item Name", "Min Qty", "Available Qty"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -169,12 +167,11 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
   const tableData = data.data.inventoryItem.map((item, index) => [
     (index + 1).toString(),
     item.name,
-    item.type === "raw_material" ? "Material" : "Supplies",
     item.unit,
   ]);
 
   autoTable(doc, {
-    head: [["S/N", "Item Name", "Category", "Unit"]],
+    head: [["#", "Item Name", "Unit"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
