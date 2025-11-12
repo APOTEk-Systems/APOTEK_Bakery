@@ -36,14 +36,6 @@ export const generateSalesPDF = (
       formatCurrencyPDF(sale.total),
     ]);
 
-    // Add summary rows
-    const totalSales = data.data.totalSales;
-    const creditOutstanding = data.data.creditOutstanding;
-    tableData.push(
-      ["", "", "", "", "Total Sales:", formatCurrencyPDF(totalSales), ""],
-      ["", "", "", "", "Credit Outstanding:", formatCurrencyPDF(creditOutstanding), ""]
-    );
-
     console.log("Summary rows added:", tableData.slice(-2));
 
     console.log("📋 Sales table data prepared:", tableData.length, "rows");
@@ -52,23 +44,24 @@ export const generateSalesPDF = (
       head: [["#", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
       body: tableData,
       startY: yPos,
+      margin: { left: 20, right: 20 }, // Center the table horizontally
       ...getDefaultTableStyles(),
       columnStyles: {
-        5: { halign: 'right' } // Right-align the Total column (index 5)
+        0: { cellWidth: 15 }, // #
+        1: { cellWidth: 25 }, // Receipt #
+        2: { cellWidth: 25 }, // Date
+        3: { cellWidth: 45 }, // Customer
+        4: { cellWidth: 35 }, // Sold By
+        5: { halign: 'right', cellWidth: 25 }, // Right-align Total
       },
       headStyles: {
         ...getDefaultTableStyles().headStyles,
         halign: 'left' // Keep other headers left-aligned
       },
       didParseCell: function(data: any) {
-        // Right-align only the "Total" header (column index 5)
+        // Right-align Total header (column 5)
         if (data.section === 'head' && data.column.index === 5) {
           data.cell.styles.halign = 'right';
-        }
-        // Style summary rows
-        if (data.section === 'body' && (data.row.index >= tableData.length - 2)) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [240, 240, 240];
         }
       },
     });
@@ -118,12 +111,6 @@ export const generateCashSalesPDF = (
       formatCurrencyPDF(sale.total),
     ]);
 
-    // Add summary row
-    const totalCashSales = data.data.totalSales;
-    tableData.push(
-      ["", "", "", "", "Total Cash Sales:", formatCurrencyPDF(totalCashSales), ""]
-    );
-
     console.log("Summary row added:", tableData.slice(-1));
 
     console.log("📋 Cash sales table data prepared:", tableData.length, "rows");
@@ -132,23 +119,24 @@ export const generateCashSalesPDF = (
       head: [["#", "Receipt #", "Date", "Customer", "Sold By", "Total"]],
       body: tableData,
       startY: yPos,
+      margin: { left: 20, right: 20 }, // Center the table horizontally
       ...getDefaultTableStyles(),
       columnStyles: {
-        5: { halign: 'right' } // Right-align the Total column (index 5)
+        0: { cellWidth: 15 }, // #
+        1: { cellWidth: 25 }, // Receipt #
+        2: { cellWidth: 25 }, // Date
+        3: { cellWidth: 45 }, // Customer
+        4: { cellWidth: 35 }, // Sold By
+        5: { halign: 'right', cellWidth: 25 }, // Right-align Total
       },
       headStyles: {
         ...getDefaultTableStyles().headStyles,
         halign: 'left' // Keep other headers left-aligned
       },
       didParseCell: function(data: any) {
-        // Right-align only the "Total" header (column index 5)
+        // Right-align Total header (column 5)
         if (data.section === 'head' && data.column.index === 5) {
           data.cell.styles.halign = 'right';
-        }
-        // Style summary row
-        if (data.section === 'body' && data.row.index === tableData.length - 1) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [240, 240, 240];
         }
       },
     });
@@ -200,42 +188,32 @@ export const generateCreditSalesPDF = (
       formatCurrencyPDF((sale as any).outstandingBalance || 0),
     ]);
 
-    // Add summary rows
-    const totalCreditSales = data.data.totalSales;
-    const totalPaid = data.data.sales.reduce((sum, sale) => sum + ((sale as any).paid || 0), 0);
-    const totalBalance = data.data.sales.reduce((sum, sale) => sum + ((sale as any).outstandingBalance || 0), 0);
-
-    tableData.push(
-      ["", "", "", "", "","" ,"Total:", formatCurrencyPDF(totalCreditSales), ""],
-      ["", "", "", "", "", "","Paid:", formatCurrencyPDF(totalPaid), ""],
-      ["", "", "", "", "","" ,"Balance:", formatCurrencyPDF(totalBalance), ""]
-    );
-
     console.log("📋 Credit sales table data prepared:", tableData.length, "rows");
 
     autoTable(doc, {
       head: [["#", "Receipt #", "Date", "Customer", "Sold By", "Total", "Paid", "Balance"]],
       body: tableData,
       startY: yPos,
+      margin: { left: 15, right: 15 }, // Center the table horizontally
       ...getDefaultTableStyles(),
       columnStyles: {
-        5: { halign: 'right' }, // Right-align Total (index 5)
-        6: { halign: 'right' }, // Right-align Paid (index 6)
-        7: { halign: 'right' }, // Right-align Balance (index 7)
+        0: { cellWidth: 15 }, // #
+        1: { cellWidth: 25 }, // Receipt #
+        2: { cellWidth: 25 }, // Date
+        3: { cellWidth: 35 }, // Customer
+        4: { cellWidth: 30 }, // Sold By
+        5: { halign: 'right', cellWidth: 25 }, // Right-align Total
+        6: { halign: 'right', cellWidth: 25 }, // Right-align Paid
+        7: { halign: 'right', cellWidth: 25 }, // Right-align Balance
       },
       headStyles: {
         ...getDefaultTableStyles().headStyles,
         halign: 'left' // Keep other headers left-aligned
       },
       didParseCell: function(data: any) {
-        // Right-align Total, Paid, and Balance headers (columns 5, 6, 7)
+        // Right-align Total, Paid and Balance headers (columns 5, 6, 7)
         if (data.section === 'head' && (data.column.index === 5 || data.column.index === 6 || data.column.index === 7)) {
           data.cell.styles.halign = 'right';
-        }
-        // Style summary rows
-        if (data.section === 'body' && data.row.index >= tableData.length - 3) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [240, 240, 240];
         }
       },
     });

@@ -6,8 +6,6 @@ import type {
   FinancialReport,
   ProfitAndLossReport,
   ExpenseBreakdownReport,
-  CustomerSalesReport,
-  IngredientPurchaseTrendReport
 } from "@/types/reports";
 
 // Financial Report PDF
@@ -382,8 +380,8 @@ export const generateOutstandingPaymentsPDF = (
     console.log("No data to display");
     // Add empty state message
     autoTable(doc, {
-      head: [["Sale ID", "Date", "Customer", "Total", "Outstanding"]],
-      body: [["No outstanding payments found", "", "", "", ""]],
+      head: [["Receipt #", "Date", "Customer", "Total", "Paid", "Outstanding"]],
+      body: [["No outstanding payments found", "", "", "", "", ""]],
       startY: yPos,
       ...getDefaultTableStyles(),
     });
@@ -398,13 +396,24 @@ export const generateOutstandingPaymentsPDF = (
     format(sale.createdAt, "dd-MM-yyyy"),
     sale.customer?.name || "Walk-in Customer",
     formatCurrencyPDF(sale.total),
+    formatCurrencyPDF((sale as any).paid || 0),
     formatCurrencyPDF(sale.outstandingBalance || 0),
   ]);
   console.log("Table data prepared:", tableData);
 
   // Add summary row
   const totalOutstanding = data.totalOutstanding || data.data.reduce((sum: number, sale: any) => sum + (sale.outstandingBalance || 0), 0);
+  const totalPaid = data.data.reduce((sum: number, sale: any) => sum + ((sale as any).paid || 0), 0);
   tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "Total Paid:",
+    formatCurrencyPDF(totalPaid)
+  ]);
+  tableData.push([
+    "",
     "",
     "",
     "",
@@ -413,21 +422,22 @@ export const generateOutstandingPaymentsPDF = (
   ]);
 
   autoTable(doc, {
-    head: [["Sale ID", "Date", "Customer", "Total", "Outstanding"]],
+    head: [["Receipt #", "Date", "Customer", "Total", "Paid", "Outstanding"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
       3: { halign: 'right' }, // Right-align Total column
-      4: { halign: 'right' }, // Right-align Outstanding column
+      4: { halign: 'right' }, // Right-align Paid column
+      5: { halign: 'right' }, // Right-align Outstanding column
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
       halign: 'left' // Keep other headers left-aligned
     },
     didParseCell: function(data: any) {
-      // Right-align Total and Outstanding headers
-      if (data.section === 'head' && (data.column.index === 3 || data.column.index === 4)) {
+      // Right-align Total, Paid and Outstanding headers
+      if (data.section === 'head' && (data.column.index === 3 || data.column.index === 4 || data.column.index === 5)) {
         data.cell.styles.halign = 'right';
       }
       // Style summary row

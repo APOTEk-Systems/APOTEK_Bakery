@@ -49,10 +49,13 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 
 const previewBlob = (blob: Blob, filename: string) => {
   try {
-    // Convert blob to data URL
+    // Convert blob to data URL with proper MIME type
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
+      // Replace the generic data URL with proper application/pdf MIME type
+      const pdfDataUrl = dataUrl.replace('data:application/octet-stream', 'data:application/pdf');
+
       const newWindow = window.open('', '_blank');
       if (newWindow) {
         newWindow.document.write(`
@@ -76,7 +79,7 @@ const previewBlob = (blob: Blob, filename: string) => {
               </style>
             </head>
             <body>
-              <iframe src="${dataUrl}"></iframe>
+              <iframe src="${pdfDataUrl}"></iframe>
             </body>
           </html>
         `);

@@ -9,10 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getProductionRuns } from "@/services/productionRuns";
 
 const ProductionReportsTab = () => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
-    const today = new Date();
-    return { from: today, to: today };
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [selectedProductionReport, setSelectedProductionReport] = useState("");
   const { handleExport, isExporting } = useReportMutations(dateRange);
 

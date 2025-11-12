@@ -42,8 +42,8 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
     return [
       item.name,
       item.unit,
-      displayQuantity.toFixed(2),
-      item.minLevel.toString(),
+      displayQuantity.toLocaleString(),
+      item.minLevel.toLocaleString(),
       formatCurrencyPDF(displayCost),
       status, // stock status
     ];

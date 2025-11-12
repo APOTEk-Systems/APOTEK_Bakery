@@ -179,7 +179,7 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
         order.status || "",
         order.supplierName || "",
         order.itemName || "",
-        order.quantity?.toString() || "",
+        order.quantity?.toLocaleString() || "",
         formatCurrencyPDF(order.price || 0),
         formatCurrencyPDF(order.total || 0),
       ]);
@@ -204,7 +204,7 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
   ]);
 
   autoTable(doc, {
-    head: [["S/N", "PO ID", "Date", "Status", "Supplier", "Item", "Qty", "Price", "Total"]],
+    head: [["#", "Order #", "Date", "Status", "Supplier", "Item", "Qty", "Price", "Total"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

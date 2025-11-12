@@ -58,10 +58,10 @@ export const addCompanyHeader = (
         // We'll use a fixed width and calculate height based on aspect ratio
         // Since we can't load the image synchronously, we'll assume a reasonable aspect ratio
         // or use a callback-based approach, but for simplicity, let's use a standard approach
-        const logoWidth = 60;
-        const logoHeight = 25; // Default height, will be adjusted if possible
+        const logoWidth = 50;
+        const logoHeight = 20; // Default height, will be adjusted if possible
         doc.addImage(companyInfo.logo, 'JPEG', (pageWidth - logoWidth) / 2, yPos, logoWidth, logoHeight);
-        yPos += logoHeight + 5;
+        yPos += logoHeight + 6;
       }
     } catch (error) {
       console.warn("Could not load logo for PDF:", error);

@@ -16,7 +16,7 @@ export const generateProductionPDF = (
   // Add company header
   let yPos = addCompanyHeader(
     doc,
-    "Daily Production Batches Report",
+    "Daily Production Report",
     startDate,
     endDate,
     settings
@@ -34,7 +34,7 @@ export const generateProductionPDF = (
   ]);
 
   autoTable(doc, {
-    head: [["S/N", "Date", "Item Name", "Quantity", "Ingredients Used", "Cost", "Produced By"]],
+    head: [["#", "Date", "Item Name", "Quantity", "Ingredients Used", "Cost", "Produced By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

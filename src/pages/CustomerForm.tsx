@@ -271,7 +271,7 @@ const CustomerForm = () => {
                       id="name"
                       value={formData.name}
                       onChange={(e) =>
-                        handleInputChange("name", toSentenceCase(e.target.value))
+                        handleInputChange("name", e.target.value)
                       }
                       placeholder="Enter customer's full name"
                       required

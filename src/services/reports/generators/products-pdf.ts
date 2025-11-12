@@ -18,7 +18,7 @@ export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob 
   ]);
 
   autoTable(doc, {
-    head: [["S/N", "Product Name", "Price"]],
+    head: [["#", "Product Name", "Price"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -44,7 +44,7 @@ export const generateProductDetailsPDF = (data: ProductDetailsReport, settings?:
   ]);
 
   autoTable(doc, {
-    head: [["S/N", "Product Name", "Price", "Average Production Cost", "Profit"]],
+    head: [["#", "Product Name", "Price", "Average Production Cost", "Profit"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

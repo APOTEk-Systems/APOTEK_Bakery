@@ -12,8 +12,6 @@ const InventoryReportsTab = () => {
   const { handleExport, isExporting } = useReportMutations(dateRange);
 
   const needsDateRange = [
-    'materials-low-stock',
-    'supplies-low-stock',
     'materials-adjustment',
     'supplies-adjustment'
   ].includes(selectedInventoryReport);
@@ -29,7 +27,7 @@ const InventoryReportsTab = () => {
         <div className="flex-1">
           <Label className="text-sm font-medium">Report Type</Label>
           <Select value={selectedInventoryReport} onValueChange={setSelectedInventoryReport} >
-            <SelectTrigger className="my-1 w-1/2">
+            <SelectTrigger className={`my-1 ${needsDateRange ? '' : 'max-w-md'}`}>
               <SelectValue placeholder="Select inventory report type" />
             </SelectTrigger>
             <SelectContent>

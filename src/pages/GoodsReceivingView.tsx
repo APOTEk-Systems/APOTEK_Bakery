@@ -170,7 +170,7 @@ const GoodsReceivingView = () => {
           <Card>
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center justify-between">
-                Material Receving Summary
+                {po.status === "completed" ? "Material Received Summary" : "Material Receiving Summary"}
                 <div className="flex items-center gap-2">
                   <Badge variant={getStatusVariant(po.status)}>{capitalizeStatus(po.status)}</Badge>
                   {po.status === "approved" && !hasReceipt && (
