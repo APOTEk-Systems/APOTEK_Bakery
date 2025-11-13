@@ -385,7 +385,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
 
               <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
               <TableCell className="py-1">
-                <Badge variant={getStatusVariant(sale.status)} className='text-[11px] p-1'>
+                <Badge variant={getStatusVariant(sale.status)} className='text-[10px] p-1'>
                   {sale.status.toUpperCase()}
                 </Badge>
               </TableCell>

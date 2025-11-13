@@ -115,6 +115,7 @@ const SalesSummaryTab = () => {
               {/* Y-Axis (formatted with commas) */}
               <YAxis
                 tickFormatter={(value) => Number(value).toLocaleString()}
+                width={80}
               />
 
               {/* Tooltip also formatted */}

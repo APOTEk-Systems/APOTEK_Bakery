@@ -88,21 +88,20 @@ export default function GoodsReceivingTab() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-end items-center gap-4 w-full">
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
         {/* Search + Status */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 w-full">
           <Input
             placeholder="Search"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm"
+            className="flex-1"
           />
-      
         </div>
 
         {/* Dates */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col">
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col w-full">
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}

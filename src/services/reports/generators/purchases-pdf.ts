@@ -127,25 +127,21 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
   // Goods received table with detailed item information
   const tableData: any[] = [];
 
-  if (data.goodsReceipts && Array.isArray(data.goodsReceipts)) {
-    data.goodsReceipts.forEach((receipt: any, index: number) => {
-      // For each goods receipt, we need to get the detailed items
-      // Since the API returns summary data, we'll use what's available
+  if (data && Array.isArray(data)) {
+    data.forEach((receipt: any, index: number) => {
       tableData.push([
         (index + 1).toString(),
-        receipt.supplierName || "Unknown Supplier",
-        "Material", // Item Name placeholder - would need detailed API
-        "1", // Placeholder for quantity - would need detailed API
-        formatCurrencyPDF(receipt.total),
-        format(receipt.receivedDate || receipt.createdAt, "dd-MM-yyyy"),
-        receipt.createdByName || "System", // Received By
-     //   receipt.updatedBy?.name || "N/A", // Updated By
+        receipt.supplier || "Unknown Supplier",
+        receipt.itemName || "Unknown Item",
+        receipt.quantity?.toString() || "0",
+        format(receipt.receivedDate, "dd-MM-yyyy"),
+        receipt.receivedBy || "Unknown",
       ]);
     });
   }
 
   autoTable(doc, {
-    head: [["#", "Supplier", "Item Name", "Qty", "Price", "Received Date", "Received By"]],
+    head: [["#", "Supplier", "Item Name", "Qty", "Received Date", "Received By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

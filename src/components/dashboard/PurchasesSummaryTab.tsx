@@ -81,7 +81,7 @@ const PurchasesSummaryTab = () => {
               {dashboardData?.purchaseGrowth ?? 0}%
             </div>
             <p className="text-xs text-muted-foreground">Monthly growth rate</p>
-            <div className="flex items-center mt-2">
+            {/* <div className="flex items-center mt-2">
               {(dashboardData?.purchaseGrowth ?? 0) > 0 ? (
                 <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
               ) : (
@@ -97,7 +97,7 @@ const PurchasesSummaryTab = () => {
                 {(dashboardData?.purchaseGrowth ?? 0) > 0 ? "Up" : "Down"}{" "}
                 {Math.abs(dashboardData?.purchaseGrowth ?? 0)}%
               </span>
-            </div>
+            </div> */}
           </CardContent>
         </Card>
       </div>
@@ -107,7 +107,7 @@ const PurchasesSummaryTab = () => {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={purchasesData} margin={{left:10}}>
+            <BarChart data={purchasesData} margin={{left:12}}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis
                 dataKey="weekStart"
@@ -118,6 +118,7 @@ const PurchasesSummaryTab = () => {
               <YAxis
                 tickFormatter={(value) => Number(value).toLocaleString()}
                 className="text-sm"
+                width={80}
               />
               <Tooltip
                 formatter={(value) => [

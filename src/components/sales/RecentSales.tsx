@@ -103,7 +103,7 @@ const RecentSales: React.FC = () => {
       <CardContent>
         <div className="flex items-center space-x-2 mb-2">
           <Input
-            placeholder="Search by customer name..."
+            placeholder="Search by receipt # or customer"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);

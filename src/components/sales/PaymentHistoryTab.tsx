@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { DateRangePicker, DateRange } from '@/components/ui/DateRange';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
@@ -124,7 +125,7 @@ const PaymentHistoryTab: React.FC = () => {
                   <TableCell className="font-medium">
                     {formatCurrency(payment.amount)}
                   </TableCell>
-                  <TableCell>{formatDate(payment.paymentDate)}</TableCell>
+                  <TableCell>{format(payment.paymentDate,"dd-MM-yyyy")}</TableCell>
                    <TableCell>{payment.receivedBy.name || '-'}</TableCell> 
                 </TableRow>
               ))}

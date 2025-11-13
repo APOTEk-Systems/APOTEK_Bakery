@@ -361,17 +361,17 @@ export default function PurchaseOrdersTab() {
           New Purchase Order
         </Button>
       </div>
-      <div className="flex flex-col sm:flex-row justify-end items-center gap-4 w-full">
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
         {/* Search + Status */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex sm:flex-row gap-4 w-full">
           <Input
-            placeholder="Search"
+            placeholder="Search....."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-sm lg:mt-4"
+            className="flex-1"
           />
           <Select value={filterStatus} onValueChange={setFilterStatus}>
-            <SelectTrigger className="w-[180px] lg: mt-4">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -385,8 +385,8 @@ export default function PurchaseOrdersTab() {
         </div>
 
         {/* Dates */}
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col mt-4">
+        <div className="flex flex-col gap-4 w-full">
+          <div className="flex flex-col w-full">
             <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}

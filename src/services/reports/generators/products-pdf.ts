@@ -8,7 +8,7 @@ export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob 
   const doc = new jsPDF();
 
   // Add company header
-  let yPos = addCompanyHeader(doc, "Price List", undefined, undefined, settings);
+  let yPos = addCompanyHeader(doc, "Price List", undefined, undefined, settings, false);
 
   // Products table
   const tableData = data.data.map((product, index) => [

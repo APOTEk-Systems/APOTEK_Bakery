@@ -125,7 +125,7 @@ const InventoryAdjustmentsTab = ({
 
   const handleSubmitAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedItemId || !amount) return;
+    if (!selectedItemId || !amount || !reason) return;
 
     // Convert amount into base unit
     const rawAmount = parseFloat(amount);
@@ -177,7 +177,7 @@ const InventoryAdjustmentsTab = ({
       <Card className="shadow-warm">
         <CardHeader>
           <div className="flex justify-between items-center">
-            {/* <CardTitle>Adjustments</CardTitle> */}
+            <CardTitle>Adjustments</CardTitle>
           </div>
         </CardHeader>
         <CardContent>
@@ -296,12 +296,10 @@ const InventoryAdjustmentsTab = ({
               <Label htmlFor="amount">Quantity</Label>
               <Input
                 id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                value={amount ? parseFloat(amount).toLocaleString() : ''}
+                onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
                 placeholder={`Enter quantity in ${unit}`}
-                step="0.01"
-                min="0"
               />
             </div>
             <div className="space-y-2">
@@ -329,7 +327,7 @@ const InventoryAdjustmentsTab = ({
               </Button>
               <Button
                 type="submit"
-                disabled={createAdjustmentMutation.isPending || !selectedItemId || !amount}
+                disabled={createAdjustmentMutation.isPending || !selectedItemId || !amount || !reason}
               >
                 {createAdjustmentMutation.isPending ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

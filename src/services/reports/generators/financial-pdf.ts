@@ -331,7 +331,11 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
+      1: { cellWidth: 20 }, // Reduce Date column width
+      2: { cellWidth: 25 }, // Reduce Category column width
       3: { halign: 'right' }, // Right-align Amount column
+      4: { cellWidth: 25 }, // Reduce Payment Method column width
+      5: { cellWidth: 35 }, // Increase Updated By column width
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
@@ -428,7 +432,7 @@ export const generateOutstandingPaymentsPDF = (
     ...getDefaultTableStyles(),
     columnStyles: {
       3: { halign: 'right' }, // Right-align Total column
-      4: { halign: 'right' }, // Right-align Paid column
+      4: { halign: 'right', cellWidth: 20 }, // Right-align Paid column, reduce width
       5: { halign: 'right' }, // Right-align Outstanding column
     },
     headStyles: {

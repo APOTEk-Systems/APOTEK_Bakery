@@ -159,10 +159,10 @@ const ProductionSummaryTab = () => {
                           <tr key={index} className="border-b">
                             <td className="p-2">{item.name}</td>
                             <td className="p-2">
-                              {displayQuantity.toFixed(2)} {displayUnit}
+                              {displayQuantity.toLocaleString()} {displayUnit}
                             </td>
                             <td className="p-2">
-                              {displayAvailable.toFixed(2)}{" "}
+                              {displayAvailable.toLocaleString()}{" "}
                               {displayAvailableUnit}
                             </td>
                           </tr>
@@ -197,7 +197,7 @@ const ProductionSummaryTab = () => {
                       (item, index) => (
                         <tr key={index} className="border-b">
                           <td className="p-2">{item.productName}</td>
-                          <td className="p-2">{item.quantityProduced}</td>
+                          <td className="p-2">{item.quantityProduced.toLocaleString()}</td>
                           <td className="p-2">{formatCurrency(item.cost)}</td>
                         </tr>
                       )
@@ -230,8 +230,8 @@ const ProductionSummaryTab = () => {
                       (item, index) => (
                         <tr key={index} className="border-b">
                           <td className="p-2">{item.productName}</td>
-                          <td className="p-2">{item.produced}</td>
-                          <td className="p-2">{item.sold}</td>
+                          <td className="p-2">{item.produced.toLocaleString()}</td>
+                          <td className="p-2">{item.sold.toLocaleString()}</td>
                         </tr>
                       )
                     )}

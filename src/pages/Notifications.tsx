@@ -148,7 +148,7 @@ const Notifications = () => {
               disabled={updateSettingsMutation.isPending}
             >
               <Save className="h-4 w-4 mr-2" />
-              {updateSettingsMutation.isPending ? "Saving..." : "Save Notifications"}
+              {updateSettingsMutation.isPending ? "Saving..." : "Save Alerts"}
             </Button>
           </CardContent>
         </Card>

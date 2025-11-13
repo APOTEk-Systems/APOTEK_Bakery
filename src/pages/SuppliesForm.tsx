@@ -161,6 +161,15 @@ const SuppliesForm = () => {
       return;
     }
 
+    if (!formData.unit.trim()) {
+      toast({
+        title: "Error",
+        description: "Unit is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (parseFloat(formData.cost) <= 0) {
       toast({
         title: "Error",

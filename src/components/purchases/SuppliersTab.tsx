@@ -449,7 +449,7 @@ export default function SuppliersTab() {
                     <TableCell>{sup.email || "-"}</TableCell>
                     <TableCell>{sup.address || "-"}</TableCell>
                     <TableCell>
-                      <Badge
+                      <Badge 
                         variant={
                           sup.status === "active" ? "default" : "secondary"
                         }
@@ -458,24 +458,25 @@ export default function SuppliersTab() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditSupplier(sup)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteSupplier(sup)}
-                        className="ml-2"
-                        disabled={sup.status === "inactive"}
-                      >
-                        <Trash className="h-4 w-4 mr-1" />
-                        Delete
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditSupplier(sup)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteSupplier(sup)}
+                          disabled={sup.status === "inactive"}
+                        >
+                          <Trash className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

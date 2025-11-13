@@ -23,21 +23,33 @@ export const generateProductionPDF = (
   );
 
   // Production table with new column structure
-  const tableData = data.data.production.map((prod, index) => [
-    (index + 1).toString(), // S/N
+  const tableData = data.map((prod, index) => [
+    (index + 1).toString(), // #
     format(prod.date || prod.createdAt || new Date(), "dd-MM-yyyy"), // Date
-    prod.product, // Item Name
-    prod.quantityProduced?.toString(), // Quantity
-    "Ingredients list", // Ingredients Used
+    (prod as any).product?.name || prod.product || "Unknown Product", // Product Name
+    prod.quantityProduced?.toLocaleString(), // Quantity
     formatCurrencyPDF(prod.cost || 0), // Cost
-    "System", // Produced By
+    (prod as any).producedBy?.name || (prod as any).producedBy || "Unknown", // Produced By
   ]);
 
   autoTable(doc, {
-    head: [["#", "Date", "Item Name", "Quantity", "Ingredients Used", "Cost", "Produced By"]],
+    head: [["#", "Date", "Product", "Quantity", "Cost", "Produced By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      4: { halign: 'right' }, // Right-align Cost column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Right-align Cost header (column 4)
+      if (data.section === 'head' && data.column.index === 4) {
+        data.cell.styles.halign = 'right';
+      }
+    },
   });
 
   // Summary (after table) - positioned bottom right of table
@@ -50,9 +62,12 @@ export const generateProductionPDF = (
   doc.setFontSize(12);
   doc.setFont("helvetica", "normal");
 
+  const totalProduced = data.reduce((sum, prod) => sum + (prod.quantityProduced || 0), 0);
+  const totalCost = data.reduce((sum, prod) => sum + (prod.cost || 0), 0);
+
   // Right-align the summary values
-  const totalProducedText = `Total Produced: ${data.data.totalProduced} units`;
-  const totalCostText = `Total Cost: ${formatCurrencyPDF(data.data.totalCost)}`;
+  const totalProducedText = `Total Produced: ${totalProduced.toLocaleString()} units`;
+  const totalCostText = `Total Cost: ${formatCurrencyPDF(totalCost)}`;
 
   const totalProducedWidth = doc.getTextWidth(totalProducedText);
   const totalCostWidth = doc.getTextWidth(totalCostText);
@@ -141,6 +156,9 @@ export const generateIngredientUsagePDF = (
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      3: { cellWidth: 20 }, // Reduce Date column width
+    },
   });
 
   return doc.output("blob");

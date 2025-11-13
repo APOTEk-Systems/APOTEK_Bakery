@@ -113,7 +113,7 @@ const SuppliesAdjustmentsTab = () => {
 
   const handleSubmitAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedItemId || !amount) return;
+    if (!selectedItemId || !amount || !reason) return;
 
     const adjustmentAmount =
       action === "add" ? parseFloat(amount) : -parseFloat(amount);
@@ -254,12 +254,10 @@ const SuppliesAdjustmentsTab = () => {
               <Label htmlFor="amount">Quantity</Label>
               <Input
                 id="amount"
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                type="text"
+                value={amount ? parseFloat(amount).toLocaleString() : ''}
+                onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
                 placeholder={`Enter quantity to ${action}`}
-                step="0.01"
-                min="0"
               />
             </div>
             <div className="space-y-2">
@@ -290,7 +288,8 @@ const SuppliesAdjustmentsTab = () => {
                 disabled={
                   createAdjustmentMutation.isPending ||
                   !selectedItemId ||
-                  !amount
+                  !amount ||
+                  !reason
                 }
               >
                 {createAdjustmentMutation.isPending ? (

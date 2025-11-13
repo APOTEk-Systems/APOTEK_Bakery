@@ -322,7 +322,7 @@ const ProductForm = () => {
                       onChange={(e) =>
                         handleInputChange(
                           "name",
-                          toSentenceCase(e.target.value)
+                          e.target.value
                         )
                       }
                       placeholder="Enter product name"
@@ -473,7 +473,7 @@ const ProductForm = () => {
                       className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
                     >
                       <div>
-                        <Label>Inventory Item</Label>
+                        <Label>Item Name</Label>
                         <Select
                           value={recipe.inventoryItemId}
                           onValueChange={(value) =>

@@ -101,9 +101,10 @@ export const getProductionReport = async (
   const params = new URLSearchParams();
   if (startDate) params.append("startDate", startDate);
   if (endDate) params.append("endDate", endDate);
+  params.append("limit", "1000");
 
-  const response = await api.get(`/reports/production?${params.toString()}`);
-  return response.data;
+  const response = await api.get(`/production?${params.toString()}`);
+  return response.data.productionRuns;
 };
 
 // Inventory Report
@@ -293,7 +294,7 @@ export const getGoodsReceivedReport = async (startDate?: string, endDate?: strin
   if (endDate) params.append("endDate", endDate);
   if (supplierId) params.append("supplierId", supplierId.toString());
   params.append("limit", "1000");
-  const response = await api.get(`/purchases/receiving?${params.toString()}`);
+  const response = await api.get(`/purchases/detailed-receipts?${params.toString()}`);
   return response.data;
 };
 

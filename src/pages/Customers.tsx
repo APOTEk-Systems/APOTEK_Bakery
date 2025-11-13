@@ -65,21 +65,21 @@ const Customers = () => {
   });
 
   const allCustomers = [
-    {
-      id: "cash",
-      name: "Cash",
-      email: null,
-      phone: null,
-      address: null,
-      isCredit: false,
-      creditLimit: 0,
-      currentCredit: 0,
-      status: "active" as const,
-      loyaltyPoints: 0,
-      notes: "Default cash customer for walk-in sales",
-      totalOrders: 0,
-      totalSpent: 0,
-    },
+    // {
+    //   id: "cash",
+    //   name: "Cash",
+    //   email: null,
+    //   phone: null,
+    //   address: null,
+    //   isCredit: false,
+    //   creditLimit: 0,
+    //   currentCredit: 0,
+    //   status: "active" as const,
+    //   loyaltyPoints: 0,
+    //   notes: "Default cash customer for walk-in sales",
+    //   totalOrders: 0,
+    //   totalSpent: 0,
+    // },
     ...(customersQuery.data || []),
   ];
 

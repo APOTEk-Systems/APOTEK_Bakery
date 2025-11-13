@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { salesService, Sale } from '@/services/sales';
+import { salesService, Sale, SalesQueryParams } from '@/services/sales';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Table,
@@ -18,6 +18,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Label } from '../ui/label';
+import { format } from 'date-fns';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
@@ -35,42 +45,74 @@ const OutstandingPaymentsTab: React.FC = () => {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10); // Fixed limit as per the example
+
+  const getVisiblePages = (current: number, total: number): (number | string)[] => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+      range.push(i);
+    }
+
+    if (current - delta > 2) {
+      rangeWithDots.push(1, '...');
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (current + delta < total - 1) {
+      rangeWithDots.push('...', total);
+    } else if (total > 1) {
+      rangeWithDots.push(total);
+    }
+
+    return rangeWithDots;
+  };
 
   const hasViewSales = hasPermission(user, "view:sales");
   const hasManagePayments = hasPermission(user, "manage:payments");
 
-  // Fetch outstanding payments using React Query
-  const { data: salesData, isLoading: loading, error } = useQuery({
-    queryKey: ['outstanding-payments'],
-    queryFn: async () => {
-      const allSales = await salesService.getPaginatedSales({
-        status: 'unpaid',
-        isCredit: true
-      });
+  const startDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const endDate = dateRange?.to ? dateRange.to.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
 
-      // Filter sales with outstanding balances
-      return allSales.sales.filter(sale =>
-        sale.outstandingBalance && sale.outstandingBalance > 0
-      );
+  // Fetch outstanding payments using React Query
+  const { data: paginatedData, isLoading: loading, error } = useQuery({
+    queryKey: ['outstanding-payments', searchTerm || startDate, searchTerm || endDate, page, limit],
+    queryFn: async () => {
+      if (searchTerm) {
+        return salesService.getPaginatedSales({
+          customerName: searchTerm,
+          status: 'unpaid',
+          isCredit: true,
+          page,
+          limit,
+        });
+      } else {
+        return salesService.getPaginatedSales({
+          startDate,
+          endDate,
+          status: 'unpaid',
+          isCredit: true,
+          page,
+          limit,
+        });
+      }
     },
     enabled: hasViewSales,
   });
 
-  const filteredSales = (salesData || []).filter(sale => {
-    // Date range filter (manual)
-    if (dateRange?.from || dateRange?.to) {
-      const saleDate = new Date(sale.createdAt);
-      if (dateRange.from && saleDate < dateRange.from) return false;
-      if (dateRange.to && saleDate > dateRange.to) return false;
-    }
+  const salesData = paginatedData?.sales || [];
+  const totalPages = paginatedData?.totalPages || 1;
+  const currentPage = paginatedData?.currentPage || 1;
 
-    // Search term filter
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    const matchesSaleId = sale.id.toString().includes(term);
-    const matchesCustomer = (sale.customer?.name || 'Walk-in Customer').toLowerCase().includes(term);
-    return matchesSaleId || matchesCustomer;
-  });
+  const filteredSales = salesData.filter(sale =>
+    sale.outstandingBalance && sale.outstandingBalance > 0
+  );
 
 
   // Mutation for creating payments
@@ -151,13 +193,19 @@ const OutstandingPaymentsTab: React.FC = () => {
         <div className="flex items-center space-x-2 mb-2">
           <Input
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => {
+              setSearchTerm(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search by receipt # or customer"
             className="flex-1"
           />
           <DateRangePicker
             dateRange={dateRange}
-            onDateRangeChange={setDateRange}
+            onDateRangeChange={(newRange) => {
+              setDateRange(newRange);
+              setPage(1);
+            }}
           />
         </div>
           {loading ? (
@@ -198,7 +246,7 @@ const OutstandingPaymentsTab: React.FC = () => {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {sale.creditDueDate ? formatDate(sale.creditDueDate) : 'N/A'}
+                      {sale.creditDueDate ? format(sale.creditDueDate, "dd-MM-yyyy") : 'N/A'}
                     </TableCell>
                     <TableCell>
                       {hasManagePayments && (
@@ -209,7 +257,7 @@ const OutstandingPaymentsTab: React.FC = () => {
                               onClick={() => setSelectedSale(sale)}
                               className='m-0'
                             >
-                              Record Payment
+                              Pay
                             </Button>
                           </DialogTrigger>
                           <DialogContent>
@@ -268,6 +316,41 @@ const OutstandingPaymentsTab: React.FC = () => {
                 ))}
               </TableBody>
             </Table>
+          )}
+          {totalPages > 1 && (
+            <div className="mt-4">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                      className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                  {getVisiblePages(currentPage, totalPages).map((pageNum, index) => (
+                    <PaginationItem key={index}>
+                      {pageNum === '...' ? (
+                        <PaginationEllipsis />
+                      ) : (
+                        <PaginationLink
+                          onClick={() => setPage(pageNum as number)}
+                          isActive={pageNum === currentPage}
+                          className="cursor-pointer"
+                        >
+                          {pageNum}
+                        </PaginationLink>
+                      )}
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => setPage(prev => Math.min(totalPages, prev + 1))}
+                      className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
           )}
         </CardContent>
     </Card>

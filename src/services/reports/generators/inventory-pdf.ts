@@ -13,7 +13,7 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
   const reportTitle = type === 'raw_material' ? "Materials Current Stock Report" :
                      type === 'supplies' ? "Supplies Current Stock Report" :
                      "Inventory Report";
-  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings);
+  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings, false);
 
   // Inventory table
   const tableData = data.data.inventoryItem.map((item) => {
@@ -56,6 +56,12 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+  });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  import("../pdf-utils").then(({ addGeneratedDate }) => {
+    addGeneratedDate(doc, finalY + 20);
   });
 
   return doc.output("blob");
@@ -116,6 +122,12 @@ export const generateInventoryAdjustmentsPDF = (
     ...getDefaultTableStyles(),
   });
 
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  import("../pdf-utils").then(({ addGeneratedDate }) => {
+    addGeneratedDate(doc, finalY + 20);
+  });
+
   return doc.output("blob");
 };
 
@@ -127,7 +139,7 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
   const reportTitle = type === 'raw_material' ? "Materials Below Min Level Report" :
                      type === 'supplies' ? "Supplies Below Min Level Report" :
                      "Stock Below Min Level Report";
-  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings);
+  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings, false);
 
   // Low stock table
   const tableData = data.data.inventoryItem.map((item, index) => {
@@ -150,6 +162,12 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
     ...getDefaultTableStyles(),
   });
 
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  import("../pdf-utils").then(({ addGeneratedDate }) => {
+    addGeneratedDate(doc, finalY + 20);
+  });
+
   return doc.output("blob");
 };
 
@@ -161,7 +179,7 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
   const reportTitle = type === 'raw_material' ? "Materials Out of Stock Report" :
                      type === 'supplies' ? "Supplies Out of Stock Report" :
                      "Out of Stock Report";
-  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings);
+  let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings, false);
 
   // Out of stock table
   const tableData = data.data.inventoryItem.map((item, index) => [
@@ -175,6 +193,12 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+  });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  import("../pdf-utils").then(({ addGeneratedDate }) => {
+    addGeneratedDate(doc, finalY + 20);
   });
 
   return doc.output("blob");

@@ -1,5 +1,5 @@
-import {api} from "@/lib/api";
-import {format} from "date-fns";
+import { api } from "@/lib/api";
+import { format } from "date-fns";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -9,7 +9,8 @@ export const addCompanyHeader = (
   reportTitle: string,
   startDate?: string,
   endDate?: string,
-  settings?: any
+  settings?: any,
+  showDateRange: boolean = true
 ): number => {
   let yPos = 10;
 
@@ -28,7 +29,8 @@ export const addCompanyHeader = (
   // Use settings if provided
   if (settings?.information) {
     companyInfo = {
-      bakeryName: settings.information.bakeryName || defaultCompanyInfo.bakeryName,
+      bakeryName:
+        settings.information.bakeryName || defaultCompanyInfo.bakeryName,
       address: settings.information.address || defaultCompanyInfo.address,
       phone: settings.information.phone || defaultCompanyInfo.phone,
       email: settings.information.email || defaultCompanyInfo.email,
@@ -53,15 +55,22 @@ export const addCompanyHeader = (
   if (companyInfo.logo) {
     try {
       // Add logo image to PDF - assuming logo is a base64 data URL
-      if (companyInfo.logo.startsWith('data:image')) {
+      if (companyInfo.logo.startsWith("data:image")) {
         // For jsPDF, we need to handle image dimensions differently
         // We'll use a fixed width and calculate height based on aspect ratio
         // Since we can't load the image synchronously, we'll assume a reasonable aspect ratio
         // or use a callback-based approach, but for simplicity, let's use a standard approach
         const logoWidth = 50;
-        const logoHeight = 20; // Default height, will be adjusted if possible
-        doc.addImage(companyInfo.logo, 'JPEG', (pageWidth - logoWidth) / 2, yPos, logoWidth, logoHeight);
-        yPos += logoHeight + 6;
+        const logoHeight = 10; // Default height, will be adjusted if possible
+        doc.addImage(
+          companyInfo.logo,
+          "JPEG",
+          (pageWidth - logoWidth) / 2,
+          yPos,
+          logoWidth,
+          logoHeight
+        );
+        yPos += logoHeight + 8;
       }
     } catch (error) {
       console.warn("Could not load logo for PDF:", error);
@@ -112,7 +121,7 @@ export const addCompanyHeader = (
     doc.setFont("helvetica", "normal");
     const regWidth = doc.getTextWidth(registrationInfo);
     doc.text(registrationInfo, (pageWidth - regWidth) / 2, yPos);
-    yPos += 10;
+    yPos += 8;
   }
 
   // Report title
@@ -122,23 +131,44 @@ export const addCompanyHeader = (
   doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPos);
   yPos += 6;
 
-  // Date range
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  const dateRange =
-    startDate && endDate ? `Date Range: From ${startDate} to ${endDate}` : "Date Range: All Time";
-  const dateRangeWidth = doc.getTextWidth(dateRange);
-  doc.text(dateRange, (pageWidth - dateRangeWidth) / 2, yPos);
-  yPos += 4;
+  // Date range - only show if showDateRange is true and dates are provided
+  if (showDateRange) {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    let dateRange: string | string[];
+    if (startDate && endDate) {
+      dateRange = `From: ${startDate} To: ${endDate}`;
+    } else {
+      dateRange = "All Time";
+    }
+    const dateRangeWidth = doc.getTextWidth(dateRange);
+    doc.text(dateRange, (pageWidth - dateRangeWidth) / 2, yPos);
+    yPos += 6;
+  }
 
   // Generated date - moved to bottom of function, will be handled by caller
 
-  return yPos; // Return the Y position after the header with further reduced spacing to table
+  return yPos -=4; // Return the Y position after the header with further reduced spacing to table
 };
 
-// Helper function to add generated date at bottom of report
+// Helper function to add generated date and page numbers at bottom of report
 export const addGeneratedDate = (doc: jsPDF, yPos: number): void => {
   const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  // Add page numbers to all pages
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const pageText = `Page ${i} of ${totalPages}`;
+    const pageTextWidth = doc.getTextWidth(pageText);
+    doc.text(pageText, (pageWidth - pageTextWidth) / 2, pageHeight - 10);
+  }
+
+  // Add generated date on the last page
+  doc.setPage(totalPages);
   const generatedText = `Generated: ${format(new Date(), "dd-MM-yyyy")}`;
   const generatedWidth = doc.getTextWidth(generatedText);
   doc.setFontSize(10);
@@ -166,8 +196,8 @@ export const testPDFGeneration = (): Blob => {
       ],
       startY: 80,
       theme: "grid",
-      styles: {fontSize: 10},
-      headStyles: {fillColor: [41, 128, 185]},
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
     });
 
     const blob = doc.output("blob");
@@ -189,7 +219,7 @@ export const getDefaultTableStyles = () => ({
   headStyles: {
     fillColor: [31, 41, 55] as [number, number, number], // Dark gray/navy blue
     textColor: [255, 255, 255] as [number, number, number],
-    fontStyle: 'bold' as const,
+    fontStyle: "bold" as const,
   },
   alternateRowStyles: {
     fillColor: [249, 250, 251] as [number, number, number], // Light gray for odd rows

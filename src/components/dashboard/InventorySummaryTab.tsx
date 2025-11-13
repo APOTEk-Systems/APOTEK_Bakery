@@ -156,9 +156,9 @@ const InventorySummaryTab = () => {
                   {inventoryData.lowStock.items.map((item) => (
                     <tr key={item.id} className="border-b">
                       <td className="p-2">{item.name}</td>
-                      <td className="p-2 capitalize">{item.type}</td>
-                      <td className="p-2">{item.currentQuantity}</td>
-                      <td className="p-2">{item.minLevel}</td>
+                      <td className="p-2 capitalize">{item.type === "raw_material" ? "Material" : "Supplies"}</td>
+                      <td className="p-2">{item.currentQuantity.toLocaleString()}</td>
+                      <td className="p-2">{item.minLevel.toLocaleString()}</td>
                       <td className="p-2">
                         <Badge variant="secondary">Low</Badge>
                       </td>
@@ -192,9 +192,9 @@ const InventorySummaryTab = () => {
                   {inventoryData.outOfStock.items.map((item) => (
                     <tr key={item.id} className="border-b">
                       <td className="p-2">{item.name}</td>
-                      <td className="p-2 capitalize">{item.type}</td>
-                      <td className="p-2">{item.currentQuantity}</td>
-                      <td className="p-2">{item.minLevel}</td>
+                      <td className="p-2 capitalize">{item.type === "raw_material" ? "Material" : "Supplies"}</td>
+                      <td className="p-2">{item.currentQuantity.toLocaleString()}</td>
+                      <td className="p-2">{item.minLevel.toLocaleString()}</td>
                       <td className="p-2">
                         <Badge variant="destructive">Out of Stock</Badge>
                       </td>
@@ -244,7 +244,7 @@ const InventorySummaryTab = () => {
                         <td className="p-2">{displayQuantity.toFixed(2)}</td>
                         <td className="p-2">{displayUnit}</td>
                         <td className="p-2">{item.productName}</td>
-                        <td className="p-2">{item.quantityProduced}</td>
+                        <td className="p-2">{item.quantityProduced.toLocaleString()}</td>
                       </tr>
                     );
                   })}
@@ -277,9 +277,9 @@ const InventorySummaryTab = () => {
                       (item, index) => (
                         <tr key={index} className="border-b">
                           <td className="p-2">{item.productName}</td>
-                          <td className="p-2">{item.totalQuantitySold}</td>
-                          <td className="p-2">{item.numberOfSales}</td>
-                          <td className="p-2">{item.quantityOnHand}</td>
+                          <td className="p-2">{item.totalQuantitySold.toLocaleString()}</td>
+                          <td className="p-2">{item.numberOfSales.toLocaleString()}</td>
+                          <td className="p-2">{item.quantityOnHand.toLocaleString()}</td>
                         </tr>
                       )
                     )}
