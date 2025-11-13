@@ -44,6 +44,7 @@ const permissionModules = {
     "create:purchases",
     "approve:purchases",
     "receive:goods",
+    "view:received",
     "view:suppliers",
     "create:suppliers",
     "update:suppliers",
@@ -51,17 +52,28 @@ const permissionModules = {
   ],
   "Inventory": [
    // "update:quantity",
-    "view:inventory",
-    "create:inventory",
-    "update:inventory",
-    "delete:inventory",
-    "view:adjustments",
-    "create:adjustments",
-   // "update:adjustments",
+    "view:materials",
+    "create:materials",
+    "update:materials",
+    "delete:materials",
+    "view:supplies",
+    "create:supplies",
+    "update:supplies",
+    "delete:supplies",
+    "view:materials adjustments",
+    "create:materials adjustments",
+    "view:supplies adjustments",
+    "create:supplies adjustments",
     "view:products",
     "create:products",
     "update:products",
     "delete:products",
+  ],
+    "Production": [
+    "view:production",
+    "create:production",
+   // "update:production",
+    "delete:production",
   ],
   "Accounting": [
     "view:expenses",
@@ -69,23 +81,17 @@ const permissionModules = {
     "update:expenses",
    // "approve:expenses",
     "delete:expenses",
-  //  "view:reports",
-  ],
-  "Production": [
-    "view:production",
-    "create:production",
-   // "update:production",
-    "delete:production",
-  ],
-  "Reports": [
-    "view:sales-reports",
-    "view:purchases-reports",
-    "view:inventory-reports",
-    "view:production-reports",
-    "view:accounting-reports",
-    "view:received",
     "view:profit-loss",
     "view:cash-flow",
+  //  "view:reports",
+  ],
+  "Reports": [
+    "view:sales reports",
+    "view:purchases reports",
+    "view:inventory reports",
+    "view:production reports",
+    "view:accounting reports",
+
     //"view:audit",
   ],
    "Settings": [
@@ -220,8 +226,8 @@ const RoleForm = () => {
 
       // Reports defaults
       const reportsSpecificPermissions = [
-        "view:sales-reports", "view:purchases-reports", "view:inventory-reports",
-        "view:production-reports", "view:accounting-reports", "view:audit"
+        "view:sales reports", "view:purchases reports", "view:inventory reports",
+        "view:production reports", "view:accounting reports", "view:audit"
       ];
       const hasReportsSpecific = reportsSpecificPermissions.some(perm => permissionsToSave.includes(perm));
       if (hasReportsSpecific) {
@@ -239,28 +245,70 @@ const RoleForm = () => {
   };
 
   const handlePermissionChange = useCallback((permission: string, checked: boolean) => {
-    setRoleFormData((prev) => ({
-      ...prev,
-      permissions: checked
-        ? [...new Set([...prev.permissions, permission])]
-        : prev.permissions.filter(p => p !== permission),
-    }));
+    setRoleFormData((prev) => {
+      let newPermissions = [...prev.permissions];
+
+      if (checked) {
+        // Add the permission and its related backend permissions
+        newPermissions = [...new Set([...newPermissions, permission])];
+
+        // Add backend permissions based on frontend permissions
+        if (permission.includes("materials")) {
+          const backendPerm = permission.replace("materials", "inventory");
+          newPermissions = [...new Set([...newPermissions, backendPerm])];
+        } else if (permission.includes("supplies")) {
+          const backendPerm = permission.replace("supplies", "inventory");
+          newPermissions = [...new Set([...newPermissions, backendPerm])];
+        } else if (permission.includes("materials adjustments")) {
+          newPermissions = [...new Set([...newPermissions, "view:adjustments", "create:adjustments"])];
+        } else if (permission.includes("supplies adjustments")) {
+          newPermissions = [...new Set([...newPermissions, "view:adjustments", "create:adjustments"])];
+        }
+      } else {
+        // Remove the permission
+        newPermissions = newPermissions.filter(p => p !== permission);
+      }
+
+      return {
+        ...prev,
+        permissions: newPermissions,
+      };
+    });
   }, []);
 
   const handleModuleToggle = useCallback((modulePermissions: string[], checked: boolean) => {
-    setRoleFormData((prev) => ({
-      ...prev,
-      permissions: checked
+    setRoleFormData((prev) => {
+      let newPermissions = checked
         ? [...new Set([...prev.permissions, ...modulePermissions])]
-        : prev.permissions.filter(p => !modulePermissions.includes(p)),
-    }));
+        : prev.permissions.filter(p => !modulePermissions.includes(p));
+
+      // If checking inventory module, add backend permissions for all selected frontend permissions
+      if (checked && modulePermissions.some(p => p.includes("materials") || p.includes("supplies"))) {
+        const backendPermissions: string[] = [];
+        modulePermissions.forEach(perm => {
+          if (perm.includes("materials")) {
+            backendPermissions.push(perm.replace("materials", "inventory"));
+          } else if (perm.includes("supplies")) {
+            backendPermissions.push(perm.replace("supplies", "inventory"));
+          } else if (perm.includes("materials adjustments") || perm.includes("supplies adjustments")) {
+            backendPermissions.push("view:adjustments", "create:adjustments");
+          }
+        });
+        newPermissions = [...new Set([...newPermissions, ...backendPermissions])];
+      }
+
+      return {
+        ...prev,
+        permissions: newPermissions,
+      };
+    });
   }, []);
 
   if (isEdit && roleLoading) {
     return (
       <Layout>
         <div className="flex min-h-screen bg-background">
-          <main className="flex-1 ml-64 p-6 flex items-center justify-center">
+          <main className="flex-1 p-6 flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </main>
         </div>
@@ -402,6 +450,10 @@ const RoleForm = () => {
                                     label = "Create Purchase Order";
                                   } else if (permission === "approve:purchases") {
                                     label = "Approve Purchase Order";
+                                  } else if (permission === "receive:goods") {
+                                    label = "Receive Materials";
+                                  } else if (permission === "view:received") {
+                                    label = "View Materials Received";
                                   }
                                 } else if (permissionModules["Reports"].includes(permission)) {
                                   if (permission === "view:received") {
@@ -411,13 +463,37 @@ const RoleForm = () => {
                                   } else if (permission === "view:cash-flow") {
                                     label = "View Cash Flow";
                                   }
+                                } else if (permissionModules["Accounting"].includes(permission)) {
+                                  if (permission === "view:profit-loss") {
+                                    label = "View Profit Loss";
+                                  } else if (permission === "view:cash-flow") {
+                                    label = "View Cash Flow";
+                                  }
                                 } else if (permissionModules["Inventory"].includes(permission)) {
-                                  label = label.replace(/Inventory/g, "Materials & Supplies");
-                                  if (permission.includes("adjustment")) {
-                                    label = label.replace(/Adjustment/g, "Materials & Supplies Adjustment");
+                                  if (permission.includes("materials")) {
+                                    label = label.replace(/Materials/g, "Materials");
+                                  } else if (permission.includes("supplies")) {
+                                    label = label.replace(/Supplies/g, "Supplies");
+                                  } else {
+                                    label = label.replace(/Inventory/g, "Materials & Supplies");
+                                  }
+                                  if (permission.includes("adjustments")) {
+                                    if (permission.includes("materials")) {
+                                      label = label.replace(/Materials Adjustments/g, "Materials Adjustments");
+                                    } else if (permission.includes("supplies")) {
+                                      label = label.replace(/Supplies Adjustments/g, "Supplies Adjustments");
+                                    } else {
+                                      label = label.replace(/Adjustments/g, "Materials & Supplies Adjustments");
+                                    }
                                   }
                                 } else if (permissionModules["Settings"].includes(permission)) {
-                                  if (permission.includes("adjustment-reasons")) {
+                                  if (permission.includes("business-information")) {
+                                    if (permission.startsWith("view:")) {
+                                      label = "View Business Information";
+                                    } else if (permission.startsWith("update:")) {
+                                      label = "Update Business Information";
+                                    }
+                                  } else if (permission.includes("adjustment-reasons")) {
                                     if (permission.startsWith("view:")) {
                                       label = "View Adjustment Reasons";
                                     } else if (permission.startsWith("update:")) {
@@ -425,6 +501,8 @@ const RoleForm = () => {
                                     }
                                   } else if (permission.includes("expense-categories")) {
                                     label = label.replace(/-/g, " ");
+                                  } else if (permission.includes("notifications")) {
+                                    label = label.replace(/Notifications/g, "Alerts");
                                   }
                                 }
 

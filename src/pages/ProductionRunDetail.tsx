@@ -89,7 +89,7 @@ const ProductionRunDetail = () => {
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Quantity Produced</Label>
-                  <p className="font-medium">{run.quantityProduced}</p>
+                  <p className="font-medium">{run.quantityProduced.toLocaleString()}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Date</Label>
