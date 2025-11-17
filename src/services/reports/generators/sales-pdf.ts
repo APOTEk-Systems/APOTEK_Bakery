@@ -230,9 +230,9 @@ export const generateCreditSalesPDF = (
       "",
       "",
       "",
+      "",
+      "",
       "Total:",
-      "",
-      "",
       formatCurrencyPDF(totalSales)
     ]);
     tableData.push([
@@ -240,9 +240,9 @@ export const generateCreditSalesPDF = (
       "",
       "",
       "",
+      "",
+      "",
       "Total Paid:",
-      "",
-      "",
       formatCurrencyPDF(totalPaid),
     ]);
     tableData.push([
@@ -250,9 +250,9 @@ export const generateCreditSalesPDF = (
       "",
       "",
       "",
+      "",
+      "",
       "Outstanding Total:",
-      "",
-      "",
       formatCurrencyPDF(totalBalance)
     ]);
 
@@ -266,10 +266,10 @@ export const generateCreditSalesPDF = (
         0: { cellWidth: 12 }, // #
         1: { cellWidth: 22 }, // Receipt #
         2: { cellWidth: 22 }, // Date
-        3: { cellWidth: 35 }, // Customer
+        3: { cellWidth: 31 }, // Customer
         4: { cellWidth: 30 }, // Sold By
         5: { halign: 'right', cellWidth: 22 }, // Total
-        6: { halign: 'right', cellWidth: 22 }, // Paid
+        6: { halign: 'right', cellWidth: 25 }, // Paid
         7: { halign: 'right', cellWidth: 22 }, // Balance
       },
       headStyles: {

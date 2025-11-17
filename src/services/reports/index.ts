@@ -366,7 +366,14 @@ export const reportsService = {
     try {
       const params = type ? { type } : {};
       const allItems = await import("@/services/inventory").then(m => m.inventoryService.getInventory(params));
-      const lowStockItems = allItems.filter((item: any) => item.currentQuantity <= item.minLevel);
+      const lowStockItems = allItems.filter((item: any) => {
+        // Apply unit conversions only for raw_material items
+        let displayQuantity = item.currentQuantity;
+        if (item.type === 'raw_material' && (item.unit.toLowerCase() === 'kg' || item.unit.toLowerCase() === 'l')) {
+          displayQuantity = item.currentQuantity / 1000;
+        }
+        return displayQuantity <= item.minLevel;
+      });
 
       if (lowStockItems.length === 0) {
         throw new Error(`No items found below minimum stock level${type ? ` for ${type === 'raw_material' ? 'materials' : 'supplies'}` : ''}`);
@@ -406,7 +413,14 @@ export const reportsService = {
     try {
       const params = type ? { type } : {};
       const allItems = await import("@/services/inventory").then(m => m.inventoryService.getInventory(params));
-      const outOfStockItems = allItems.filter((item: any) => item.currentQuantity <= 0);
+      const outOfStockItems = allItems.filter((item: any) => {
+        // Apply unit conversions only for raw_material items
+        let displayQuantity = item.currentQuantity;
+        if (item.type === 'raw_material' && (item.unit.toLowerCase() === 'kg' || item.unit.toLowerCase() === 'l')) {
+          displayQuantity = item.currentQuantity / 1000;
+        }
+        return displayQuantity <= 0;
+      });
 
       if (outOfStockItems.length === 0) {
         throw new Error(`No out of stock items found${type ? ` for ${type === 'raw_material' ? 'materials' : 'supplies'}` : ''}`);

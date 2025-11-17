@@ -111,6 +111,10 @@ export const generateProfitAndLossPDF = (
     },
   });
 
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
+
   return doc.output("blob");
 };
 
@@ -163,6 +167,10 @@ export const generateGrossProfitPDF = (
       }
     },
   });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -220,6 +228,10 @@ export const generateNetProfitPDF = (
       }
     },
   });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -303,7 +315,7 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
   const expensesArray = Array.isArray(data) ? data : data.data || [];
   const tableData = expensesArray.map((expense: any, index: number) => [
     (index + 1).toString(),
-    expense.date.split('T')[0], // Format date
+    format(expense.date, "dd-MM-yyyy"), // Format date
     expense.expenseCategory?.name || 'Unknown',
     formatCurrencyPDF(expense.amount),
     (expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'),
@@ -333,8 +345,8 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     columnStyles: {
       1: { cellWidth: 20 }, // Reduce Date column width
       2: { cellWidth: 25 }, // Reduce Category column width
-      3: { halign: 'right' }, // Right-align Amount column
-      4: { cellWidth: 25 }, // Reduce Payment Method column width
+      3: { halign: 'right', cellWidth:40 }, // Right-align Amount column
+      4: { cellWidth: 35 }, // Reduce Payment Method column width
       5: { cellWidth: 35 }, // Increase Updated By column width
     },
     headStyles: {
@@ -347,7 +359,7 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
         data.cell.styles.halign = 'right';
       }
       // Style summary row
-      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+      if (data.section === 'body' && data.cell.raw && typeof data.cell.raw === 'string' && data.cell.raw.includes('Total Paid:')) {
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.fillColor = [240, 240, 240];
       }
@@ -405,7 +417,7 @@ export const generateOutstandingPaymentsPDF = (
   ]);
   console.log("Table data prepared:", tableData);
 
-  // Add summary row
+  // Add summary rows
   const totalOutstanding = data.totalOutstanding || data.data.reduce((sum: number, sale: any) => sum + (sale.outstandingBalance || 0), 0);
   const totalPaid = data.data.reduce((sum: number, sale: any) => sum + ((sale as any).paid || 0), 0);
   tableData.push([
@@ -413,16 +425,16 @@ export const generateOutstandingPaymentsPDF = (
     "",
     "",
     "",
-    "Total Paid:",
-    formatCurrencyPDF(totalPaid)
+    "",
+    "Total Paid: " + formatCurrencyPDF(totalPaid),
   ]);
   tableData.push([
     "",
     "",
     "",
     "",
-    "Total Outstanding:",
-    formatCurrencyPDF(totalOutstanding)
+    "",
+    "Total Outstanding: " + formatCurrencyPDF(totalOutstanding)
   ]);
 
   autoTable(doc, {
@@ -431,9 +443,9 @@ export const generateOutstandingPaymentsPDF = (
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      3: { halign: 'right' }, // Right-align Total column
-      4: { halign: 'right', cellWidth: 20 }, // Right-align Paid column, reduce width
-      5: { halign: 'right' }, // Right-align Outstanding column
+      3: { halign: 'left', cellWidth: 35 }, // Left-align Total column for labels, increase width
+      4: { halign: 'right' }, // Right-align Paid column for values
+      5: { halign: 'right' }, // Right-align Outstanding column for values
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
@@ -444,8 +456,8 @@ export const generateOutstandingPaymentsPDF = (
       if (data.section === 'head' && (data.column.index === 3 || data.column.index === 4 || data.column.index === 5)) {
         data.cell.styles.halign = 'right';
       }
-      // Style summary row
-      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+      // Style summary rows
+      if (data.section === 'body' && data.row.index >= tableData.length - 2) {
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.fillColor = [240, 240, 240];
       }

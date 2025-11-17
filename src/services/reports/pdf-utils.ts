@@ -137,7 +137,7 @@ export const addCompanyHeader = (
     doc.setFont("helvetica", "normal");
     let dateRange: string | string[];
     if (startDate && endDate) {
-      dateRange = `From: ${startDate} To: ${endDate}`;
+      dateRange = `From: ${format(startDate, "dd-MM-yyyy")} To: ${format(endDate, "dd-MM-yyyy")} `;
     } else {
       dateRange = "All Time";
     }

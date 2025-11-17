@@ -108,6 +108,10 @@ export const generateSupplierWisePurchasesPDF = (
     },
   });
 
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
+
   return doc.output("blob");
 };
 
@@ -118,7 +122,7 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
   // Add company header
   let yPos = addCompanyHeader(
     doc,
-    "Material Receiving Report",
+    "Material Received Report",
     startDate,
     endDate,
     settings
@@ -146,6 +150,10 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
     startY: yPos,
     ...getDefaultTableStyles(),
   });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };

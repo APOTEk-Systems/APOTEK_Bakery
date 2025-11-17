@@ -1,7 +1,8 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
 import type { ProductsReport, ProductDetailsReport } from "@/types/reports";
+import { format } from "date-fns";
 
 // Products Report PDF
 export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob => {
@@ -24,6 +25,10 @@ export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob 
     ...getDefaultTableStyles(),
   });
 
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
+
   return doc.output("blob");
 };
 
@@ -32,7 +37,7 @@ export const generateProductDetailsPDF = (data: ProductDetailsReport, settings?:
   const doc = new jsPDF();
 
   // Add company header
-  let yPos = addCompanyHeader(doc, "Product Details Report", undefined, undefined, settings);
+  let yPos = addCompanyHeader(doc, "Product Details Report", undefined, undefined, settings, false);
 
   // Product details table
   const tableData = data.data.map((product, index) => [
@@ -44,11 +49,15 @@ export const generateProductDetailsPDF = (data: ProductDetailsReport, settings?:
   ]);
 
   autoTable(doc, {
-    head: [["#", "Product Name", "Price", "Average Production Cost", "Profit"]],
+    head: [["#", "Product Name", "Price", "Production Cost", "Profit"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
   });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -70,7 +79,7 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
   const expensesArray = Array.isArray(data) ? data : data.data || [];
   const tableData = expensesArray.map((expense: any, index: number) => [
     (index + 1).toString(),
-    expense.date.split('T')[0], // Format date
+    format(expense.date, "dd-MM-yyy"), // Format date
     expense.expenseCategory?.name || 'Unknown',
     formatCurrencyPDF(expense.amount),
     (expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'),
@@ -98,6 +107,7 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
+      2: { cellWidth: 25 }, // Reduce Category column width
       3: { halign: 'right' }, // Right-align Amount column
     },
     headStyles: {

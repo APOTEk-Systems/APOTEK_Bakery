@@ -15,7 +15,7 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
     'credit-sales': 'Credit Sales Report',
     'products': 'Price List Report',
     'product-details': 'Product Details Report',
-    'goods-received': 'Goods Received Report',
+    'goods-received': 'Materials Received Report',
     'purchase-orders-detailed': 'Purchase Orders Detailed Report',
     'materials-current': 'Materials Current Stock Report',
     'supplies-current': 'Supplies Current Stock Report',
@@ -158,8 +158,8 @@ export const useReportMutations = (dateRange?: DateRange, selectedSupplier?: str
   const exportGoodsReceivedMutation = createReportMutation(
     (from, to, supplierId) => reportsService.exportGoodsReceivedReport(from, to, supplierId),
     'goods-received',
-    "Goods received report generated successfully",
-    "Failed to export goods received report"
+    "Materials received report generated successfully",
+    "Failed to export materials received report"
   );
 
   // Inventory

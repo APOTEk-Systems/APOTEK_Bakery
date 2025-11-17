@@ -119,7 +119,7 @@ const ExpenseModal = ({
     }
 
     const expenseData = {
-      amount: parseFloat(amount),
+      amount: parseFloat(amount.replace(/,/g, "")),
       date: date.toISOString(),
       paymentMethod,
       notes: notes.trim() || null,
@@ -232,20 +232,29 @@ const ExpenseModal = ({
               </Label>
               <Input
                 id="amount"
-                type="text" // must be text to allow commas
+                type="text"
                 value={amount}
                 onChange={(e) => {
-                  let raw = e.target.value.replace(/,/g, ""); // Remove existing commas
+                  let value = e.target.value;
+
+                  // allow only digits + commas
+                  value = value.replace(/[^\d,]/g, "");
+
+                  // remove commas to get raw number
+                  const raw = value.replace(/,/g, "");
+
                   if (raw === "") {
-                    setAmount(""); // allow clearing
+                    setAmount("");
                     return;
                   }
-                  const num = parseFloat(raw);
+
+                  const num = Number(raw);
+
                   if (!isNaN(num)) {
-                    setAmount(num.toLocaleString());
+                    setAmount(num.toLocaleString("en-US"));
                   }
                 }}
-                placeholder="1,000"
+                placeholder="10,000,000"
                 className="col-span-3"
               />
             </div>
@@ -279,7 +288,6 @@ const ExpenseModal = ({
                 onChange={(e) => setNotes(e.target.value)}
                 className="col-span-3 min-h-10 resize-none"
                 placeholder="Brief description of the expense"
-                
               />
             </div>
           </div>

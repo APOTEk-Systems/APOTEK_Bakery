@@ -104,7 +104,15 @@ export const getProductionReport = async (
   params.append("limit", "1000");
 
   const response = await api.get(`/production?${params.toString()}`);
-  return response.data.productionRuns;
+  const productionRuns = response.data.productionRuns || [];
+
+  return {
+    data: {
+      totalProduced: productionRuns.reduce((sum, prod) => sum + (prod.quantityProduced || 0), 0),
+      production: productionRuns,
+      totalCost: productionRuns.reduce((sum, prod) => sum + (prod.cost || 0), 0)
+    }
+  };
 };
 
 // Inventory Report

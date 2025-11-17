@@ -23,7 +23,7 @@ export const generateProductionPDF = (
   );
 
   // Production table with new column structure
-  const tableData = data.map((prod, index) => [
+  const tableData = data.data.production.map((prod, index) => [
     (index + 1).toString(), // #
     format(prod.date || prod.createdAt || new Date(), "dd-MM-yyyy"), // Date
     (prod as any).product?.name || prod.product || "Unknown Product", // Product Name
@@ -32,12 +32,34 @@ export const generateProductionPDF = (
     (prod as any).producedBy?.name || (prod as any).producedBy || "Unknown", // Produced By
   ]);
 
+  // Add summary rows similar to sales reports
+  const totalProduced = data.data.production.reduce((sum, prod) => sum + (prod.quantityProduced || 0), 0);
+  const totalCost = data.data.production.reduce((sum, prod) => sum + (prod.cost || 0), 0);
+
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "Total Produced:",
+    `${totalProduced.toLocaleString()} units`,
+  ]);
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "Total Cost:",
+    formatCurrencyPDF(totalCost),
+  ]);
+
   autoTable(doc, {
     head: [["#", "Date", "Product", "Quantity", "Cost", "Produced By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
+      3: { halign: 'left' }, // Left-align Quantity in summary row
       4: { halign: 'right' }, // Right-align Cost column
     },
     headStyles: {
@@ -49,35 +71,17 @@ export const generateProductionPDF = (
       if (data.section === 'head' && data.column.index === 4) {
         data.cell.styles.halign = 'right';
       }
+      // Style summary rows (last two rows)
+      if (data.section === 'body' && (data.row.index === tableData.length - 2 || data.row.index === tableData.length - 1)) {
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [240, 240, 240];
+      }
     },
   });
 
-  // Summary (after table) - positioned bottom right of table
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  // Position summary at bottom right of table area
-  let summaryY = finalY + 10;
-
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-
-  const totalProduced = data.reduce((sum, prod) => sum + (prod.quantityProduced || 0), 0);
-  const totalCost = data.reduce((sum, prod) => sum + (prod.cost || 0), 0);
-
-  // Right-align the summary values
-  const totalProducedText = `Total Produced: ${totalProduced.toLocaleString()} units`;
-  const totalCostText = `Total Cost: ${formatCurrencyPDF(totalCost)}`;
-
-  const totalProducedWidth = doc.getTextWidth(totalProducedText);
-  const totalCostWidth = doc.getTextWidth(totalCostText);
-
-  doc.text(totalProducedText, pageWidth - totalProducedWidth - 20, summaryY);
-  summaryY += 8;
-  doc.text(totalCostText, pageWidth - totalCostWidth - 20, summaryY);
-
   // Add generated date at bottom
-  addGeneratedDate(doc, summaryY + 20);
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -116,6 +120,10 @@ export const generateFinishedGoodsSummaryPDF = (
     ...getDefaultTableStyles(),
   });
 
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
+
   return doc.output("blob");
 };
 
@@ -131,7 +139,7 @@ export const generateIngredientUsagePDF = (
   // Add company header
   let yPos = addCompanyHeader(
     doc,
-    "Ingredient Usage Report",
+    "Ingredients Usage Report",
     startDate,
     endDate,
     settings
@@ -152,7 +160,7 @@ export const generateIngredientUsagePDF = (
   });
 
   autoTable(doc, {
-    head: [["Item", "Amount", "Unit", "Date"]],
+    head: [["Item", "Quantity", "Unit", "Date"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -160,6 +168,10 @@ export const generateIngredientUsagePDF = (
       3: { cellWidth: 20 }, // Reduce Date column width
     },
   });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };

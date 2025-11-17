@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { fromBaseUnits } from "@/lib/funcs";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
 import type { InventoryReport, InventoryAdjustmentsReport, LowStockReport, OutOfStockReport } from "@/types/reports";
 
 // Inventory Report PDF
@@ -16,7 +16,7 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
   let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings, false);
 
   // Inventory table
-  const tableData = data.data.inventoryItem.map((item) => {
+  const tableData = data.data.inventoryItem.map((item, index) => {
     // Convert current quantity to displayed unit
     const displayQuantity =
       item.type === "raw_material"
@@ -31,27 +31,19 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
       displayCost *= 1000; // cost per liter
     }
 
-    // Determine stock status
-    let status = "Good Stock";
-    if (displayQuantity <= 0) {
-      status = "Out of Stock";
-    } else if (displayQuantity <= item.minLevel) {
-      status = "Low Stock";
-    }
-
     return [
+      (index + 1).toString(),
       item.name,
       item.unit,
       displayQuantity.toLocaleString(),
       item.minLevel.toLocaleString(),
       formatCurrencyPDF(displayCost),
-      status, // stock status
     ];
   });
 
   autoTable(doc, {
     head: [
-      ["Name", "Unit", "Current Qty", "Min Level", "Cost", "Status"],
+      ["#", "Name", "Unit", "Qty", "Min Level", "Cost"],
     ],
     body: tableData,
     startY: yPos,
@@ -60,9 +52,7 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  import("../pdf-utils").then(({ addGeneratedDate }) => {
-    addGeneratedDate(doc, finalY + 20);
-  });
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -91,16 +81,9 @@ export const generateInventoryAdjustmentsPDF = (
 
   // Inventory adjustments table
   const tableData = data.data.adjustments.map((adjustment, index) => {
-    // Convert quantity to display units
-    let displayQuantity = adjustment.amount;
-    let displayUnit = adjustment.inventoryItem.unit;
-
-    if (adjustment.inventoryItem.unit === "kg" || adjustment.inventoryItem.unit === "l") {
-      if (Math.abs(displayQuantity) < 1000) {
-        displayQuantity = displayQuantity / 1000;
-        displayUnit = adjustment.inventoryItem.unit === "kg" ? "g" : "ml";
-      }
-    }
+    // Convert quantity to display units using same logic as InventoryAdjustmentsTab
+    const unit = adjustment.inventoryItem.unit || "g";
+    const displayAmount = fromBaseUnits(Math.abs(adjustment.amount), unit);
 
     const adjustmentType = adjustment.amount > 0 ? "Increased" : "Deducted";
 
@@ -109,7 +92,7 @@ export const generateInventoryAdjustmentsPDF = (
       adjustment.inventoryItem.name,
       format(new Date(adjustment.createdAt), "dd-MM-yyyy"), // Format date
       adjustmentType,
-      `${displayQuantity.toFixed(2)} ${displayUnit}`,
+      `${adjustment.amount > 0 ? "+" : "-"}${displayAmount.toLocaleString()} ${unit}`,
       adjustment.reason || "No reason provided",
       adjustment.createdBy.name,
     ];
@@ -124,9 +107,7 @@ export const generateInventoryAdjustmentsPDF = (
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  import("../pdf-utils").then(({ addGeneratedDate }) => {
-    addGeneratedDate(doc, finalY + 20);
-  });
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -137,21 +118,41 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
 
   // Add company header
   const reportTitle = type === 'raw_material' ? "Materials Below Min Level Report" :
-                     type === 'supplies' ? "Supplies Below Min Level Report" :
-                     "Stock Below Min Level Report";
+                      type === 'supplies' ? "Supplies Below Min Level Report" :
+                      "Stock Below Min Level Report";
   let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings, false);
 
+  // Filter and convert items using same logic as InventoryListTab (conversions only for raw_material)
+  const lowStockItems = data.data.inventoryItem.filter((item) => {
+    let displayQuantity = item.currentQuantity;
+    if (item.type === 'raw_material' && (item.unit.toLowerCase() === 'kg' || item.unit.toLowerCase() === 'l')) {
+      displayQuantity = item.currentQuantity / 1000;
+    }
+    return displayQuantity <= item.minLevel;
+  });
+
   // Low stock table
-  const tableData = data.data.inventoryItem.map((item, index) => {
-    // Convert quantities from base units to natural units
-    let displayCurrentQty = fromBaseUnits(item.currentQuantity, item.unit);
-    let displayMinQty = item.minLevel; // minLevel is already in natural units
+  const tableData = lowStockItems.map((item, index) => {
+    // Apply same conversions as InventoryListTab (only for raw_material)
+    let displayUnit = item.unit || 'N/A';
+    let displayCurrentQty = item.currentQuantity;
+    let displayMinQty = item.minLevel;
+
+    if (item.type === 'raw_material') {
+      if (item.unit.toLowerCase() === 'kg') {
+        displayUnit = 'kg';
+        displayCurrentQty = item.currentQuantity / 1000;
+      } else if (item.unit.toLowerCase() === 'l') {
+        displayUnit = 'l';
+        displayCurrentQty = item.currentQuantity / 1000;
+      }
+    }
 
     return [
       (index + 1).toString(),
       item.name,
-      `${displayMinQty.toFixed(2)} ${item.unit}`,
-      `${displayCurrentQty.toFixed(2)} ${item.unit}`,
+      `${displayCurrentQty.toLocaleString()} ${displayUnit}`,
+      `${displayMinQty.toLocaleString()} ${displayUnit}`,
     ];
   });
 
@@ -164,9 +165,7 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  import("../pdf-utils").then(({ addGeneratedDate }) => {
-    addGeneratedDate(doc, finalY + 20);
-  });
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
@@ -177,16 +176,37 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
 
   // Add company header
   const reportTitle = type === 'raw_material' ? "Materials Out of Stock Report" :
-                     type === 'supplies' ? "Supplies Out of Stock Report" :
-                     "Out of Stock Report";
+                      type === 'supplies' ? "Supplies Out of Stock Report" :
+                      "Out of Stock Report";
   let yPos = addCompanyHeader(doc, reportTitle, undefined, undefined, settings, false);
 
+  // Filter and convert items using same logic as InventoryListTab (conversions only for raw_material)
+  const outOfStockItems = data.data.inventoryItem.filter((item) => {
+    let displayQuantity = item.currentQuantity;
+    if (item.type === 'raw_material' && (item.unit.toLowerCase() === 'kg' || item.unit.toLowerCase() === 'l')) {
+      displayQuantity = item.currentQuantity / 1000;
+    }
+    return displayQuantity <= 0;
+  });
+
   // Out of stock table
-  const tableData = data.data.inventoryItem.map((item, index) => [
-    (index + 1).toString(),
-    item.name,
-    item.unit,
-  ]);
+  const tableData = outOfStockItems.map((item, index) => {
+    // Apply same unit conversions as InventoryListTab (only for raw_material)
+    let displayUnit = item.unit || 'N/A';
+    if (item.type === 'raw_material') {
+      if (item.unit.toLowerCase() === 'kg') {
+        displayUnit = 'kg';
+      } else if (item.unit.toLowerCase() === 'l') {
+        displayUnit = 'l';
+      }
+    }
+
+    return [
+      (index + 1).toString(),
+      item.name,
+      displayUnit,
+    ];
+  });
 
   autoTable(doc, {
     head: [["#", "Item Name", "Unit"]],
@@ -197,9 +217,7 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  import("../pdf-utils").then(({ addGeneratedDate }) => {
-    addGeneratedDate(doc, finalY + 20);
-  });
+  addGeneratedDate(doc, finalY + 20);
 
   return doc.output("blob");
 };
