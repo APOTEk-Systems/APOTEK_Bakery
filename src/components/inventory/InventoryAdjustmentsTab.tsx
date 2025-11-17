@@ -131,6 +131,27 @@ const InventoryAdjustmentsTab = ({
     const rawAmount = parseFloat(amount);
     const convertedAmount = toBaseUnits(rawAmount, unit);
 
+    // Find the selected item to get current quantity
+    const selectedItem = inventoryQuery.data?.find(item => item.id.toString() === selectedItemId);
+    if (!selectedItem) {
+      toast({
+        title: "Error",
+        description: "Selected item not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate that minus adjustment doesn't exceed current quantity
+    if (action === "minus" && convertedAmount > selectedItem.currentQuantity) {
+      toast({
+        title: "Error",
+        description: "Adjustment amount cannot exceed current quantity",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Apply add/minus action
     const adjustmentAmount =
       action === "add" ? convertedAmount : -convertedAmount;

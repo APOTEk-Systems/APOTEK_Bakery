@@ -252,7 +252,7 @@ export const generateCreditSalesPDF = (
       "",
       "",
       "",
-      "Outstanding Total:",
+      "Outstanding:",
       formatCurrencyPDF(totalBalance)
     ]);
 
