@@ -40,14 +40,14 @@ export const addCompanyHeader = (
   }
 
   // Add registration details if available (only TIN and VRN)
-  let registrationInfo = "";
-  if (settings?.information?.tin) {
-    registrationInfo += `TIN: ${settings.information.tin}`;
-  }
-  if (settings?.information?.vrnNumber) {
-    if (registrationInfo) registrationInfo += " | ";
-    registrationInfo += `VRN: ${settings.information.vrnNumber}`;
-  }
+  // let registrationInfo = "";
+  // if (settings?.information?.tin) {
+  //   registrationInfo += `TIN: ${settings.information.tin}`;
+  // }
+  // if (settings?.information?.vrnNumber) {
+  //   if (registrationInfo) registrationInfo += " | ";
+  //   registrationInfo += `VRN: ${settings.information.vrnNumber}`;
+  // }
 
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -60,7 +60,7 @@ export const addCompanyHeader = (
         // We'll use a fixed width and calculate height based on aspect ratio
         // Since we can't load the image synchronously, we'll assume a reasonable aspect ratio
         // or use a callback-based approach, but for simplicity, let's use a standard approach
-        const logoWidth = 50;
+        const logoWidth = 40;
         const logoHeight = 10; // Default height, will be adjusted if possible
         doc.addImage(
           companyInfo.logo,
@@ -116,13 +116,16 @@ export const addCompanyHeader = (
   }
 
   // Add registration information if available
-  if (registrationInfo) {
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    const regWidth = doc.getTextWidth(registrationInfo);
-    doc.text(registrationInfo, (pageWidth - regWidth) / 2, yPos);
-    yPos += 8;
-  }
+  // if (registrationInfo) {
+  //   doc.setFontSize(9);
+  //   doc.setFont("helvetica", "normal");
+  //   const regWidth = doc.getTextWidth(registrationInfo);
+  //   doc.text(registrationInfo, (pageWidth - regWidth) / 2, yPos);
+  //   yPos += 8;
+  // }
+
+  // Add some vertical spacing before report title
+  yPos += 2;
 
   // Report title
   doc.setFontSize(16);
@@ -146,13 +149,19 @@ export const addCompanyHeader = (
     yPos += 6;
   }
 
-  // Generated date - moved to bottom of function, will be handled by caller
+  // Printed On date
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  const printedText = `Printed On: ${format(new Date(), "dd-MM-yyyy: HH:mm:ss")}`;
+  const printedWidth = doc.getTextWidth(printedText);
+  doc.text(printedText, (pageWidth - printedWidth) / 2, yPos);
+  yPos += 6;
 
   return yPos -=4; // Return the Y position after the header with further reduced spacing to table
 };
 
-// Helper function to add generated date and page numbers at bottom of report
-export const addGeneratedDate = (doc: jsPDF, yPos: number): void => {
+// Helper function to add page numbers at bottom of report
+export const addPageNumbers = (doc: jsPDF): void => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -166,14 +175,6 @@ export const addGeneratedDate = (doc: jsPDF, yPos: number): void => {
     const pageTextWidth = doc.getTextWidth(pageText);
     doc.text(pageText, (pageWidth - pageTextWidth) / 2, pageHeight - 10);
   }
-
-  // Add generated date on the last page
-  doc.setPage(totalPages);
-  const generatedText = `Generated: ${format(new Date(), "dd-MM-yyyy")}`;
-  const generatedWidth = doc.getTextWidth(generatedText);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(generatedText, (pageWidth - generatedWidth) / 2, yPos);
 };
 
 // Test function to check if PDF generation works

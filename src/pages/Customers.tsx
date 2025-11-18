@@ -87,6 +87,8 @@ const Customers = () => {
   const loading = customersQuery.isLoading;
   const error = customersQuery.error;
 
+  console.log(allCustomers)
+
   const filteredCustomers = customers.filter(
     (customer) =>
       customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -187,11 +189,9 @@ const Customers = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Customer</TableHead>
-                <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
+                 <TableHead>Total Credit</TableHead>
                 <TableHead className="text-center">Credit Limit</TableHead>
-                {/* <TableHead className="text-center">Total Spent</TableHead> */}
-                {/* <TableHead>Last Order</TableHead> */}
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -244,15 +244,9 @@ const Customers = () => {
                   >
                     {/* Customer Info */}
                     <TableCell className="align-middle">
-                      <span className="font-semibold">{customer.name}</span>
+                      <span className="">{customer.name}</span>
                     </TableCell>
-
-                    {/* Email */}
-                    <TableCell className="align-middle">
-                      <span className="text-sm text-muted-foreground">
-                        {customer.email || "—"}
-                      </span>
-                    </TableCell>
+                
 
                     {/* Phone */}
                     <TableCell className="align-middle">
@@ -261,8 +255,14 @@ const Customers = () => {
                       </span>
                     </TableCell>
 
+                    <TableCell className="align-middle">
+                      <span className="text-sm text-muted-foreground text-center align-middle">
+                        {customer.currentCredit || "—"}
+                      </span>
+                    </TableCell>
+
                     {/* Credit Status */}
-                    <TableCell className="text-center font-bold align-middle">
+                    <TableCell className="text-center align-middle">
                       {formatCurrency(customer.creditLimit)}
                     </TableCell>
 

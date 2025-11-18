@@ -1,6 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
 import type { ProductsReport, ProductDetailsReport } from "@/types/reports";
 import { format } from "date-fns";
 
@@ -19,7 +19,7 @@ export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob 
   ]);
 
   autoTable(doc, {
-    head: [["#", "Product Name", "Price"]],
+    head: [["#", "Product Name", "Sell Price"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
@@ -27,7 +27,7 @@ export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob 
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -57,7 +57,7 @@ export const generateProductDetailsPDF = (data: ProductDetailsReport, settings?:
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };

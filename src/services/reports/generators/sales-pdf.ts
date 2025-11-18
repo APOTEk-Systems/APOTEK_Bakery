@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
 import type { SalesReport } from "@/types/reports";
 
 // Sales Report PDF
@@ -84,7 +84,7 @@ export const generateSalesPDF = (
 
     // Add generated date at bottom
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    addGeneratedDate(doc, finalY + 20);
+    addPageNumbers(doc);
 
     const blob = doc.output("blob");
     console.log("✅ Sales PDF blob created, size:", blob.size, "bytes");
@@ -175,7 +175,7 @@ export const generateCashSalesPDF = (
 
     // Add generated date at bottom
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    addGeneratedDate(doc, finalY + 20);
+    addPageNumbers(doc);
 
     const blob = doc.output("blob");
     console.log("✅ Cash sales PDF blob created, size:", blob.size, "bytes");
@@ -242,7 +242,7 @@ export const generateCreditSalesPDF = (
       "",
       "",
       "",
-      "Total Paid:",
+      "Paid:",
       formatCurrencyPDF(totalPaid),
     ]);
     tableData.push([
@@ -252,7 +252,7 @@ export const generateCreditSalesPDF = (
       "",
       "",
       "",
-      "Outstanding:",
+      "Balance:",
       formatCurrencyPDF(totalBalance)
     ]);
 
@@ -299,7 +299,7 @@ export const generateCreditSalesPDF = (
 
     // Add generated date at bottom
     const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    addGeneratedDate(doc, finalY + 20);
+    addPageNumbers(doc);
 
     const blob = doc.output("blob");
     console.log("✅ Credit sales PDF blob created, size:", blob.size, "bytes");

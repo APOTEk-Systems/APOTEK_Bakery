@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
 import type {
   FinancialReport,
   ProfitAndLossReport,
@@ -56,9 +56,8 @@ export const generateFinancialPDF = (
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -111,9 +110,8 @@ export const generateProfitAndLossPDF = (
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -168,9 +166,8 @@ export const generateGrossProfitPDF = (
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -229,9 +226,8 @@ export const generateNetProfitPDF = (
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -291,9 +287,8 @@ export const generateExpenseBreakdownPDF = (
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -366,9 +361,8 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -402,8 +396,7 @@ export const generateOutstandingPaymentsPDF = (
       ...getDefaultTableStyles(),
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-    addGeneratedDate(doc, finalY + 20);
+    addPageNumbers(doc);
     return doc.output("blob");
   }
 
@@ -464,9 +457,8 @@ export const generateOutstandingPaymentsPDF = (
     },
   });
 
-  // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  // Add page numbers at bottom
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };

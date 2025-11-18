@@ -1,7 +1,7 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
 import type { ProductionReport, FinishedGoodsSummaryReport, IngredientUsageReport } from "@/types/reports";
 
 // Production Report PDF
@@ -81,7 +81,7 @@ export const generateProductionPDF = (
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -122,7 +122,7 @@ export const generateFinishedGoodsSummaryPDF = (
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -171,7 +171,7 @@ export const generateIngredientUsagePDF = (
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };

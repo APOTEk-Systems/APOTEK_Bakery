@@ -143,7 +143,7 @@ const ExpensesTab = ({
   return (
     <div className="space-y-6">
       {/* Expense Filters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+      <div className="flex justify-end gap-4 items-end">
         <div>
           <Label>Date Range</Label>
           <DateRangePicker
@@ -151,7 +151,7 @@ const ExpensesTab = ({
             onDateRangeChange={setDateRange}
           />
         </div>
-        <div>
+        <div className="w-48">
           <Label htmlFor="category">Category</Label>
           <Select value={filterCategory} onValueChange={setFilterCategory}>
             <SelectTrigger>

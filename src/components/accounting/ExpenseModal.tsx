@@ -43,7 +43,7 @@ interface Expense {
   amount: number;
   date: string;
   status: string;
-  paymentMethod?: "cash" | "mobile" | "bank_transfer";
+  paymentMethod?: "cash" | "mobile" | "bank" | "others";
   notes: string;
   createdAt: string;
   updatedAt: string;
@@ -70,7 +70,7 @@ const ExpenseModal = ({
   const [category, setCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<
-    "cash" | "mobile" | "bank_transfer"
+    "cash" | "mobile" | "bank" | "others"
   >("cash");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -265,7 +265,7 @@ const ExpenseModal = ({
               <Select
                 value={paymentMethod}
                 onValueChange={(value) =>
-                  setPaymentMethod(value as "cash" | "mobile" | "bank_transfer")
+                  setPaymentMethod(value as "cash" | "mobile" | "bank" | "others")
                 }
               >
                 <SelectTrigger className="col-span-3">
@@ -274,7 +274,7 @@ const ExpenseModal = ({
                 <SelectContent>
                   <SelectItem value="cash">Cash</SelectItem>
                   <SelectItem value="mobile">Mobile</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                  <SelectItem value="bank">Bank Transfer</SelectItem>
                 </SelectContent>
               </Select>
             </div>

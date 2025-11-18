@@ -2,7 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { fromBaseUnits } from "@/lib/funcs";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addGeneratedDate } from "../pdf-utils";
+import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
 import type { InventoryReport, InventoryAdjustmentsReport, LowStockReport, OutOfStockReport } from "@/types/reports";
 
 // Inventory Report PDF
@@ -52,7 +52,7 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -81,9 +81,11 @@ export const generateInventoryAdjustmentsPDF = (
 
   // Inventory adjustments table
   const tableData = data.data.adjustments.map((adjustment, index) => {
-    // Convert quantity to display units using same logic as InventoryAdjustmentsTab
+    // Convert quantity to display units only for raw_material type
     const unit = adjustment.inventoryItem.unit || "g";
-    const displayAmount = fromBaseUnits(Math.abs(adjustment.amount), unit);
+    const displayAmount = adjustment.inventoryItem.type === 'raw_material'
+      ? fromBaseUnits(Math.abs(adjustment.amount), unit)
+      : Math.abs(adjustment.amount);
 
     const adjustmentType = adjustment.amount > 0 ? "Increased" : "Deducted";
 
@@ -107,7 +109,7 @@ export const generateInventoryAdjustmentsPDF = (
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -165,7 +167,7 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
@@ -217,7 +219,7 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
-  addGeneratedDate(doc, finalY + 20);
+  addPageNumbers(doc);
 
   return doc.output("blob");
 };
