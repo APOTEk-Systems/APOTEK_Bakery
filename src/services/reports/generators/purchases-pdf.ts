@@ -137,7 +137,9 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
         (index + 1).toString(),
         receipt.supplier || "Unknown Supplier",
         receipt.itemName || "Unknown Item",
-        receipt.quantity?.toString() || "0",
+        receipt.quantity?.toLocaleString() || "0",
+        formatCurrencyPDF(receipt.price || 0),
+        formatCurrencyPDF(receipt.total || 0),
         format(receipt.receivedDate, "dd-MM-yyyy"),
         receipt.receivedBy || "Unknown",
       ]);
@@ -145,10 +147,20 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
   }
 
   autoTable(doc, {
-    head: [["#", "Supplier", "Item Name", "Qty", "Received Date", "Received By"]],
+    head: [["#", "Supplier", "Item Name", "Qty", "Price", "Total", "Received Date", "Received By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      4: { halign: 'right' }, // Right-align Price column
+      5: { halign: 'right' }, // Right-align Total column
+    },
+    didParseCell: function(data: any) {
+      // Right-align Price and Total headers
+      if (data.section === 'head' && (data.column.index === 4 || data.column.index === 5)) {
+        data.cell.styles.halign = 'right';
+      }
+    },
   });
 
   // Add generated date at bottom
