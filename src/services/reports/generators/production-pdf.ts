@@ -74,7 +74,6 @@ export const generateProductionPDF = (
       // Style summary rows (last two rows)
       if (data.section === 'body' && (data.row.index === tableData.length - 2 || data.row.index === tableData.length - 1)) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });

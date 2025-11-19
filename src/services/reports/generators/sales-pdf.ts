@@ -77,7 +77,6 @@ export const generateSalesPDF = (
         // Style summary row
         if (data.section === 'body' && data.row.index === tableData.length - 1) {
           data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [240, 240, 240];
         }
       },
     });
@@ -168,7 +167,6 @@ export const generateCashSalesPDF = (
         // Style summary row
         if (data.section === 'body' && data.row.index === tableData.length - 1) {
           data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [240, 240, 240];
         }
       },
     });
@@ -284,7 +282,6 @@ export const generateCreditSalesPDF = (
         // Style summary rows and right-align summary values
         if (data.section === 'body' && data.row.index >= tableData.length - 3) {
           data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [240, 240, 240];
           // Right-align the summary values (columns 5, 6, 7)
           if (data.column.index === 5 || data.column.index === 6 || data.column.index === 7) {
             data.cell.styles.halign = 'right';

@@ -51,7 +51,6 @@ export const generateFinancialPDF = (
       // Style summary rows
       if (data.section === 'body') {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -105,7 +104,6 @@ export const generateProfitAndLossPDF = (
       // Style key profit figures
       if (data.section === 'body' && (data.row.index === 2 || data.row.index === 4)) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -161,7 +159,6 @@ export const generateGrossProfitPDF = (
       // Style key figures
       if (data.section === 'body' && data.row.index === 2) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -221,7 +218,6 @@ export const generateNetProfitPDF = (
       // Style key figures
       if (data.section === 'body' && data.row.index === 2) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -282,7 +278,6 @@ export const generateExpenseBreakdownPDF = (
       // Style total row
       if (data.section === 'body' && data.row.index === tableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -356,7 +351,6 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
       // Style summary row
       if (data.section === 'body' && data.cell.raw && typeof data.cell.raw === 'string' && data.cell.raw.includes('Total Paid:')) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -452,7 +446,6 @@ export const generateOutstandingPaymentsPDF = (
       // Style summary rows
       if (data.section === 'body' && data.row.index >= tableData.length - 2) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });

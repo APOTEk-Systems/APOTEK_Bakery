@@ -48,7 +48,6 @@ export const generatePurchasesPDF = (
       // Style summary row
       if (data.section === 'body' && data.row.index === tableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -103,7 +102,6 @@ export const generateSupplierWisePurchasesPDF = (
       // Style summary row
       if (data.section === 'body' && data.row.index === tableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
@@ -241,7 +239,6 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
       // Style summary row
       if (data.section === 'body' && data.row.index === tableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });

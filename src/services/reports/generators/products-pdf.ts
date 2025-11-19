@@ -122,7 +122,6 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
       // Style summary row
       if (data.section === 'body' && data.row.index === tableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
-        data.cell.styles.fillColor = [240, 240, 240];
       }
     },
   });
