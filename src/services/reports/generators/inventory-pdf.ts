@@ -25,9 +25,9 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
 
     // Convert cost per unit based on unit
     let displayCost = item.cost;
-    if (item.unit === "kg") {
+    if (item.unit === "kg" && item.type === "raw_material") {
       displayCost *= 1000; // cost per kg
-    } else if (item.unit === "l") {
+    } else if (item.unit === "l" && item.type === "raw_material") {
       displayCost *= 1000; // cost per liter
     }
 
@@ -159,7 +159,7 @@ export const generateLowStockPDF = (data: LowStockReport, type?: 'raw_material' 
   });
 
   autoTable(doc, {
-    head: [["#", "Item Name", "Min Qty", "Available Qty"]],
+    head: [["#", "Item Name", "Available Qty", "Min Qty"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

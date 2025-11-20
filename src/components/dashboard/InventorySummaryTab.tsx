@@ -156,7 +156,7 @@ const InventorySummaryTab = () => {
                   {inventoryData.lowStock.items.map((item) => (
                     <tr key={item.id} className="border-b">
                       <td className="p-2">{item.name}</td>
-                      <td className="p-2 capitalize">{item.type === "raw_material" ? "Material" : "Supplies"}</td>
+                      <td className="p-2 capitalize">{item.type === "raw_material" ? "Materials" : "Supplies"}</td>
                       <td className="p-2">{item.currentQuantity.toLocaleString()}</td>
                       <td className="p-2">{item.minLevel.toLocaleString()}</td>
                       <td className="p-2">

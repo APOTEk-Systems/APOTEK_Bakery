@@ -211,12 +211,12 @@ const SaleDetail = () => {
                     {createPaymentMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     ) : null}
-                    Record Payment
+                    Pay
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Record Payment</DialogTitle>
+                    <DialogTitle>Pay</DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 gap-4">
@@ -257,7 +257,7 @@ const SaleDetail = () => {
                         Cancel
                       </Button>
                       <Button onClick={handleMakePayment}>
-                        Record Payment
+                        Pay
                       </Button>
                     </div>
                   </div>
@@ -289,9 +289,9 @@ const SaleDetail = () => {
                   </Label>
                   <Badge
                     variant={getStatusVariant(sale.status)}
-                    className="w-24"
+                    className="w-fit"
                   >
-                    {sale.status.toUpperCase()}
+                    {sale.status}
                   </Badge>
                 </div>
               </div>

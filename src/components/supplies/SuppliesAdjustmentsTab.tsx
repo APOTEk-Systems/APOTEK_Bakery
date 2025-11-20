@@ -142,7 +142,7 @@ const SuppliesAdjustmentsTab = () => {
               placeholder="Search by item name"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
+              className="w-full"
             />
           </div>
           <DateRangePicker

@@ -5,6 +5,7 @@ export interface ProductRecipe {
   productId?: number;
   inventoryItemId: number;
   amountRequired: number;
+  unit?: string;
   inventoryItem?: {
     id: number;
     name: string;
@@ -36,7 +37,13 @@ export interface Product {
   updatedAt: string;
   createdById: number;
   updatedById: number;
-  productRecipes?: ProductRecipe[];
+  productRecipes?: {
+    id?: number;
+    productId?: number;
+    inventoryItemId: number;
+    amountRequired: number;
+    unit?: string;
+  }[];
 }
 
 // Get all products
@@ -56,7 +63,7 @@ export const createProduct = async (productData: {
   name: string;
   price: number;
   instructions: string[];
-  productRecipes: {inventoryItemId: number; amountRequired: number}[];
+  productRecipes: {inventoryItemId: number; amountRequired: number; unit?: string}[];
   description?: string;
   prepTime?: number;
   status?: 'active' | 'inactive';

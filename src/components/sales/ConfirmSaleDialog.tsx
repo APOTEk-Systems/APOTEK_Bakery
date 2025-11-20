@@ -73,7 +73,8 @@ const ConfirmSaleDialog = ({
 }: ConfirmSaleDialogProps) => {
 
    const {user} = useAuth()
-   console.log(user)
+  // console.log(newSale.sale.id)
+
 
    const settingsQuery = useQuery({
      queryKey: ['settings'],
@@ -82,6 +83,26 @@ const ConfirmSaleDialog = ({
 
    const settings = settingsQuery.data;
    const receiptSize = settings?.configuration?.receiptSize || 'a5';
+
+   // Map receiptSize to receiptFormat for preview
+   const getReceiptFormat = (size: string): 'a5' | 'thermal' => {
+     if (size.startsWith('thermal')) return 'thermal';
+     return 'a5'; // a4 and a5 both use a5 format for preview
+   };
+
+   // Get max width for print based on receiptSize
+   const getPrintMaxWidth = (size: string): string => {
+     switch (size) {
+       case 'a5': return '210mm';
+       case 'a4': return '297mm';
+       case 'thermal-80mm': return '80mm';
+       case 'thermal-58mm': return '58mm';
+       default: return '48mm';
+     }
+   };
+
+   const receiptFormat = getReceiptFormat(receiptSize);
+   const printMaxWidth = getPrintMaxWidth(receiptSize);
   const handleCloseDialog = () => {
     setShowConfirmDialog(false);
     // Reset sale state when dialog closes after completion
@@ -110,7 +131,7 @@ const ConfirmSaleDialog = ({
               font-size: 10px;
               line-height: 1.2;
               margin: 10px 0;
-              max-width: ${receiptSize === 'a5' ? '210mm' : '48mm'};
+              max-width: ${printMaxWidth};
               padding: 0;
             }
             .header {
@@ -171,7 +192,7 @@ const ConfirmSaleDialog = ({
               font-size: 10px;
             }
             @media print {
-              body { margin: 20px 0; }
+              body { margin: 20px 0; max-width:${printMaxWidth};}
             }
           </style>
         </head>
@@ -184,7 +205,7 @@ const ConfirmSaleDialog = ({
           </div>
 
           <div class="info">
-            <p>Receipt #: ${newSale?.id || 'N/A'}</p>
+            <p>Receipt #: ${newSale?.sale.id || 'N/A'}</p>
             <p>Customer: ${customer?.name || customerName || 'Cash'}</p>
             <p>Issued By: ${user.name} </p>
             <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>
@@ -343,7 +364,7 @@ const ConfirmSaleDialog = ({
           </div>
         ) : previewFormat ? (
           <ReceiptPreview
-            receiptFormat={receiptSize === 'a5' ? 'a5' : 'thermal'}
+            receiptFormat={receiptFormat}
             sale={newSale}
             cart={soldCart}
             customer={soldCustomer}

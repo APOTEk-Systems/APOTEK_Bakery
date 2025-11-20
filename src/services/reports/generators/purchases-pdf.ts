@@ -144,6 +144,22 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
     });
   }
 
+  // Add summary row
+  const totalAmount = data && Array.isArray(data)
+    ? data.reduce((sum: number, receipt: any) => sum + (receipt.total || 0), 0)
+    : 0;
+
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "Total:",
+    ` ${formatCurrencyPDF(totalAmount)}`,
+    ""
+  ]);
+
   autoTable(doc, {
     head: [["#", "Supplier", "Item Name", "Qty", "Price", "Total", "Received Date", "Received By"]],
     body: tableData,
@@ -157,6 +173,10 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
       // Right-align Price and Total headers
       if (data.section === 'head' && (data.column.index === 4 || data.column.index === 5)) {
         data.cell.styles.halign = 'right';
+      }
+      // Style summary row
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+        data.cell.styles.fontStyle = 'bold';
       }
     },
   });

@@ -272,9 +272,10 @@ const ExpenseModal = ({
                   <SelectValue placeholder="Select payment method" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="mobile">Mobile</SelectItem>
-                  <SelectItem value="bank">Bank Transfer</SelectItem>
+                  <SelectItem value="cash">CASH</SelectItem>
+                  <SelectItem value="mobile">MOBILE</SelectItem>
+                  <SelectItem value="bank">BANK</SelectItem>
+                  <SelectItem value="others">OTHERS</SelectItem>
                 </SelectContent>
               </Select>
             </div>

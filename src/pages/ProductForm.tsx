@@ -85,7 +85,7 @@ const ProductForm = () => {
       name: string;
       price: number;
       instructions: string[];
-      productRecipes: { inventoryItemId: number; amountRequired: number }[];
+      productRecipes: { inventoryItemId: number; amountRequired: number; unit?: string }[];
       description?: string;
       prepTime?: number;
       status?: "active" | "inactive";
@@ -147,7 +147,7 @@ const ProductForm = () => {
             return {
               inventoryItemId: r.inventoryItemId.toString(),
               amount: r.amountRequired.toString(),
-              unit: inventoryItem?.unit || "",
+              unit: r.unit || inventoryItem?.unit || "",
             };
           })
         );
@@ -223,6 +223,7 @@ const ProductForm = () => {
         return {
           inventoryItemId: parseInt(recipe.inventoryItemId),
           amountRequired,
+          unit: recipe.unit,
         };
       });
 
@@ -253,6 +254,8 @@ const ProductForm = () => {
   const confirmSubmit = () => {
     if (!pendingProductData) return;
 
+    console.log('Product Form Data Payload:', pendingProductData);
+
     if (isEdit && id) {
       updateMutation.mutate({ id, data: pendingProductData });
     } else {
@@ -261,7 +264,6 @@ const ProductForm = () => {
 
     setShowConfirmDialog(false);
     setPendingProductData(null);
-    navigate("/products");
   };
 
   if (isEdit && productQuery.isLoading) {

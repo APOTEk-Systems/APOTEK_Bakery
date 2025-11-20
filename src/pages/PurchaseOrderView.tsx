@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/table";
 import { Truck, Loader2 } from "lucide-react";
 
-import { purchasesService, type PurchaseOrder } from "@/services/purchases";
+import { purchasesService, type PurchaseOrder, type GoodsReceiptItem } from "@/services/purchases";
 import { suppliersService } from "@/services/suppliers";
 import { getInventory, type InventoryItem } from "@/services/inventory";
 import { formatCurrency } from "@/lib/funcs";
@@ -36,9 +36,8 @@ const PurchaseOrderView = () => {
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const { user } = useAuth();
-  const isAdmin = user?.role.toLowerCase() === "admin";
   const [showDialog, setShowDialog] = useState(false);
-  const [dialogAction, setDialogAction] = useState<"approve" | "cancel" | null>(
+  const [dialogAction, setDialogAction] = useState<"approve" | "cancel" | "receive" | null>(
     null
   );
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -91,6 +90,27 @@ const PurchaseOrderView = () => {
     },
   });
 
+  const receiveGoodsMutation = useMutation({
+    mutationFn: (receiptData: { purchaseOrderId: number; items: GoodsReceiptItem[]; notes?: string }) =>
+      purchasesService.createReceipt(receiptData),
+    onSuccess: (receipt) => {
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrder", poId] });
+      toast({
+        title: "Success",
+        description: "Goods received successfully",
+      });
+      setShowDialog(false);
+      setDialogAction(null);
+    },
+    onError: (err) => {
+      toast({
+        title: "Error",
+        description: "Failed to receive goods",
+        variant: "destructive",
+      });
+    },
+  });
+
   const po = poQuery.data;
   const suppliers = suppliersQuery.data || [];
   const inventory: InventoryItem[] = inventoryQuery.data || [];
@@ -104,11 +124,24 @@ const PurchaseOrderView = () => {
   }, {} as Record<number, string>);
 
   const handleStatusUpdate = (action: "approve" | "cancel") => {
-    if (!po || !isAdmin) return;
+    if (!po) return;
     setIsUpdatingStatus(true);
     updateStatusMutation.mutate({
       id: po.id,
       status: action === "approve" ? "approved" : "cancelled",
+    });
+  };
+
+  const handleReceiveGoods = () => {
+    if (!po) return;
+    const items: GoodsReceiptItem[] = po.items.map(item => ({
+      inventoryItemId: item.inventoryItemId,
+      receivedQuantity: item.quantity,
+      cost: item.price,
+    }));
+    receiveGoodsMutation.mutate({
+      purchaseOrderId: po.id,
+      items,
     });
   };
 
@@ -166,11 +199,19 @@ const PurchaseOrderView = () => {
   const dialogTitle =
     dialogAction === "approve"
       ? "Approve Purchase Order"
-      : "Cancel Purchase Order";
+      : dialogAction === "cancel"
+      ? "Cancel Purchase Order"
+      : dialogAction === "receive"
+      ? "Receive Goods"
+      : "";
   const dialogMessage =
     dialogAction === "approve"
       ? "Are you sure you want to approve this purchase order?"
-      : "Are you sure you want to cancel this purchase order? This action cannot be undone.";
+      : dialogAction === "cancel"
+      ? "Are you sure you want to cancel this purchase order? This action cannot be undone."
+      : dialogAction === "receive"
+      ? "Are you sure you want to receive these goods?"
+      : "";
 
   return (
     <>
@@ -276,7 +317,7 @@ const PurchaseOrderView = () => {
             </Card>
 
             <div className="flex justify-end gap-2">
-                 {isAdmin && po.status === "pending" && (
+                 {po.status === "pending" && (
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -298,14 +339,27 @@ const PurchaseOrderView = () => {
                 </Button>
               )}
               {po.status === "approved" && (
-                <Button asChild>
-                  <Link to={`/purchases/${po.id}/receive`}>
-                    <Truck className="mr-2 h-4 w-4" />
-                    Receive Goods
-                  </Link>
+                <Button
+                  onClick={() => {
+                    setDialogAction("receive");
+                    setShowDialog(true);
+                  }}
+                  disabled={receiveGoodsMutation.isPending}
+                >
+                  {receiveGoodsMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Truck className="mr-2 h-4 w-4" />
+                      Receive Goods
+                    </>
+                  )}
                 </Button>
               )}
-              {isAdmin && po.status === "pending" && (
+              {po.status === "pending" && (
                 <Button
                   onClick={() => {
                     setDialogAction("approve");
@@ -335,7 +389,13 @@ const PurchaseOrderView = () => {
         onOpenChange={setShowDialog}
         title={dialogTitle}
         message={dialogMessage}
-        onConfirm={() => handleStatusUpdate(dialogAction!)}
+        onConfirm={() => {
+          if (dialogAction === "receive") {
+            handleReceiveGoods();
+          } else {
+            handleStatusUpdate(dialogAction!);
+          }
+        }}
         onCancel={() => {
           setShowDialog(false);
           setDialogAction(null);
