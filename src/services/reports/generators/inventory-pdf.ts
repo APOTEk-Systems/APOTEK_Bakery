@@ -48,6 +48,29 @@ export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      3: { halign: 'center' }, // Center Qty column
+      4: { halign: 'center' }, // Center Min Level column
+      5: { halign: 'right' }, // Right-align Cost column
+    },
+    headStyles: {
+      ...getDefaultTableStyles().headStyles,
+      halign: 'left' // Keep other headers left-aligned
+    },
+    didParseCell: function(data: any) {
+      // Center Qty header (column 3)
+      if (data.section === 'head' && data.column.index === 3) {
+        data.cell.styles.halign = 'center';
+      }
+      // Center Min Level header (column 4)
+      if (data.section === 'head' && data.column.index === 4) {
+        data.cell.styles.halign = 'center';
+      }
+      // Right-align Cost header (column 5)
+      if (data.section === 'head' && data.column.index === 5) {
+        data.cell.styles.halign = 'right';
+      }
+    },
   });
 
   // Add generated date at bottom
@@ -101,7 +124,7 @@ export const generateInventoryAdjustmentsPDF = (
   });
 
   autoTable(doc, {
-    head: [["#", "Item Name", "Date", "Type", "Quantity", "Reason", "Adj By"]],
+    head: [["#", "Item Name", "Date", "Type", "Quantity", "Reason", "Adjusted By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

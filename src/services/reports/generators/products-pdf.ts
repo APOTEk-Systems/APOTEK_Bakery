@@ -23,6 +23,16 @@ export const generateProductsPDF = (data: ProductsReport, settings?: any): Blob 
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      0: { cellWidth: 12 }, // Narrow # column
+      2: { halign: 'right' }, // Right-align Sell Price column
+    },
+    didParseCell: function(data: any) {
+      // Right-align Sell Price header (column 2)
+      if (data.section === 'head' && data.column.index === 2) {
+        data.cell.styles.halign = 'right';
+      }
+    }
   });
 
   // Add generated date at bottom
@@ -49,11 +59,25 @@ export const generateProductDetailsPDF = (data: ProductDetailsReport, settings?:
   ]);
 
   autoTable(doc, {
-    head: [["#", "Product Name", "Price", "Production Cost", "Profit"]],
+    head: [["#", "Product Name", "Price", "Cost", "Profit"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
+    columnStyles: {
+      2: { halign: 'right' }, // Right-align Price column
+      3: { halign: 'right' }, // Right-align Cost column
+      4: { halign: 'right' }, // Right-align Profit column
+    },
+
+    didParseCell: function(data: any) {
+      // Right-align Price header (column 2)
+      if (data.section === 'head' && data.column.index === 2 || data.column.index === 3 || data.column.index === 4) { 
+        data.cell.styles.halign = 'right';
+      }
+    }
   });
+
+  
 
   // Add generated date at bottom
   const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;

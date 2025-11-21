@@ -60,8 +60,8 @@ export const addCompanyHeader = (
         // We'll use a fixed width and calculate height based on aspect ratio
         // Since we can't load the image synchronously, we'll assume a reasonable aspect ratio
         // or use a callback-based approach, but for simplicity, let's use a standard approach
-        const logoWidth = 40;
-        const logoHeight = 10; // Default height, will be adjusted if possible
+        const logoWidth = 25;
+        const logoHeight = 6; // Reduced height
         doc.addImage(
           companyInfo.logo,
           "JPEG",
@@ -70,7 +70,7 @@ export const addCompanyHeader = (
           logoWidth,
           logoHeight
         );
-        yPos += logoHeight + 8;
+        yPos += logoHeight + 6;
       }
     } catch (error) {
       console.warn("Could not load logo for PDF:", error);
@@ -78,20 +78,20 @@ export const addCompanyHeader = (
   }
 
   // Company name (centered, bold, larger)
-  doc.setFontSize(18);
+  doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
   const companyNameWidth = doc.getTextWidth(companyInfo.bakeryName);
   doc.text(companyInfo.bakeryName, (pageWidth - companyNameWidth) / 2, yPos);
-  yPos += 6;
+  yPos += 4;
 
   // Company details (centered, smaller)
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
 
   if (companyInfo.address) {
     const addressWidth = doc.getTextWidth(companyInfo.address);
     doc.text(companyInfo.address, (pageWidth - addressWidth) / 2, yPos);
-    yPos += 6;
+    yPos += 4;
   }
 
   // Phone on its own line
@@ -99,7 +99,7 @@ export const addCompanyHeader = (
     const phoneText = `Phone: ${companyInfo.phone}`;
     const phoneWidth = doc.getTextWidth(phoneText);
     doc.text(phoneText, (pageWidth - phoneWidth) / 2, yPos);
-    yPos += 6;
+    yPos += 4;
   }
 
   // Email and website on same line
@@ -112,7 +112,7 @@ export const addCompanyHeader = (
   if (contactInfo) {
     const contactWidth = doc.getTextWidth(contactInfo);
     doc.text(contactInfo, (pageWidth - contactWidth) / 2, yPos);
-    yPos += 6;
+    yPos += 4;
   }
 
   // Add registration information if available
@@ -128,15 +128,15 @@ export const addCompanyHeader = (
   yPos += 2;
 
   // Report title
-  doc.setFontSize(16);
+  doc.setFontSize(14);
   doc.setFont("helvetica", "bold");
   const titleWidth = doc.getTextWidth(reportTitle);
   doc.text(reportTitle, (pageWidth - titleWidth) / 2, yPos);
-  yPos += 6;
+  yPos += 4;
 
   // Date range - only show if showDateRange is true and dates are provided
   if (showDateRange) {
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     let dateRange: string | string[];
     if (startDate && endDate) {
@@ -146,18 +146,18 @@ export const addCompanyHeader = (
     }
     const dateRangeWidth = doc.getTextWidth(dateRange);
     doc.text(dateRange, (pageWidth - dateRangeWidth) / 2, yPos);
-    yPos += 6;
+    yPos += 4;
   }
 
   // Printed On date
-  doc.setFontSize(10);
+  doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
   const printedText = `Printed On: ${format(new Date(), "dd-MM-yyyy: HH:mm:ss")}`;
   const printedWidth = doc.getTextWidth(printedText);
   doc.text(printedText, (pageWidth - printedWidth) / 2, yPos);
-  yPos += 6;
+  yPos += 4;
 
-  return yPos -=4; // Return the Y position after the header with further reduced spacing to table
+  return yPos -=2; // Return the Y position after the header with further reduced spacing to table
 };
 
 // Helper function to add page numbers at bottom of report

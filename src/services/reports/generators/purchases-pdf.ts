@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
 import type { PurchasesReport, SupplierWisePurchasesReport } from "@/types/reports";
+import { toSentenceCase } from "@/lib/funcs";
 
 // Purchases Report PDF
 export const generatePurchasesPDF = (
@@ -154,9 +155,9 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
     "",
     "",
     "",
-    "",
     "Total:",
     ` ${formatCurrencyPDF(totalAmount)}`,
+    "",
     ""
   ]);
 
@@ -190,7 +191,7 @@ export const generateGoodsReceivedPDF = (data: any, startDate?: string, endDate?
 
 // Purchase Order Detailed Report PDF
 export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, endDate?: string, settings?: any): Blob => {
-  const doc = new jsPDF();
+  const doc = new jsPDF({ orientation: 'landscape' });
 
   // Add company header
   let yPos = addCompanyHeader(
@@ -210,7 +211,7 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
         (index + 1).toString(),
         order.purchaseOrderId?.toString() || "",
         format(order.purchaseOrderDate ? new Date(order.purchaseOrderDate) : new Date(), "dd-MM-yyyy"),
-        order.status || "",
+        toSentenceCase(order.status) || "",
         order.supplierName || "",
         order.itemName || "",
         order.quantity?.toLocaleString() || "",
@@ -243,7 +244,8 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      4: { cellWidth: 30 }, // Increase width of Supplier column (index 4)
+      4: { cellWidth:45 },  // Left-align Supplier column (index 4)
+      5: { cellWidth:50 },  // Left-align Item column (index 5)
       7: { halign: 'right' }, // Right-align Price column (index 7)
       8: { halign: 'right' }, // Right-align Total column (index 8)
     },
@@ -253,7 +255,7 @@ export const generatePurchaseOrderDetailedPDF = (data: any, startDate?: string, 
     },
     didParseCell: function(data: any) {
       // Right-align Total header (column index 8)
-      if (data.section === 'head' && data.column.index === 8) {
+      if (data.section === 'head' && data.column.index === 8 || data.column.index === 7) {
         data.cell.styles.halign = 'right';
       }
       // Style summary row

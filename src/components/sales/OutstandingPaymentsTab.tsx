@@ -304,7 +304,7 @@ const OutstandingPaymentsTab: React.FC = () => {
                                   Cancel
                                 </Button>
                                 <Button onClick={handleMakePayment}>
-                                  Record Payment
+                                  Pay
                                 </Button>
                               </div>
                             </div>

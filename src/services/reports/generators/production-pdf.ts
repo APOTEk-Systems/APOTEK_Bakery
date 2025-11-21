@@ -40,17 +40,17 @@ export const generateProductionPDF = (
     "",
     "",
     "",
-    "",
     "Total Produced:",
     `${totalProduced.toLocaleString()} units`,
+    "",
   ]);
   tableData.push([
     "",
     "",
     "",
-    "",
     "Total Cost:",
     formatCurrencyPDF(totalCost),
+    "",
   ]);
 
   autoTable(doc, {
@@ -59,21 +59,26 @@ export const generateProductionPDF = (
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      3: { halign: 'left' }, // Left-align Quantity in summary row
-      4: { halign: 'right' }, // Right-align Cost column
+      3: { halign: 'center' }, // Center Quantity column
+      5: { halign: 'right' }, // Right-align Produced By column
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
       halign: 'left' // Keep other headers left-aligned
     },
     didParseCell: function(data: any) {
-      // Right-align Cost header (column 4)
-      if (data.section === 'head' && data.column.index === 4) {
+      // Center Quantity header (column 3)
+      if (data.section === 'head' && data.column.index === 3) {
+        data.cell.styles.halign = 'center';
+      }
+      // Right-align Produced By header (column 5)
+      if (data.section === 'head' && data.column.index === 5) {
         data.cell.styles.halign = 'right';
       }
-      // Style summary rows (last two rows)
+      // Style summary rows (last two rows) - remove bg styles, keep white bg
       if (data.section === 'body' && (data.row.index === tableData.length - 2 || data.row.index === tableData.length - 1)) {
         data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [255, 255, 255]; // White background
       }
     },
   });

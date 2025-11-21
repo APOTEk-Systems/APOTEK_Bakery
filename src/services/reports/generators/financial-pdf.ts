@@ -384,8 +384,8 @@ export const generateOutstandingPaymentsPDF = (
     console.log("No data to display");
     // Add empty state message
     autoTable(doc, {
-      head: [["Receipt #", "Date", "Customer", "Total", "Paid", "Outstanding"]],
-      body: [["No outstanding payments found", "", "", "", "", ""]],
+      head: [["#", "Receipt #", "Date", "Customer", "Total", "Paid", "Balance"]],
+      body: [["No outstanding payments found", "", "", "", "", "", ""]],
       startY: yPos,
       ...getDefaultTableStyles(),
     });
@@ -394,7 +394,8 @@ export const generateOutstandingPaymentsPDF = (
     return doc.output("blob");
   }
 
-  const tableData = data.data.map((sale: any) => [
+  const tableData = data.data.map((sale: any, index: number) => [
+    (index + 1).toString(),
     sale.id.toString(),
     format(sale.createdAt, "dd-MM-yyyy"),
     sale.customer?.name || "Walk-in Customer",
@@ -404,16 +405,20 @@ export const generateOutstandingPaymentsPDF = (
   ]);
   console.log("Table data prepared:", tableData);
 
-  // Add summary rows
+  // Calculate totals
   const totalOutstanding = data.totalOutstanding || data.data.reduce((sum: number, sale: any) => sum + (sale.outstandingBalance || 0), 0);
   const totalPaid = data.data.reduce((sum: number, sale: any) => sum + ((sale as any).paid || 0), 0);
+  const totalTotal = data.data.reduce((sum: number, sale: any) => sum + sale.total, 0);
+
+  // Add summary rows
   tableData.push([
     "",
     "",
     "",
     "",
     "",
-    "Total Paid: " + formatCurrencyPDF(totalPaid),
+    "Total:",
+    formatCurrencyPDF(totalTotal),
   ]);
   tableData.push([
     "",
@@ -421,18 +426,28 @@ export const generateOutstandingPaymentsPDF = (
     "",
     "",
     "",
-    "Total Outstanding: " + formatCurrencyPDF(totalOutstanding)
+    "Paid:",
+    formatCurrencyPDF(totalPaid),
+  ]);
+  tableData.push([
+    "",
+    "",
+    "",
+    "",
+    "",
+    "Balance:",
+    formatCurrencyPDF(totalOutstanding)
   ]);
 
   autoTable(doc, {
-    head: [["Receipt #", "Date", "Customer", "Total", "Paid", "Outstanding"]],
+    head: [["#", "Receipt #", "Date", "Customer", "Total", "Paid", "Balance"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      3: { halign: 'left', cellWidth: 35 }, // Left-align Total column for labels, increase width
       4: { halign: 'right' }, // Right-align Paid column for values
       5: { halign: 'right' }, // Right-align Outstanding column for values
+      6: { halign: 'right' }, // Right-align Balance column for values
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
@@ -440,12 +455,13 @@ export const generateOutstandingPaymentsPDF = (
     },
     didParseCell: function(data: any) {
       // Right-align Total, Paid and Outstanding headers
-      if (data.section === 'head' && (data.column.index === 3 || data.column.index === 4 || data.column.index === 5)) {
+      if (data.section === 'head' && (data.column.index === 4 || data.column.index === 5 || data.column.index === 6)) {
         data.cell.styles.halign = 'right';
       }
       // Style summary rows
-      if (data.section === 'body' && data.row.index >= tableData.length - 2) {
+      if (data.section === 'body' && data.row.index >= tableData.length -3) {
         data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.fillColor = [255, 255, 255]; // White background
       }
     },
   });

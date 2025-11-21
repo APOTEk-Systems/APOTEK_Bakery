@@ -144,10 +144,15 @@ const ProductForm = () => {
         setProductRecipes(
           (product as any).productRecipes.map((r: any) => {
             const inventoryItem = inventory.find(item => item.id === r.inventoryItemId);
+            const unit = r.unit || inventoryItem?.unit || "";
+            let amount = r.amountRequired;
+            if (unit.toLowerCase() === "kg" || unit.toLowerCase() === "l") {
+              amount /= 1000;
+            }
             return {
               inventoryItemId: r.inventoryItemId.toString(),
-              amount: r.amountRequired.toString(),
-              unit: r.unit || inventoryItem?.unit || "",
+              amount: amount.toString(),
+              unit,
             };
           })
         );
@@ -218,7 +223,7 @@ const ProductForm = () => {
           recipe.unit.toLowerCase() === "kg" ||
           recipe.unit.toLowerCase() === "l"
         ) {
-          amountRequired /= 1000;
+          amountRequired *= 1000;
         }
         return {
           inventoryItemId: parseInt(recipe.inventoryItemId),
