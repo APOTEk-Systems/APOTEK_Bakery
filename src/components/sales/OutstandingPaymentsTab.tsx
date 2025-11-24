@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Label } from '../ui/label';
 import { format } from 'date-fns';
+import { Loader2 } from 'lucide-react';
 import {
   Pagination,
   PaginationContent,
@@ -300,11 +301,19 @@ const OutstandingPaymentsTab: React.FC = () => {
                                     setPaymentAmount('');
                                     setSelectedSale(null);
                                   }}
+                                  disabled={createPaymentMutation.isPending}
                                 >
                                   Cancel
                                 </Button>
-                                <Button onClick={handleMakePayment}>
-                                  Pay
+                                <Button onClick={handleMakePayment} disabled={createPaymentMutation.isPending}>
+                                  {createPaymentMutation.isPending ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                      Processing...
+                                    </>
+                                  ) : (
+                                    'Pay'
+                                  )}
                                 </Button>
                               </div>
                             </div>

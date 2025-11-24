@@ -92,22 +92,17 @@ export default function GoodsReceivingTab() {
         {/* Search + Status */}
         <div className="flex flex-col sm:flex-row gap-4 w-full">
           <Input
-            placeholder="Search"
+            placeholder="Search by Order # or Supplier"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1"
           />
-        </div>
-
-        {/* Dates */}
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-col w-full">
-            <DateRangePicker
+           <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
-          </div>
         </div>
+
       </div>
       <Card>
         <CardContent className="p-0">

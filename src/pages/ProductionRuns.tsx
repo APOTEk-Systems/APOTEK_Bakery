@@ -65,14 +65,12 @@ import {
 import {getProducts, Product} from "../services/products";
 import {formatCurrency} from "@/lib/funcs";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
+import { start } from "repl";
 
 const ProductionRuns = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
-    const today = new Date();
-    return { from: today, to: today };
-  });
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -99,13 +97,16 @@ const ProductionRuns = () => {
   }, [searchTerm]);
 
   const queryClient = useQueryClient();
-
+   const today = new Date();
+    
   const productionRunsQuery = useQuery<ProductionRunsResponse>({
     queryKey: ["productionRuns", dateRange, debouncedSearchTerm, currentPage],
     queryFn: () => {
       const params: any = {
         page: currentPage,
         limit: pageSize,
+        startDate: today,
+        endDate:today,
       };
 
       // Add productName if debouncedSearchTerm is provided
@@ -388,16 +389,15 @@ const ProductionRuns = () => {
 
         {/* Filters - Moved to top */}
         <Card className="shadow-none bg-transparent border-0 mb-6">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <CardContent className="py-4 px-1">
+            <div className="flex">
+              <div className="flex-1 pr-2">
                 <Input
                   id="search"
-                  placeholder="Search by product name"
+                  placeholder="Search Production"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-4"
                 />
               </div>
               <div>
@@ -564,18 +564,10 @@ const ProductionRuns = () => {
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">
-              No production 
+              No production found
             </h3>
          
-            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Production
-                </Button>
-              </DialogTrigger>
-              {/* Dialog content as above */}
-            </Dialog>
+         
           </div>
         )}
       </div>{" "}

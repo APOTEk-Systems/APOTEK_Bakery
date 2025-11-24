@@ -37,6 +37,8 @@ import {
 } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
+import { settingsService } from "@/services/settings";
+import { useQuery } from "@tanstack/react-query";
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
@@ -68,6 +70,11 @@ const Navigation = ({
 }: NavigationProps) => {
   const location = useLocation();
   const { isAuthenticated, logout, user } = useAuth();
+
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => settingsService.getAll(),
+  });
   const [inventoryOpen, setInventoryOpen] = useState(
     location.pathname.startsWith("/inventory") ||
       location.pathname.startsWith("/supplies") ||
@@ -107,7 +114,7 @@ const Navigation = ({
             <img src="/icon.png" className="w-full" alt="Apotek Icon" />
           </div>
           <div>
-            <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
+            <h2 className="font-bold text-lg text-foreground">{settings?.information?.bakeryName || 'APOTEk System'}</h2>
             <p className="text-sm text-muted-foreground">Bakery Manager</p>
           </div>
         </div>
@@ -741,13 +748,13 @@ const Navigation = ({
         collapsed ? "w-12" : "w-64"
       } bg-card border-r border-border shadow-warm z-50 transition-all duration-300`}
     >
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between py-4 px-2 border-b">
         {!collapsed && (
           <div className="flex items-center gap-3">
             <div className="w-8 h-8  rounded-lg flex items-center justify-center">
               <img src="/icon.png" className="w-full" alt="APOTEk Logo" />
             </div>
-            <h2 className="font-bold text-lg text-foreground">APOTEk System</h2>
+            <h2 className="font-bold text-lg text-foreground">{settings?.information?.bakeryName || 'APOTEk System'}</h2>
           </div>
         )}
         <Button

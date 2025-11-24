@@ -304,14 +304,13 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
   // Expenses table
   const expensesArray = Array.isArray(data) ? data : data.data || [];
   const tableData = expensesArray.map((expense: any, index: number) => [
-    (index + 1).toString(),
-    format(expense.date, "dd-MM-yyyy"), // Format date
-    expense.expenseCategory?.name || 'Unknown',
-    formatCurrencyPDF(expense.amount),
-    (expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'),
-   // expense.notes || '',
-    //expense.createdBy?.name || 'Unknown',
-    expense.updatedBy?.name || 'N/A',
+    (index + 1).toString(), // S/N
+    format(expense.date, "dd-MM-yyyy"), // Date
+    (expense.paymentMethod?.replace('_', ' ').toUpperCase() || 'CASH'), // Payment Method
+    expense.expenseCategory?.name || 'Unknown', // Category
+    expense.notes || '', // Description
+    expense.updatedBy?.name || 'N/A', // Updated By
+    formatCurrencyPDF(expense.amount), // Amount
   ]);
 
   // Calculate total
@@ -323,21 +322,19 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     "",
     "",
     "",
-    "Total Expenses:",
+    "",
+    "Total:",
     formatCurrencyPDF(totalExpenses)
   ]);
 
   autoTable(doc, {
-    head: [["#", "Date", "Category", "Amount", "Payment Method", "Updated By"]],
+    head: [["#", "Date", "Payment Method", "Category", "Notes", "Updated By", "Amount"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      1: { cellWidth: 20 }, // Reduce Date column width
-      2: { cellWidth: 25 }, // Reduce Category column width
-      3: { halign: 'right', cellWidth:40 }, // Right-align Amount column
-      4: { cellWidth: 35 }, // Reduce Payment Method column width
-      5: { cellWidth: 35 }, // Increase Updated By column width
+      0: { cellWidth: 10 }, // S/N column width
+      6: { halign: 'right' }, // Right-align Amount column
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
@@ -345,11 +342,11 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
     },
     didParseCell: function(data: any) {
       // Right-align Amount header
-      if (data.section === 'head' && data.column.index === 3) {
+      if (data.section === 'head' && data.column.index === 6) {
         data.cell.styles.halign = 'right';
       }
       // Style summary row
-      if (data.section === 'body' && data.cell.raw && typeof data.cell.raw === 'string' && data.cell.raw.includes('Total Paid:')) {
+      if (data.section === 'body' && data.cell.raw && typeof data.cell.raw === 'string' && data.cell.raw.includes('Total Expenses:')) {
         data.cell.styles.fontStyle = 'bold';
       }
     },

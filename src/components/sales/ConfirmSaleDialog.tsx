@@ -286,8 +286,8 @@ const ConfirmSaleDialog = ({
       printWindow.document.write(printHTML);
       printWindow.document.close();
       printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+      // Note: Removed automatic print() and close() to prevent blocking the main tab.
+      // User can manually print from the new tab.
     }
   };
   return (

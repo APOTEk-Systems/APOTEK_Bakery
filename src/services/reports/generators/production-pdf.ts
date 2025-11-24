@@ -1,8 +1,17 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
-import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
-import type { ProductionReport, FinishedGoodsSummaryReport, IngredientUsageReport } from "@/types/reports";
+import {
+  addCompanyHeader,
+  getDefaultTableStyles,
+  formatCurrencyPDF,
+  addPageNumbers,
+} from "../pdf-utils";
+import type {
+  ProductionReport,
+  FinishedGoodsSummaryReport,
+  IngredientUsageReport,
+} from "@/types/reports";
 
 // Production Report PDF
 export const generateProductionPDF = (
@@ -33,8 +42,14 @@ export const generateProductionPDF = (
   ]);
 
   // Add summary rows similar to sales reports
-  const totalProduced = data.data.production.reduce((sum, prod) => sum + (prod.quantityProduced || 0), 0);
-  const totalCost = data.data.production.reduce((sum, prod) => sum + (prod.cost || 0), 0);
+  const totalProduced = data.data.production.reduce(
+    (sum, prod) => sum + (prod.quantityProduced || 0),
+    0
+  );
+  const totalCost = data.data.production.reduce(
+    (sum, prod) => sum + (prod.cost || 0),
+    0
+  );
 
   tableData.push([
     "",
@@ -44,14 +59,7 @@ export const generateProductionPDF = (
     `${totalProduced.toLocaleString()} units`,
     "",
   ]);
-  tableData.push([
-    "",
-    "",
-    "",
-    "Total Cost:",
-    formatCurrencyPDF(totalCost),
-    "",
-  ]);
+  tableData.push(["", "", "", "Total Cost:", formatCurrencyPDF(totalCost), ""]);
 
   autoTable(doc, {
     head: [["#", "Date", "Product", "Quantity", "Cost", "Produced By"]],
@@ -59,25 +67,29 @@ export const generateProductionPDF = (
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      3: { halign: 'center' }, // Center Quantity column
-      5: { halign: 'right' }, // Right-align Produced By column
+      3: { halign: "center" }, // Center Quantity column
+      5: { halign: "right" }, // Right-align Produced By column
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
-      halign: 'left' // Keep other headers left-aligned
+      halign: "left", // Keep other headers left-aligned
     },
-    didParseCell: function(data: any) {
+    didParseCell: function (data: any) {
       // Center Quantity header (column 3)
-      if (data.section === 'head' && data.column.index === 3) {
-        data.cell.styles.halign = 'center';
+      if (data.section === "head" && data.column.index === 3) {
+        data.cell.styles.halign = "center";
       }
       // Right-align Produced By header (column 5)
-      if (data.section === 'head' && data.column.index === 5) {
-        data.cell.styles.halign = 'right';
+      if (data.section === "head" && data.column.index === 5) {
+        data.cell.styles.halign = "right";
       }
       // Style summary rows (last two rows) - remove bg styles, keep white bg
-      if (data.section === 'body' && (data.row.index === tableData.length - 2 || data.row.index === tableData.length - 1)) {
-        data.cell.styles.fontStyle = 'bold';
+      if (
+        data.section === "body" &&
+        (data.row.index === tableData.length - 2 ||
+          data.row.index === tableData.length - 1)
+      ) {
+        data.cell.styles.fontStyle = "bold";
         data.cell.styles.fillColor = [255, 255, 255]; // White background
       }
     },
@@ -150,12 +162,13 @@ export const generateIngredientUsagePDF = (
   );
 
   // Ingredient usage table
-  const tableData = data.data.map((item) => {
+  const tableData = data.data.map((item, index) => {
     let displayAmount = item.amount;
 
     displayAmount = item.amount; // fromBaseUnits would be applied here if needed
 
     return [
+      (index + 1).toString(),
       item.item,
       displayAmount,
       item.unit,
@@ -164,12 +177,16 @@ export const generateIngredientUsagePDF = (
   });
 
   autoTable(doc, {
-    head: [["Item", "Quantity", "Unit", "Date"]],
+    head: [["#", "Item", "Quantity", "Unit", "Date"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),
     columnStyles: {
-      3: { cellWidth: 20 }, // Reduce Date column width
+      0: { cellWidth: 15 }, // S/N column
+      1: { cellWidth: 60 }, // Right-align Item column
+      2: { cellWidth: 50 }, // Right-align Quantity column
+      3: { cellWidth: 40 }, // Right-align Quantity column
+      4: { cellWidth: 20 }, // Right-align Date column
     },
   });
 

@@ -341,10 +341,10 @@ export default function SuppliersTab() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <Input
-          placeholder="Search"
+          placeholder="Search Suppliers"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
+          className="flex-1"
         />
         <Button
           onClick={() => {

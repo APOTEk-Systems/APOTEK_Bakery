@@ -82,10 +82,10 @@ export const addCompanyHeader = (
   doc.setFont("helvetica", "bold");
   const companyNameWidth = doc.getTextWidth(companyInfo.bakeryName);
   doc.text(companyInfo.bakeryName, (pageWidth - companyNameWidth) / 2, yPos);
-  yPos += 4;
+  yPos += 5;
 
   // Company details (centered, smaller)
-  doc.setFontSize(8);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
 
   if (companyInfo.address) {
@@ -136,7 +136,7 @@ export const addCompanyHeader = (
 
   // Date range - only show if showDateRange is true and dates are provided
   if (showDateRange) {
-    doc.setFontSize(8);
+    doc.setFontSize(9);
     doc.setFont("helvetica", "normal");
     let dateRange: string | string[];
     if (startDate && endDate) {
@@ -150,14 +150,14 @@ export const addCompanyHeader = (
   }
 
   // Printed On date
-  doc.setFontSize(8);
+  doc.setFontSize(9);
   doc.setFont("helvetica", "normal");
   const printedText = `Printed On: ${format(new Date(), "dd-MM-yyyy: HH:mm:ss")}`;
   const printedWidth = doc.getTextWidth(printedText);
   doc.text(printedText, (pageWidth - printedWidth) / 2, yPos);
   yPos += 4;
 
-  return yPos -=2; // Return the Y position after the header with further reduced spacing to table
+  return yPos -=1; // Return the Y position after the header with further reduced spacing to table
 };
 
 // Helper function to add page numbers at bottom of report

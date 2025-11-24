@@ -30,7 +30,7 @@ import { Label } from '@/components/ui/label';
 import { Eye, Loader2, Receipt, ReceiptText } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/lib/funcs';
+import { formatCurrency, toSentenceCase } from '@/lib/funcs';
 import { format } from 'date-fns';
 import ReceiptPreview from './ReceiptPreview';
 import { useAuth } from '@/contexts/AuthContext';
@@ -386,7 +386,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
               <TableCell className="py-1"> {formatCurrency(sale.total)}</TableCell>
               <TableCell className="py-1">
                 <Badge variant={getStatusVariant(sale.status)} className='p-1'>
-                  {sale.status}
+                  {toSentenceCase(sale.status)}
                 </Badge>
               </TableCell>
               <TableCell className="py-1">

@@ -178,7 +178,7 @@ const InventoryAdjustmentsTab = ({
         <div className="flex gap-4">
           <div className="flex-1">
             <Input
-              placeholder="Search by item name"
+              placeholder="Search Adjustments"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full"
@@ -247,10 +247,7 @@ const InventoryAdjustmentsTab = ({
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No adjustments found
               </h3>
-              
-              <Button onClick={() => setDialogOpen(true)}>
-                Add Adjustment
-              </Button>
+            
             </div>
           )}
         </CardContent>

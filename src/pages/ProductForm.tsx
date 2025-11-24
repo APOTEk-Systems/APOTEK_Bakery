@@ -60,14 +60,21 @@ const ProductForm = () => {
 
   const isDetailsComplete = formData.name.trim() && formData.price.trim();
 
-  const unitOptions = [
-    { value: "kg", label: "kilograms (kg)" },
-    { value: "g", label: "grams (g)" },
-    { value: "l", label: "liters (l)" },
-    { value: "ml", label: "milliliters (ml)" },
-    { value: "pcs", label: "piece (pcs)" },
-    { value: "pair", label: "pair" },
-  ];
+  const getUnitOptions = (baseUnit: string) => {
+    if (baseUnit === "kg") {
+      return [
+        { value: "kg", label: "kilograms (kg)" },
+        { value: "g", label: "grams (g)" },
+      ];
+    } else if (baseUnit === "l") {
+      return [
+        { value: "l", label: "liters (l)" },
+        { value: "ml", label: "milliliters (ml)" },
+      ];
+    } else {
+      return [{ value: baseUnit, label: `${baseUnit} (${baseUnit})` }];
+    }
+  };
 
   const productQuery = useQuery({
     queryKey: ["product", id],
@@ -189,6 +196,17 @@ const ProductForm = () => {
   const handleRecipeChange = (index: number, field: string, value: string) => {
     const newRecipes = [...productRecipes];
     newRecipes[index] = { ...newRecipes[index], [field]: value };
+
+    // If changing inventory item, set the unit from inventory
+    if (field === "inventoryItemId" && value) {
+      const inventoryItem = (inventoryQuery.data as InventoryItem[])?.find(
+        (item) => item.id.toString() === value
+      );
+      if (inventoryItem) {
+        newRecipes[index].unit = inventoryItem.unit;
+      }
+    }
+
     setProductRecipes(newRecipes);
   };
 
@@ -528,7 +546,7 @@ const ProductForm = () => {
                             <SelectValue placeholder="Select unit" />
                           </SelectTrigger>
                           <SelectContent>
-                            {unitOptions.map((option) => (
+                            {getUnitOptions(recipe.unit).map((option) => (
                               <SelectItem
                                 key={option.value}
                                 value={option.value}

@@ -38,6 +38,8 @@ const ProductionRunDetail = () => {
     );
   }
 
+  console.log(run)
+
   if (error || !run) {
     return (
       <Layout>
@@ -143,11 +145,9 @@ const ProductionRunDetail = () => {
                   {(run as any).ingredientsDeducted?.map((ingredient: any) => {
                     let unit = ingredient.unit;
 
-                    if (unit.toLowerCase() === "kg") {
-                      unit = "g";
-                    } else if (unit.toLowerCase() === "l") {
-                      unit = "ml";
-                    }
+                    if (unit.toLowerCase() === "kg" || unit.toLowerCase() === "l") {
+                      ingredient.amountDeducted = ingredient.amountDeducted / 1000;
+                    } 
 
                     return (
                       <TableRow key={ingredient.id}>

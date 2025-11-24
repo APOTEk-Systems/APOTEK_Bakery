@@ -365,7 +365,7 @@ export default function PurchaseOrdersTab() {
         {/* Search + Status */}
         <div className="flex sm:flex-row gap-4 w-full">
           <Input
-            placeholder="Search....."
+            placeholder="Search by Order # or Supplier"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="flex-1"
@@ -382,17 +382,14 @@ export default function PurchaseOrdersTab() {
               <SelectItem value="completed">Completed</SelectItem>
             </SelectContent>
           </Select>
-        </div>
 
-        {/* Dates */}
-        <div className="flex flex-col gap-4 w-full">
-          <div className="flex flex-col w-full">
-            <DateRangePicker
+           <DateRangePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
-          </div>
         </div>
+
+       
       </div>
 
       <Card>
