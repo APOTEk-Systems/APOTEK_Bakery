@@ -61,6 +61,7 @@ const ProductForm = () => {
   const isDetailsComplete = formData.name.trim() && formData.price.trim();
 
   const getUnitOptions = (baseUnit: string) => {
+    if (!baseUnit) return [];
     if (baseUnit === "kg") {
       return [
         { value: "kg", label: "kilograms (kg)" },
