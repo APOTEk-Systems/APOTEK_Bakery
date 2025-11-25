@@ -65,12 +65,15 @@ import {
 import {getProducts, Product} from "../services/products";
 import {formatCurrency} from "@/lib/funcs";
 import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
-import { start } from "repl";
+
 
 const ProductionRuns = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
+    const today = new Date();
+    return { from: today, to: today };
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -105,8 +108,6 @@ const ProductionRuns = () => {
       const params: any = {
         page: currentPage,
         limit: pageSize,
-        startDate: today,
-        endDate:today,
       };
 
       // Add productName if debouncedSearchTerm is provided
@@ -239,17 +240,6 @@ const ProductionRuns = () => {
     deleteMutation.mutate(id);
   };
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="flex min-h-screen bg-background">
-          <main className="p-6 flex items-center w-full justify-center">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </main>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -429,24 +419,6 @@ const ProductionRuns = () => {
               </CardContent>
             </Card>
             */}
-            {error ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-destructive">
-                    {error
-                      ? (error as Error)?.message || "Failed to load data"
-                      : "Failed to load data"}
-                  </p>
-                  <Button
-                    onClick={() => window.location.reload()}
-                    className="mt-4"
-                  >
-                    Retry
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <>
                 <Card>
                   <Table>
                     <TableHeader>
@@ -460,67 +432,106 @@ const ProductionRuns = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredRuns.map((run) => {
-                        const product = products.find(
-                          (p) => p.id === Number(run.productId)
-                        );
-                        const productName = product?.name || "Unknown";
-                        const costPerProduct =
-                          Number(run.cost) / run.quantityProduced;
-                        const sellingPrice = product?.price || 0;
-                        const profitMargin =
-                          sellingPrice > 0
-                            ? ((sellingPrice - costPerProduct) / sellingPrice) *
-                              100
-                            : 0;
-                        return (
-                          <TableRow key={run.id}>
-                            <TableCell className="font-medium">
-                              {productName}
-                            </TableCell>
-                            <TableCell>{run.quantityProduced.toLocaleString()}</TableCell>
-                            <TableCell>
-                              {format(new Date(run.date), "dd-MM-yyyy")}
-                            </TableCell>
-                            <TableCell>
-                              {formatCurrency(Number(run.cost))}
-                            </TableCell>
-                            <TableCell>
-                              <Badge
-                                variant={
-                                  profitMargin >= 0 ? "default" : "destructive"
-                                }
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <div className="flex items-center justify-center">
+                              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                              Loading production...
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : error ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <div className="flex flex-col items-center justify-center">
+                              <p className="text-destructive mb-2">
+                                Failed to load production runs
+                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.location.reload()}
                               >
-                                {profitMargin.toFixed(1)}%
-                              </Badge>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  asChild
-                                  disabled={deleteMutation.isPending}
+                                Retry
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : filteredRuns.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="h-24 text-center">
+                            <div className="flex flex-col items-center justify-center">
+                              <Package className="h-12 w-12 text-muted-foreground mb-4" />
+                              <h3 className="text-lg font-semibold text-foreground mb-2">
+                                No production found
+                              </h3>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredRuns.map((run) => {
+                          const product = products.find(
+                            (p) => p.id === Number(run.productId)
+                          );
+                          const productName = product?.name || "Unknown";
+                          const costPerProduct =
+                            Number(run.cost) / run.quantityProduced;
+                          const sellingPrice = product?.price || 0;
+                          const profitMargin =
+                            sellingPrice > 0
+                              ? ((sellingPrice - costPerProduct) / sellingPrice) *
+                                100
+                              : 0;
+                          return (
+                            <TableRow key={run.id}>
+                              <TableCell className="font-medium">
+                                {productName}
+                              </TableCell>
+                              <TableCell>{run.quantityProduced.toLocaleString()}</TableCell>
+                              <TableCell>
+                                {format(new Date(run.date), "dd-MM-yyyy")}
+                              </TableCell>
+                              <TableCell>
+                                {formatCurrency(Number(run.cost))}
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  variant={
+                                    profitMargin >= 0 ? "default" : "destructive"
+                                  }
                                 >
-                                  <Link to={`/production/${run.id}`}>
-                                    <Eye className="h-3 w-3" />
-                                    View
-                                  </Link>
-                                </Button>
-                                <Button
-                                  variant="destructive"
-                                  size="sm"
-                                  onClick={() => handleDelete(run.id)}
-                                  disabled={deleteMutation.isPending}
-                                >
-                                  <Trash2 className="h-3 w-3" />
-                                  Delete
-                                </Button>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                                  {profitMargin.toFixed(1)}%
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    asChild
+                                    disabled={deleteMutation.isPending}
+                                  >
+                                    <Link to={`/production/${run.id}`}>
+                                      <Eye className="h-3 w-3" />
+                                      View
+                                    </Link>
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleDelete(run.id)}
+                                    disabled={deleteMutation.isPending}
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                    Delete
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })
+                      )}
                     </TableBody>
                   </Table>
                 </Card>
@@ -555,21 +566,10 @@ const ProductionRuns = () => {
                     </PaginationContent>
                   </Pagination>
                 )}
-              </>
-            )}
           </div>
         </div>
 
-        {filteredRuns.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              No production found
-            </h3>
-         
-         
-          </div>
-        )}
+   
       </div>{" "}
     </Layout>
   );

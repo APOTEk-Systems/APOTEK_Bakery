@@ -167,14 +167,7 @@ const ExpensesTab = ({
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      {/* Expenses List */}
-      <Card className="shadow-warm">
-        <CardHeader>
-          <div className="flex justify-end items-center">
-            {/* <CardTitle>All Expenses</CardTitle> */}
-            <Button
+         <Button
               className="shadow-warm"
               onClick={() => {
                 setExpenseModalMode("add");
@@ -184,6 +177,14 @@ const ExpensesTab = ({
               <Plus className="h-4 w-4 mr-2" />
               Add Expense
             </Button>
+      </div>
+
+      {/* Expenses List */}
+      <Card className="shadow-warm">
+        <CardHeader>
+          <div className="flex justify-end items-center">
+            {/* <CardTitle>All Expenses</CardTitle> */}
+           
           </div>
         </CardHeader>
         <CardContent>

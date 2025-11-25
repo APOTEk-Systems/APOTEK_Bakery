@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { salesService, Payment } from '@/services/sales';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -12,6 +12,14 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { DateRangePicker, DateRange } from '@/components/ui/DateRange';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -28,6 +36,8 @@ const PaymentHistoryTab: React.FC = () => {
   const { toast } = useToast();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const hasViewSales = hasPermission(user, "view:sales");
 
@@ -53,6 +63,17 @@ const PaymentHistoryTab: React.FC = () => {
     const matchesCustomer = payment.customer?.name?.toLowerCase().includes(term) || false;
     return matchesSaleId || matchesCustomer;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [dateRange, searchTerm]);
 
   const formatCurrency = (amount: number) => {
     return amount.toLocaleString('en-TZ');
@@ -103,34 +124,66 @@ const PaymentHistoryTab: React.FC = () => {
             {(paymentsData || []).length === 0 ? 'No payment history found' : 'No payments match the current filters'}
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {/* <TableHead>Payment ID</TableHead> */}
-                <TableHead>Receipt #</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Payment Date</TableHead>
-                <TableHead>Received By</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredPayments.map((payment, index) => (
-                <TableRow key={payment.id} className={index % 2 === 0 ? 'bg-muted/50' : ''}>
-                  {/* <TableCell>{payment.id}</TableCell> */}
-                  <TableCell>
-                    {payment.saleId}
-                  </TableCell>
-                  <TableCell>{payment.customer?.name || 'Walk-in Customer'}</TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(payment.amount)}
-                  </TableCell>
-                  <TableCell>{format(payment.paymentDate,"dd-MM-yyyy")}</TableCell>
-                   <TableCell>{payment.receivedBy.name || '-'}</TableCell> 
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {/* <TableHead>Payment ID</TableHead> */}
+                  <TableHead>Receipt #</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Payment Date</TableHead>
+                  <TableHead>Received By</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {paginatedPayments.map((payment, index) => (
+                  <TableRow key={payment.id} className={index % 2 === 0 ? 'bg-muted/50' : ''}>
+                    {/* <TableCell>{payment.id}</TableCell> */}
+                    <TableCell>
+                      {payment.saleId}
+                    </TableCell>
+                    <TableCell>{payment.customer?.name || 'Walk-in Customer'}</TableCell>
+                    <TableCell className="font-medium">
+                      {formatCurrency(payment.amount)}
+                    </TableCell>
+                    <TableCell>{format(payment.paymentDate,"dd-MM-yyyy")}</TableCell>
+                     <TableCell>{payment.receivedBy.name || '-'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {totalPages > 1 && (
+              <div className="flex justify-center mt-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                      />
+                    </PaginationItem>
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
         )}
         </CardContent>
     </Card>

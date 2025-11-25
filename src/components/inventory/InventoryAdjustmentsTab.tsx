@@ -1,3 +1,4 @@
+
 import {useState, useEffect} from "react";
 import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
 import {Button} from "@/components/ui/button";
@@ -31,6 +32,14 @@ import {
 } from "@/components/ui/dialog";
 import {DateRangePicker, DateRange} from "@/components/ui/DateRange";
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   getInventory,
   getAdjustments,
   createAdjustment,
@@ -60,12 +69,16 @@ const InventoryAdjustmentsTab = ({
   const [reason, setReason] = useState("");
   const [action, setAction] = useState<AdjustmentAction>("add");
   const [unit, setUnit] = useState("kg");
+  const [currentPage, setCurrentPage] = useState(1);
   const {toast} = useToast();
   const queryClient = useQueryClient();
+
+  const pageSize = 10;
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when search changes
     }, 300);
     return () => clearTimeout(timer);
   }, [searchTerm]);
@@ -81,9 +94,9 @@ const InventoryAdjustmentsTab = ({
   });
 
   const adjustmentsQuery = useQuery({
-    queryKey: ['adjustments', type, dateRange, debouncedSearchTerm],
+    queryKey: ['adjustments', type, dateRange, debouncedSearchTerm, currentPage],
     queryFn: () => {
-      const params: any = {type, page: 1, limit: 100};
+      const params: any = {type, page: currentPage, limit: pageSize};
       if (debouncedSearchTerm.trim()) {
         params.search = debouncedSearchTerm.trim();
       } else {
@@ -97,6 +110,8 @@ const InventoryAdjustmentsTab = ({
       return getAdjustments(params);
     },
   });
+
+  const totalPages = adjustmentsQuery.data ? Math.ceil(adjustmentsQuery.data.total / pageSize) : 0;
 
   const createAdjustmentMutation = useMutation({
     mutationFn: createAdjustment,
@@ -247,11 +262,42 @@ const InventoryAdjustmentsTab = ({
               <h3 className="text-lg font-semibold text-foreground mb-2">
                 No adjustments found
               </h3>
-            
+
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => setCurrentPage(page)}
+                  isActive={currentPage === page}
+                  className="cursor-pointer"
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
 
       {/* Add Adjustment Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
