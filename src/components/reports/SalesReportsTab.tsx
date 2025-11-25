@@ -7,8 +7,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DateRange, DateRangePicker } from "@/components/ui/DateRange";
 import ReportLayout from "./ReportLayout";
+import { DateRange, DateRangePicker } from "@/components/ui/DateRange";
 import { useReportMutations } from "@/hooks/useReportMutations";
 
 const SalesReportsTab = () => {
@@ -18,7 +18,7 @@ const SalesReportsTab = () => {
 
   return (
     <ReportLayout
-      title="Sales Reports"
+      title="Sales Summary Reports"
       isExporting={isExporting}
       onExport={() => handleExport(selectedSalesReport)}
       isExportDisabled={!selectedSalesReport}
@@ -30,13 +30,14 @@ const SalesReportsTab = () => {
             value={selectedSalesReport}
             onValueChange={setSelectedSalesReport}
           >
-            <SelectTrigger className="my-1">
-              <SelectValue placeholder="Select sales report type" />
+              <SelectTrigger className="my-1">
+              <SelectValue placeholder="Select sales summary report" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="sales">Sales Report</SelectItem>
               <SelectItem value="cash-sales">Cash Sales Report</SelectItem>
               <SelectItem value="credit-sales">Credit Sales Report</SelectItem>
+              <SelectItem value="sales-summary">Sales Summary Report</SelectItem>
               <SelectItem value="products">Price List Report</SelectItem>
             </SelectContent>
           </Select>

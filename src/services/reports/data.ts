@@ -80,6 +80,19 @@ export const getSalesReport = async (
   return transformedData;
 };
 
+// Sales Summary Report (server-side endpoint)
+export const getSalesSummaryReport = async (
+  startDate?: string,
+  endDate?: string
+): Promise<SalesSummaryReport> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append("startDate", startDate);
+  if (endDate) params.append("endDate", endDate);
+  const response = await api.get(`/reports/sales-summary?${params.toString()}`);
+  // Backend returns { data: report } so response.data already matches our SalesSummaryReport
+  return response.data as any;
+};
+
 // Purchases Report
 export const getPurchasesReport = async (
   startDate?: string,

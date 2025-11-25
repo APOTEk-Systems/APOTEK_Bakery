@@ -10,6 +10,8 @@ export interface SalesReport {
       isCredit: boolean;
       creditDueDate: string | null;
       total: number;
+      paid?: number;
+      outstandingBalance?: number;
       status: string;
       createdAt: string;
       updatedAt: string;
@@ -159,6 +161,13 @@ export interface CustomerSalesReport {
     totalSales: number;
     totalSpent: number;
     avgSpending: number;
+  }>;
+}
+
+export interface SalesSummaryReport {
+  data: Array<{
+    date: string;
+    total: number;
   }>;
 }
 

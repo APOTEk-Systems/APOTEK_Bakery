@@ -3,6 +3,7 @@
 // Import types
 export type {
   SalesReport,
+  SalesSummaryReport,
   PurchasesReport,
   ProductionReport,
   InventoryReport,
@@ -45,6 +46,7 @@ import {
   getExpensesReport,
   getOutstandingPaymentsReport,
   getPurchaseOrderDetailedReport,
+  getSalesSummaryReport,
 } from "./data";
 
 // Import PDF utilities
@@ -95,6 +97,10 @@ import {
 } from "./generators/sales-pdf";
 
 import {
+  generateSalesSummaryPDF,
+} from "./generators/sales-summary-pdf";
+
+import {
   generatePurchasesPDF,
   generateSupplierWisePurchasesPDF,
   generateGoodsReceivedPDF,
@@ -134,6 +140,7 @@ export {
   generateSalesPDF,
   generateCashSalesPDF,
   generateCreditSalesPDF,
+  generateSalesSummaryPDF,
   generatePurchasesPDF,
   generateSupplierWisePurchasesPDF,
   generateGoodsReceivedPDF,
@@ -209,6 +216,32 @@ export const reportsService = {
       return pdfBlob;
     } catch (error) {
       console.error("❌ Error exporting sales report:", error);
+      throw error;
+    }
+  },
+
+  exportSalesSummaryReport: async (
+    startDate?: string,
+    endDate?: string
+  ): Promise<Blob> => {
+    console.log("📊 Starting sales summary report export...", {startDate, endDate});
+    try {
+      const data = await getSalesSummaryReport(startDate, endDate);
+      console.log("✅ Sales data fetched successfully for summary:", data);
+
+      let settings;
+      try {
+        const settingsService = (await import("@/services/settings")).settingsService;
+        settings = await settingsService.getAll();
+      } catch (error) {
+        console.warn("Could not fetch settings for PDF header:", error);
+      }
+
+      const pdfBlob = generateSalesSummaryPDF(data, startDate, endDate, settings);
+      console.log("📄 Sales summary PDF generated successfully");
+      return pdfBlob;
+    } catch (error) {
+      console.error("❌ Error exporting sales summary report:", error);
       throw error;
     }
   },
@@ -638,6 +671,7 @@ export const reportsService = {
     }
   },
 
+
   exportCreditSalesReport: async (
     startDate?: string,
     endDate?: string
@@ -667,6 +701,8 @@ export const reportsService = {
       throw error;
     }
   },
+
+  // Removed cash/credit sales summary; prefer using server-side summary endpoint and single generator
 
   exportSupplierWisePurchasesReport: async (
     startDate?: string,

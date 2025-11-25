@@ -18,6 +18,7 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
     'goods-received': 'Materials Received Report',
     'purchase-orders-detailed': 'Purchase Orders Detailed Report',
     'materials-current': 'Materials Current Stock Report',
+    'sales-summary': 'Sales Summary Report',
     'supplies-current': 'Supplies Current Stock Report',
     'materials-adjustment': 'Materials Adjustments Report',
     'supplies-adjustment': 'Supplies Adjustments Report',
@@ -153,6 +154,14 @@ export const useReportMutations = (dateRange?: DateRange, selectedSupplier?: str
     "Credit sales report generated successfully",
     "Failed to generate credit sales report"
   );
+
+  const exportSalesSummaryMutation = createReportMutation(
+    (from, to) => (reportsService as any).exportSalesSummaryReport(from, to),
+    'sales-summary',
+    "Sales summary report generated successfully",
+    "Failed to export sales summary report"
+  );
+
 
   // Purchases
   const exportGoodsReceivedMutation = createReportMutation(
@@ -301,6 +310,7 @@ export const useReportMutations = (dateRange?: DateRange, selectedSupplier?: str
     'sales': exportSalesMutation,
     'cash-sales': exportCashSalesMutation,
     'credit-sales': exportCreditSalesMutation,
+    'sales-summary': exportSalesSummaryMutation,
     'goods-received': exportGoodsReceivedMutation,
     'purchase-orders-detailed': exportPurchaseOrderDetailedMutation,
     'materials-current': exportMaterialsInventoryMutation,
