@@ -11,7 +11,7 @@ import type { SalesSummaryReport } from '@/types/reports';
 
 // Sales Summary Report PDF
 export const generateSalesSummaryPDF = (
-	data: SalesSummaryReport, // 
+	data: SalesSummaryReport, //
 	startDate?: string,
 	endDate?: string,
 	settings?: unknown
@@ -65,6 +65,12 @@ export const generateSalesSummaryPDF = (
 				dataItem.row.index === rows.length - 1
 			) {
 				dataItem.cell.styles.fontStyle = 'bold';
+			}
+			if (
+				dataItem.section === 'head' && // Check if it's a header cell
+				dataItem.column.index === 2 // Check if it's the 3rd column (index 2)
+			) {
+				dataItem.cell.styles.halign = 'right';
 			}
 		},
 	});

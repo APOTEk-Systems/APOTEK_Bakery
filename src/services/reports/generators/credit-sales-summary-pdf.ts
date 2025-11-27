@@ -64,6 +64,12 @@ export const generateCreditSalesSummaryPDF = (
 			) {
 				dataItem.cell.styles.fontStyle = 'bold';
 			}
+			if (
+				dataItem.section === 'head' && // Check if it's a header cell
+				dataItem.column.index === 2 // Check if it's the 3rd column (index 2)
+			) {
+				dataItem.cell.styles.halign = 'right';
+			}
 		},
 	});
 
