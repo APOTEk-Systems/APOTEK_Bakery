@@ -100,6 +100,78 @@ export const getSalesSummaryReport = async (
 	return response.data as any;
 };
 
+// Cash Sales Summary Report (server-side endpoint)
+export const getCashSalesSummaryReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<any> => {
+	const params = new URLSearchParams();
+	if (startDate) params.append('startDate', startDate);
+	if (endDate) params.append('endDate', endDate);
+	try {
+		const response = await api.get(
+			`/reports/cash-sales-summary?${params.toString()}`
+		);
+		return response.data as any;
+	} catch (err: any) {
+		// Fallback to computing server-side sales summary for cash sales if endpoint missing
+		if (err?.response?.status === 404) {
+			const resp = await salesService.getPaginatedSales({
+				limit: 10000,
+				startDate,
+				endDate,
+				isCredit: false,
+			});
+			const rows = (resp.sales || []).reduce((acc: any, sale: any) => {
+				const date = sale.createdAt.split('T')[0];
+				acc[date] = (acc[date] || 0) + (sale.total || 0);
+				return acc;
+			}, {} as Record<string, number>);
+
+			return {
+				data: Object.entries(rows).map(([date, total]) => ({ date, total })),
+			} as any;
+		}
+		throw err;
+	}
+};
+
+// Credit Summary Report (alternate endpoint)
+export const getCreditSummaryReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<any> => {
+	const params = new URLSearchParams();
+	if (startDate) params.append('startDate', startDate);
+	if (endDate) params.append('endDate', endDate);
+	try {
+		const response = await api.get(
+			`/reports/credit-summary?${params.toString()}`
+		);
+		return response.data as any;
+	} catch (err: any) {
+		// Fallback: compute credit sales summary by aggregating credit sales
+		if (err?.response?.status === 404) {
+			const resp = await salesService.getPaginatedSales({
+				limit: 10000,
+				startDate,
+				endDate,
+				isCredit: true,
+			});
+			const rows = (resp.sales || []).reduce((acc: any, sale: any) => {
+				const date = sale.createdAt.split('T')[0];
+				acc[date] = (acc[date] || 0) + (sale.total || 0);
+				return acc;
+			}, {} as Record<string, number>);
+
+			return {
+				data: Object.entries(rows).map(([date, total]) => ({ date, total })),
+			};
+		}
+		throw err;
+	}
+};
+
 // Purchases Report
 export const getPurchasesReport = async (
 	startDate?: string,

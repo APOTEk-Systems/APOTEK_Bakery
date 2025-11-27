@@ -9,37 +9,35 @@ import {
 } from '../pdf-utils';
 import type { SalesSummaryReport } from '@/types/reports';
 
-// Sales Summary Report PDF
-export const generateSalesSummaryPDF = (
-	data: SalesSummaryReport, // 
+// Credit Sales Summary Report PDF
+export const generateCreditSalesSummaryPDF = (
+	data: SalesSummaryReport | any,
 	startDate?: string,
 	endDate?: string,
 	settings?: unknown
 ): Blob => {
 	const doc = new jsPDF();
 
-	// Add company header
 	const yPos = addCompanyHeader(
 		doc,
-		'Sales Summary Report', // Updated Title
+		'Credit Sales Summary Report',
 		startDate,
 		endDate,
 		settings
 	);
 
-	// Build table rows from server-driven summary data
-	const rows = (data.data || []).map((r, idx) => [
+	// Map rows provided by the server: expect { date, total }
+	const rows = (data?.data || []).map((r: any, idx: number) => [
 		(idx + 1).toString(),
-		format(new Date(r.date), 'dd-MM-yyyy'),
-		// FIX: Use nullish coalescing (??) to default r.total to 0 if it is null or undefined.
-		formatCurrencyPDF(r.total ?? 0),
+		format(new Date(r.date || r.createdAt || Date.now()), 'dd-MM-yyyy'),
+		formatCurrencyPDF(r.total ?? r.amount ?? r.paid ?? 0),
 	]);
 
-	// FIX: Use nullish coalescing (??) to safely sum the totals, ensuring 0 is used for missing values.
-	const totalAll = (data.data || []).reduce(
-		(sum, r) => sum + (r.total ?? 0),
+	const totalAll = (data?.data || []).reduce(
+		(sum: number, r: any) => sum + (r.total ?? r.amount ?? r.paid ?? 0),
 		0
 	);
+
 	rows.push(['', 'Total:', formatCurrencyPDF(totalAll)]);
 
 	autoTable(doc, {
@@ -59,7 +57,7 @@ export const generateSalesSummaryPDF = (
 		},
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		didParseCell: function (dataItem: any) {
-			// Style summary row
+			// Bold the last total row
 			if (
 				dataItem.section === 'body' &&
 				dataItem.row.index === rows.length - 1

@@ -47,6 +47,8 @@ import {
 	getOutstandingPaymentsReport,
 	getPurchaseOrderDetailedReport,
 	getSalesSummaryReport,
+	getCashSalesSummaryReport,
+	getCreditSummaryReport,
 } from './data';
 
 // Import PDF utilities
@@ -97,6 +99,10 @@ import {
 } from './generators/sales-pdf';
 
 import { generateSalesSummaryPDF } from './generators/sales-summary-pdf';
+import { generateCreditSalesSummaryPDF } from './generators/credit-sales-summary-pdf';
+import { generateCashSalesSummaryPDF } from './generators/cash-sales-summary-pdf';
+import { generateProductionSummaryPDF } from './generators/production-summary-pdf';
+import { generateIngredientSummaryPDF } from './generators/ingredient-summary-pdf';
 
 import {
 	generatePurchasesPDF,
@@ -139,6 +145,10 @@ export {
 	generateCashSalesPDF,
 	generateCreditSalesPDF,
 	generateSalesSummaryPDF,
+	generateCashSalesSummaryPDF,
+	generateCreditSalesSummaryPDF,
+	generateProductionSummaryPDF,
+	generateIngredientSummaryPDF,
 	generatePurchasesPDF,
 	generateSupplierWisePurchasesPDF,
 	generateGoodsReceivedPDF,
@@ -254,6 +264,76 @@ export const reportsService = {
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting sales summary report:', error);
+			throw error;
+		}
+	},
+
+	exportCashSalesSummaryReport: async (
+		startDate?: string,
+		endDate?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting cash sales summary report export...', {
+			startDate,
+			endDate,
+		});
+		try {
+			const data = await getCashSalesSummaryReport(startDate, endDate);
+			console.log('✅ Cash sales summary data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateCashSalesSummaryPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Cash sales summary PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting cash sales summary report:', error);
+			throw error;
+		}
+	},
+
+	exportCreditSalesSummaryReport: async (
+		startDate?: string,
+		endDate?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting credit sales summary report export...', {
+			startDate,
+			endDate,
+		});
+		try {
+			const data = await getCreditSummaryReport(startDate, endDate);
+			console.log('✅ Credit sales summary data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateCreditSalesSummaryPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Credit sales summary PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting credit sales summary report:', error);
 			throw error;
 		}
 	},

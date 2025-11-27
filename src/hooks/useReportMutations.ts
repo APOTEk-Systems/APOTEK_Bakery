@@ -1,5 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
+import type { UseMutationResult } from '@tanstack/react-query';
 import { reportsService } from '@/services/reports';
+type ReportsServiceType = typeof reportsService;
 import { DateRange } from '@/components/ui/DateRange';
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +33,8 @@ const generateFilename = (
 		production: 'Production Report',
 		'finished-goods': 'Finished Goods Summary Report',
 		'ingredient-usage': 'Ingredient Usage Report',
+		'cash-sales-summary': 'Cash Sales Summary Report',
+		'credit-sales-summary': 'Credit Sales Summary Report',
 		'gross-profit': 'Gross Profit Report',
 		'net-profit': 'Net Profit Report',
 		expenses: 'Expenses Report',
@@ -108,7 +112,7 @@ export const useReportMutations = (
 ) => {
 	const { toast } = useToast();
 
-	const createReportMutation = (
+	const useCreateReportMutation = (
 		mutationFn: (
 			startDate?: string,
 			endDate?: string,
@@ -141,8 +145,17 @@ export const useReportMutations = (
 					});
 				}
 			},
-			onError: (error: any) => {
-				const message = error.message || errorMessage;
+			onError: (error: unknown) => {
+				let message = errorMessage;
+				if (typeof error === 'string') {
+					message = error;
+				} else if (
+					error &&
+					typeof error === 'object' &&
+					'message' in (error as { message?: string })
+				) {
+					message = (error as { message?: string }).message || message;
+				}
 				toast({
 					title: 'Error',
 					description: message,
@@ -153,36 +166,60 @@ export const useReportMutations = (
 	};
 
 	// Sales
-	const exportSalesMutation = createReportMutation(
+	const exportSalesMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportSalesReport(from, to),
 		'sales',
 		'Sales report generated successfully',
 		'Failed to export sales report'
 	);
 
-	const exportCashSalesMutation = createReportMutation(
+	const exportCashSalesMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportCashSalesReport(from, to),
 		'cash-sales',
 		'Cash sales report generated successfully',
 		'Failed to generate cash sales report'
 	);
 
-	const exportCreditSalesMutation = createReportMutation(
+	const exportCreditSalesMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportCreditSalesReport(from, to),
 		'credit-sales',
 		'Credit sales report generated successfully',
 		'Failed to generate credit sales report'
 	);
 
-	const exportSalesSummaryMutation = createReportMutation(
-		(from, to) => (reportsService as any).exportSalesSummaryReport(from, to),
+	// Summary reports
+	const exportSalesSummaryMutation = useCreateReportMutation(
+		(from, to) =>
+			(reportsService as ReportsServiceType).exportSalesSummaryReport(from, to),
 		'sales-summary',
 		'Sales summary report generated successfully',
 		'Failed to export sales summary report'
 	);
 
+	const exportCashSalesSummaryMutation = useCreateReportMutation(
+		(from, to) =>
+			(reportsService as ReportsServiceType).exportCashSalesSummaryReport(
+				from,
+				to
+			),
+		'cash-sales-summary',
+		'Cash sales summary report generated successfully',
+		'Failed to export cash sales summary report'
+	);
+
+	const exportCreditSalesSummaryMutation = useCreateReportMutation(
+		(from, to) =>
+			(reportsService as ReportsServiceType).exportCreditSalesSummaryReport(
+				from,
+				to
+			),
+		'credit-sales-summary',
+		'Credit sales summary report generated successfully',
+		'Failed to export credit sales summary report'
+	);
+
 	// Purchases
-	const exportGoodsReceivedMutation = createReportMutation(
+	const exportGoodsReceivedMutation = useCreateReportMutation(
 		(from, to, supplierId) =>
 			reportsService.exportGoodsReceivedReport(from, to, supplierId),
 		'goods-received',
@@ -191,21 +228,21 @@ export const useReportMutations = (
 	);
 
 	// Inventory
-	const exportMaterialsInventoryMutation = createReportMutation(
+	const exportMaterialsInventoryMutation = useCreateReportMutation(
 		() => reportsService.exportInventoryReport('raw_material'),
 		'materials-current',
 		'Materials current stock report generated successfully',
 		'Failed to export materials current stock report'
 	);
 
-	const exportSuppliesInventoryMutation = createReportMutation(
+	const exportSuppliesInventoryMutation = useCreateReportMutation(
 		() => reportsService.exportInventoryReport('supplies'),
 		'supplies-current',
 		'Supplies current stock report generated successfully',
 		'Failed to export supplies current stock report'
 	);
 
-	const exportMaterialsAdjustmentsMutation = createReportMutation(
+	const exportMaterialsAdjustmentsMutation = useCreateReportMutation(
 		(from, to) =>
 			reportsService.exportInventoryAdjustmentsReport(from, to, 'raw_material'),
 		'materials-adjustment',
@@ -214,7 +251,7 @@ export const useReportMutations = (
 		'No adjustments found for materials'
 	);
 
-	const exportSuppliesAdjustmentsMutation = createReportMutation(
+	const exportSuppliesAdjustmentsMutation = useCreateReportMutation(
 		(from, to) =>
 			reportsService.exportInventoryAdjustmentsReport(from, to, 'supplies'),
 		'supplies-adjustment',
@@ -223,7 +260,7 @@ export const useReportMutations = (
 		'No adjustments found for supplies'
 	);
 
-	const exportMaterialsLowStockMutation = createReportMutation(
+	const exportMaterialsLowStockMutation = useCreateReportMutation(
 		() => reportsService.exportLowStockReport('raw_material'),
 		'materials-low-stock',
 		'Materials low stock report generated successfully',
@@ -231,7 +268,7 @@ export const useReportMutations = (
 		'No items found below minimum stock level for materials'
 	);
 
-	const exportSuppliesLowStockMutation = createReportMutation(
+	const exportSuppliesLowStockMutation = useCreateReportMutation(
 		() => reportsService.exportLowStockReport('supplies'),
 		'supplies-low-stock',
 		'Supplies low stock report generated successfully',
@@ -239,7 +276,7 @@ export const useReportMutations = (
 		'No items found below minimum stock level for supplies'
 	);
 
-	const exportMaterialsOutOfStockMutation = createReportMutation(
+	const exportMaterialsOutOfStockMutation = useCreateReportMutation(
 		() => reportsService.exportOutOfStockReport('raw_material'),
 		'materials-out-of-stock',
 		'Materials out of stock report generated successfully',
@@ -247,7 +284,7 @@ export const useReportMutations = (
 		'No out of stock items found for materials'
 	);
 
-	const exportSuppliesOutOfStockMutation = createReportMutation(
+	const exportSuppliesOutOfStockMutation = useCreateReportMutation(
 		() => reportsService.exportOutOfStockReport('supplies'),
 		'supplies-out-of-stock',
 		'Supplies out of stock report generated successfully',
@@ -255,7 +292,7 @@ export const useReportMutations = (
 		'No out of stock items found for supplies'
 	);
 
-	const exportProductDetailsMutation = createReportMutation(
+	const exportProductDetailsMutation = useCreateReportMutation(
 		() => reportsService.exportProductDetailsReport(),
 		'product-details',
 		'Product details report generated successfully',
@@ -263,21 +300,21 @@ export const useReportMutations = (
 	);
 
 	// Production
-	const exportProductionMutation = createReportMutation(
+	const exportProductionMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportProductionReport(from, to),
 		'production',
 		'Production report generated successfully',
 		'Failed to export production report'
 	);
 
-	const exportFinishedGoodsSummaryMutation = createReportMutation(
+	const exportFinishedGoodsSummaryMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportFinishedGoodsSummaryReport(from, to),
 		'finished-goods',
 		'Finished goods summary report generated successfully',
 		'Failed to export products summary report'
 	);
 
-	const exportIngredientUsageMutation = createReportMutation(
+	const exportIngredientUsageMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportIngredientUsageReport(from, to),
 		'ingredient-usage',
 		'Ingredient usage report generated successfully',
@@ -285,35 +322,35 @@ export const useReportMutations = (
 	);
 
 	// Accounting
-	const exportGrossProfitMutation = createReportMutation(
+	const exportGrossProfitMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportGrossProfitReport(from, to),
 		'gross-profit',
 		'Gross profit report generated successfully',
 		'Failed to export gross profit report'
 	);
 
-	const exportNetProfitMutation = createReportMutation(
+	const exportNetProfitMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportNetProfitReport(from, to),
 		'net-profit',
 		'Net profit report generated successfully',
 		'Failed to export net profit report'
 	);
 
-	const exportExpensesMutation = createReportMutation(
+	const exportExpensesMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportExpensesReport(from, to),
 		'expenses',
 		'Expenses report generated successfully',
 		'Failed to export expenses report'
 	);
 
-	const exportOutstandingPaymentsMutation = createReportMutation(
+	const exportOutstandingPaymentsMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportOutstandingPaymentsReport(from, to),
 		'outstanding-payments',
 		'Outstanding payments report generated successfully',
 		'Failed to export outstanding payments report'
 	);
 
-	const exportPurchaseOrderDetailedMutation = createReportMutation(
+	const exportPurchaseOrderDetailedMutation = useCreateReportMutation(
 		(from, to, supplierId) =>
 			reportsService.exportPurchaseOrderDetailedReport(from, to, supplierId),
 		'purchase-orders-detailed',
@@ -321,18 +358,22 @@ export const useReportMutations = (
 		'Failed to export purchase order detailed report'
 	);
 
-	const exportProductsMutation = createReportMutation(
+	const exportProductsMutation = useCreateReportMutation(
 		() => reportsService.exportProductsReport(),
 		'products',
 		'Products report generated successfully',
 		'Failed to export products report'
 	);
 
-	const mutations = {
+	type ReportMutation = UseMutationResult<Blob, unknown, void, unknown>;
+
+	const mutations: Record<string, ReportMutation> = {
 		sales: exportSalesMutation,
 		'cash-sales': exportCashSalesMutation,
 		'credit-sales': exportCreditSalesMutation,
 		'sales-summary': exportSalesSummaryMutation,
+		'cash-sales-summary': exportCashSalesSummaryMutation,
+		'credit-sales-summary': exportCreditSalesSummaryMutation,
 		'goods-received': exportGoodsReceivedMutation,
 		'purchase-orders-detailed': exportPurchaseOrderDetailedMutation,
 		'materials-current': exportMaterialsInventoryMutation,
@@ -355,8 +396,9 @@ export const useReportMutations = (
 	};
 
 	const handleExport = (reportType: string) => {
-		if (reportType in mutations) {
-			(mutations as any)[reportType].mutate();
+		const m = mutations[reportType];
+		if (m && typeof m.mutate === 'function') {
+			m.mutate();
 		}
 	};
 
