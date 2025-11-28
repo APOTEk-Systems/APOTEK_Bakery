@@ -219,6 +219,22 @@ export interface ProfitAndLossReport {
 				totalSales: number;
 				costOfGoodsSold: number;
 			};
+
+			export interface ProductionSummaryReport {
+				data: Array<{
+					date: string;
+					product: string;
+					quantity: number;
+				}>;
+			}
+
+			export interface IngredientSummaryReport {
+				data: Array<{
+					date: string;
+					ingredient: string;
+					quantity: number;
+				}>;
+			}
 			result: number;
 		};
 		netProfit: {

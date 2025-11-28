@@ -63,7 +63,7 @@ export const generateCashSalesSummaryPDF = (
 				dataItem.column.index === 2 // Check if it's the 3rd column (index 2)
 			) {
 				dataItem.cell.styles.halign = 'right';
-			}
+			} s
 		},
 	});
 

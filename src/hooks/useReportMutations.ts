@@ -33,6 +33,8 @@ const generateFilename = (
 		production: 'Production Report',
 		'finished-goods': 'Finished Goods Summary Report',
 		'ingredient-usage': 'Ingredient Usage Report',
+		'production-summary': 'Production Summary Report',
+		'ingredient-summary': 'Ingredients Summary Report',
 		'cash-sales-summary': 'Cash Sales Summary Report',
 		'credit-sales-summary': 'Credit Sales Summary Report',
 		'gross-profit': 'Gross Profit Report',
@@ -321,6 +323,21 @@ export const useReportMutations = (
 		'Failed to export ingredient usage report'
 	);
 
+	const exportProductionSummaryMutation = useCreateReportMutation(
+		(from, to) => (reportsService as ReportsServiceType).exportProductionSummaryReport(from, to),
+		'production-summary',
+		'Production summary report generated successfully',
+		'Failed to export production summary report'
+	);
+
+	const exportIngredientSummaryMutation = useCreateReportMutation(
+		(from, to) => (reportsService as ReportsServiceType).exportIngredientSummaryReport(from, to),
+		'ingredient-summary',
+		'Ingredients summary report generated successfully',
+		'Failed to export ingredients summary report'
+	);
+
+
 	// Accounting
 	const exportGrossProfitMutation = useCreateReportMutation(
 		(from, to) => reportsService.exportGrossProfitReport(from, to),
@@ -388,6 +405,8 @@ export const useReportMutations = (
 		production: exportProductionMutation,
 		'finished-goods': exportFinishedGoodsSummaryMutation,
 		'ingredient-usage': exportIngredientUsageMutation,
+		'production-summary': exportProductionSummaryMutation,
+		'ingredient-summary': exportIngredientSummaryMutation,
 		'gross-profit': exportGrossProfitMutation,
 		'net-profit': exportNetProfitMutation,
 		expenses: exportExpensesMutation,

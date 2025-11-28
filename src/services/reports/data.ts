@@ -15,10 +15,13 @@ import type {
 	IngredientPurchaseTrendReport,
 	FinishedGoodsSummaryReport,
 	IngredientUsageReport,
+ 	SalesSummaryReport,
 	ProfitAndLossReport,
 	ExpenseBreakdownReport,
 	ProductsReport,
 	ProductDetailsReport,
+	 ProductionSummaryReport,
+	 IngredientSummaryReport,
 } from '@/types/reports';
 
 // Sales Report - now pulls from sales service with proper filtering
@@ -211,6 +214,30 @@ export const getProductionReport = async (
 			),
 		},
 	};
+};
+
+// Production Summary Report (server-side endpoint)
+export const getProductionSummaryReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<ProductionSummaryReport> => {
+	const params = new URLSearchParams();
+	if (startDate) params.append('startDate', startDate);
+	if (endDate) params.append('endDate', endDate);
+	const response = await api.get(`/reports/production-summary?${params.toString()}`);
+	return response.data as any;
+};
+
+// Ingredient Summary Report (server-side endpoint)
+export const getIngredientSummaryReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<IngredientSummaryReport> => {
+	const params = new URLSearchParams();
+	if (startDate) params.append('startDate', startDate);
+	if (endDate) params.append('endDate', endDate);
+	const response = await api.get(`/reports/ingredient-summary?${params.toString()}`);
+	return response.data as any;
 };
 
 // Inventory Report

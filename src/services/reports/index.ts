@@ -36,6 +36,8 @@ import {
 	getSupplierWisePurchasesReport,
 	getIngredientPurchaseTrendReport,
 	getFinishedGoodsSummaryReport,
+	getProductionSummaryReport,
+	getIngredientSummaryReport,
 	getIngredientUsageReport,
 	getProfitAndLossReport,
 	getExpenseBreakdownReport,
@@ -81,6 +83,8 @@ export {
 	getProductDetailsReport,
 	getGoodsReceivedReport,
 	getProductionSummary,
+	getProductionSummaryReport,
+	getIngredientSummaryReport,
 	getExpensesReport,
 	getOutstandingPaymentsReport,
 	getPurchaseOrderDetailedReport,
@@ -981,6 +985,76 @@ export const reportsService = {
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting products summary report:', error);
+			throw error;
+		}
+	},
+
+	exportProductionSummaryReport: async (
+		startDate?: string,
+		endDate?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting production summary report export...', {
+			startDate,
+			endDate,
+		});
+		try {
+			const data = await getProductionSummaryReport(startDate, endDate);
+			console.log('✅ Production summary data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateProductionSummaryPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Production summary PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting production summary report:', error);
+			throw error;
+		}
+	},
+
+	exportIngredientSummaryReport: async (
+		startDate?: string,
+		endDate?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting ingredient summary report export...', {
+			startDate,
+			endDate,
+		});
+		try {
+			const data = await getIngredientSummaryReport(startDate, endDate);
+			console.log('✅ Ingredient summary data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateIngredientSummaryPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Ingredient summary PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting ingredient summary report:', error);
 			throw error;
 		}
 	},
