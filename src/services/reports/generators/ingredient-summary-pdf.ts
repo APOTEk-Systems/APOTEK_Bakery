@@ -31,16 +31,10 @@ export const generateIngredientSummaryPDF = (
 		(idx + 1).toString(),
 		format(new Date(r.date || r.createdAt || Date.now()), 'dd-MM-yyyy'),
 		r.ingredient ?? r.item ?? 'Unknown',
-		(r.quantity ?? r.amount ?? r.total ?? 0).toString(),
+		(r.quantity ?? r.amount ?? r.total ?? 0).toFixed(2) + ' ' + (r.unit || ''),
 	]);
 
-	const totalAll = (data?.data || []).reduce(
-		(sum: number, r: any) => sum + (r.quantity ?? r.amount ?? r.total ?? 0),
-		0
-	);
-
-	rows.push(['', '', 'Total:', totalAll.toString()]);
-
+	
 	autoTable(doc, {
 		head: [['#', 'Date', 'Ingredient', 'Quantity']],
 		body: rows,
@@ -48,6 +42,13 @@ export const generateIngredientSummaryPDF = (
 		margin: { left: 20, right: 20 },
 		...getDefaultTableStyles(),
 		columnStyles: { 0: { cellWidth: 12 }, 1: {}, 2: {}, 3: { halign: 'right' } },
+		didParseCell: function (dataItem: any) {
+			if (
+				dataItem.section === 'head' &&
+				dataItem.column.index === 3){
+				dataItem.cell.styles.halign = 'right';
+				}
+			}
 	});
 
 	addPageNumbers(doc);

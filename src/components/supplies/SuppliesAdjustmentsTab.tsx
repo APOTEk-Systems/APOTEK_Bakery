@@ -89,10 +89,10 @@ const SuppliesAdjustmentsTab = () => {
         params.search = debouncedSearchTerm.trim();
       } else {
         if (dateRange?.from) {
-          params.startDate = dateRange.from.toISOString().split("T")[0];
+          params.startDate = format(dateRange.from, "yyyy-MM-dd");
         }
         if (dateRange?.to) {
-          params.endDate = dateRange.to.toISOString().split("T")[0];
+          params.endDate = format(dateRange.to, "yyyy-MM-dd");
         }
       }
       return getAdjustments(params);

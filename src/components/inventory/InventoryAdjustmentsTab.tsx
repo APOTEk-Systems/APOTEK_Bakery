@@ -60,7 +60,7 @@ const InventoryAdjustmentsTab = ({
   type,
   title,
 }: InventoryAdjustmentsTabProps) => {
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -101,15 +101,17 @@ const InventoryAdjustmentsTab = ({
         params.search = debouncedSearchTerm.trim();
       } else {
         if (dateRange?.from) {
-          params.startDate = dateRange.from.toISOString().split('T')[0];
+          params.startDate = format(dateRange.from, "yyyy-MM-dd");
         }
         if (dateRange?.to) {
-          params.endDate = dateRange.to.toISOString().split('T')[0];
+          params.endDate = format(dateRange.to, "yyyy-MM-dd");
         }
       }
       return getAdjustments(params);
     },
   });
+
+  console.log(dateRange)
 
   const totalPages = adjustmentsQuery.data ? Math.ceil(adjustmentsQuery.data.total / pageSize) : 0;
 

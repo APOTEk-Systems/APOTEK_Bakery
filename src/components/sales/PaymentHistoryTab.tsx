@@ -23,6 +23,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useQuery } from '@tanstack/react-query';
 import { format } from 'date-fns';
+import { format as formatDate } from 'date-fns';
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {

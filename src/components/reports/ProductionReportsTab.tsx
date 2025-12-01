@@ -92,16 +92,8 @@ const ProductionReportsTab = () => {
           />
         </div>
       </div>
-
-      {/* Display production runs data */}
-      {selectedProductionReport === "production" && productionRuns.length > 0 && (
-        <div className="mt-6">
-          <div className="text-sm text-muted-foreground mb-2">
-            Found {total} production runs for the selected date range
-          </div>
-        </div>
-      )}
-
+{/* 
+     
       {selectedProductionReport === 'production-summary' && productionSummaryQuery.data?.data?.length > 0 && (
         <div className="mt-6">
           <table className="w-full table-auto text-sm">
@@ -150,7 +142,7 @@ const ProductionReportsTab = () => {
             </tbody>
           </table>
         </div>
-      )}
+      )} */}
     </ReportLayout>
   );
 };

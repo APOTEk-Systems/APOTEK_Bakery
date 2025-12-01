@@ -18,8 +18,6 @@ const Inventory = lazy(() => import("./pages/Inventory"));
 const Supplies = lazy(() => import("./pages/Supplies"));
 const SuppliesForm = lazy(() => import("./pages/SuppliesForm"));
 const InventoryForm = lazy(() => import("./pages/InventoryForm"));
-const InventoryAdjustments = lazy(() => import("./pages/InventoryAdjustments"));
-const SuppliesAdjustments = lazy(() => import("./pages/SuppliesAdjustments"));
 const Customers = lazy(() => import("./pages/Customers"));
 const CustomerDetail = lazy(() => import("./pages/CustomerDetail"));
 const CustomerForm = lazy(() => import("./pages/CustomerForm"));
@@ -120,11 +118,11 @@ const App = () => (
                   <InventoryForm />
                 </ProtectedRoute>
               } />
-              <Route path="/materials/adjustments" element={
+              {/* <Route path="/materials/adjustments" element={
                 <ProtectedRoute>
                   <InventoryAdjustments />
                 </ProtectedRoute>
-              } />
+              } /> */}
               <Route path="/supplies/new" element={
                 <ProtectedRoute>
                   <SuppliesForm />
@@ -135,11 +133,11 @@ const App = () => (
                   <SuppliesForm />
                 </ProtectedRoute>
               } />
-              <Route path="/supplies/adjustments" element={
+              {/* <Route path="/supplies/adjustments" element={
                 <ProtectedRoute>
                   <SuppliesAdjustments />
                 </ProtectedRoute>
-              } />
+              } /> */}
               <Route path="/customers" element={
                 <ProtectedRoute>
                   <Customers />
