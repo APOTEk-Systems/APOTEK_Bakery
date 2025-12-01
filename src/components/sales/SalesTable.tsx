@@ -32,7 +32,6 @@ import { useToast } from '@/components/ui/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, toSentenceCase } from '@/lib/funcs';
 import { format } from 'date-fns';
-import ReceiptPreview from './ReceiptPreview';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface SalesTableProps {
@@ -47,8 +46,6 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [selectedSale, setSelectedSale] = useState<Sale | null>(null);
-  const [printSale, setPrintSale] = useState<Sale | null>(null);
-  const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(null);
   const [paymentAmount, setPaymentAmount] = useState('');
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const { toast } = useToast();
@@ -145,189 +142,56 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
     createPaymentMutation.mutate({ saleId: selectedSale.id, amount });
   };
 
-  const handlePrintReceipt = () => {
-    if (!printSale) return;
-    const products = productsQuery.data || [];
-    const customer = printSale.customer;
-    const subtotal = printSale.items.reduce((s, it) => s + it.price * it.quantity, 0);
-    const tax = 0; // Assuming no tax for now
-    const total = subtotal + tax;
+  const handlePrintReceipt = async (sale: Sale) => {
+    try {
+      const products = productsQuery.data || [];
+      const subtotal = sale.items.reduce((s, it) => s + it.price * it.quantity, 0);
+      const tax = 0; // Assuming no tax for now
+      const total = subtotal + tax;
 
-    // Generate clean HTML for printing
-    const printHTML = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Receipt</title>
-          <style>
-            body {
-              font-family: monospace;
-              font-size: 10px;
-              line-height: 1.2;
-              margin: 10px 0;
-              max-width: ${previewFormat === 'a5' ? '210mm' : '48mm'};
-              padding: 0;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 10px;
-            }
-            .header h1 {
-              font-size: 14px;
-              font-weight: bold;
-              margin: 0 0 5px 0;
-            }
-            .header p {
-              margin: 2px 0;
-              font-size: 10px;
-            }
-            .info {
-              margin-bottom: 10px;
-            }
-            .info p {
-              margin: 2px 0;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 10px;
-            }
-            th, td {
-              text-align: left;
-              padding: 2px 0;
-            }
-            .qty, .amount {
-              text-align: right;
-            }
-            .thermal-header {
-              border-bottom: 1px solid #000;
-              margin-bottom: 5px;
-            }
-            .separator {
-              border-bottom: 1px solid #000;
-              margin: 5px 0;
-            }
-            .totals {
-              margin-bottom: 10px;
-            }
-            .totals div {
-              display: flex;
-              justify-content: space-between;
-              margin: 2px 0;
-            }
-            .footer {
-              text-align: center;
-              border-top: 1px solid #000;
-              padding-top: 5px;
-              margin-top: 10px;
-            }
-            .footer p {
-              margin: 2px 0;
-              font-size: 10px;
-            }
-            @media print {
-              body { margin: 20px 0; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>${settingsQuery.data?.information?.bakeryName || 'Pastry Pros'}</h1>
-            ${settingsQuery.data?.information?.address ? `<p>${settingsQuery.data.information.address}</p>` : ''}
-            ${settingsQuery.data?.information?.phone ? `<p>Tel: ${settingsQuery.data.information.phone}</p>` : ''}
-            ${settingsQuery.data?.information?.email ? `<p>${settingsQuery.data.information.email}</p>` : ''}
-          </div>
+      // Get receipt format from settings
+      const receiptSize = settingsQuery.data?.configuration?.receiptSize || 'a5';
+      let receiptFormat: 'a5' | 'thermal' = 'a5';
 
-          <div class="info">
-            <p>Sale ID: ${printSale.id}</p>
-            <p>Customer: ${customer?.name || 'Cash'}</p>
-            <p>Issued By: ${user?.name || ''} </p>
-            <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>
-          </div>
+      if (receiptSize.includes('thermal')) {
+        receiptFormat = 'thermal';
+      }
 
-          ${previewFormat === 'a5' ?
-            `<table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th class="qty">Qty</th>
-                  <th class="amount">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${printSale.items.map(item => {
-                  const product = products.find(p => p.id === item.productId);
-                  return `
-                    <tr>
-                      <td>${product?.name || 'Unknown'}</td>
-                      <td class="qty">${item.quantity}</td>
-                      <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>` :
-            `<table>
-              <thead>
-                <tr class="thermal-header">
-                  <th>Item</th>
-                  <th class="qty">Qty</th>
-                  <th class="amount">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${printSale.items.map(item => {
-                  const product = products.find(p => p.id === item.productId);
-                  return `
-                    <tr>
-                      <td>${product?.name || 'Unknown'}</td>
-                      <td class="qty">${item.quantity}</td>
-                      <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>`
-          }
+      const receiptData = {
+        sale: sale,
+        cart: sale.items.map(item => {
+          const product = products.find(p => p.id === item.productId);
+          return { id: item.productId, name: product?.name || 'Unknown', price: item.price, quantity: item.quantity };
+        }),
+        customer: sale.customer,
+        customerName: sale.customer ? undefined : 'Cash',
+        paymentMethod: sale.isCredit ? 'credit' : 'cash',
+        creditDueDate: sale.creditDueDate || '',
+        total: sale.total,
+        subtotal: subtotal,
+        tax: tax,
+        businessInfo: settingsQuery.data?.information,
+        user: user,
+      };
 
-          <div class="separator"></div>
+      const { reportsService } = await import('@/services/reports');
+      const pdfBlob = await reportsService.exportReceipt(receiptData, receiptFormat);
 
-          <div class="totals">
-            <div>
-              <span>Subtotal:</span>
-              <span>${formatCurrency(subtotal)}</span>
-            </div>
-            <div>
-              <span>VAT:</span>
-              <span>${formatCurrency(tax)}</span>
-            </div>
-            <div style="font-weight: bold;">
-              <span>Total:</span>
-              <span>${formatCurrency(total)}</span>
-            </div>
-          </div>
+      // Open PDF in new tab instead of downloading
+      const { previewBlob } = await import('@/hooks/useReportMutations');
+      previewBlob(pdfBlob, `Receipt-${sale.id}.pdf`);
 
-          <div style="margin-bottom: 10px;">
-            <p>Payment: ${printSale.isCredit ? 'Credit' : 'Cash'}</p>
-            ${printSale.isCredit && printSale.creditDueDate ? `<p>Due: ${format(new Date(printSale.creditDueDate), 'dd-MM-yyyy')}</p>` : ''}
-          </div>
-
-          <div class="footer">
-            <p>Thank you for shopping with us!</p>
-            <p>Enjoy!</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    // Open print window and write the HTML
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-      printWindow.close();
+      toast({
+        title: "Success",
+        description: "Receipt downloaded successfully",
+      });
+    } catch (error) {
+      console.error('Error generating receipt:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate receipt",
+        variant: "destructive",
+      });
     }
   };
 
@@ -396,9 +260,9 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                       View
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" onClick={() => { setPrintSale(sale); setPreviewFormat('thermal'); }} className="mr-2">
+                  <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(sale)} className="mr-2">
                     <ReceiptText className='w-4 h-4' />
-                    Print
+                    Download PDF
                   </Button>
                   {isUnpaid && (
                     sale.status === 'unpaid' ? (
@@ -455,46 +319,6 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Print Receipt Dialog */}
-      <Dialog open={!!printSale} onOpenChange={() => setPrintSale(null)}>
-        <DialogContent className={previewFormat ? 'max-w-4xl' : ''}>
-          <DialogHeader>
-            <DialogTitle>Receipt Preview ({previewFormat?.toUpperCase()})</DialogTitle>
-          </DialogHeader>
-          {printSale && previewFormat && (
-            <ReceiptPreview
-              receiptFormat={previewFormat}
-              sale={printSale}
-              cart={printSale.items.map(item => {
-                const product = productsQuery.data?.find(p => p.id === item.productId);
-                return { id: item.productId, name: product?.name || 'Unknown', price: item.price, quantity: item.quantity };
-              })}
-              customer={printSale.customer}
-              customerName={printSale.customer ? undefined : 'Cash'}
-              paymentMethod={printSale.isCredit ? 'credit' : 'cash'}
-              creditDueDate={printSale.creditDueDate || ''}
-              total={printSale.total}
-              subtotal={printSale.total / 1.0}
-              tax={0}
-              businessInfo={settingsQuery.data?.information}
-            />
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPreviewFormat('a5')}>
-              A5 Paper
-            </Button>
-            <Button variant="outline" onClick={() => setPreviewFormat('thermal')}>
-              Thermal Paper
-            </Button>
-            <Button variant="outline" onClick={() => setPrintSale(null)}>
-              Close
-            </Button>
-            <Button onClick={handlePrintReceipt}>
-              Print Receipt
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };

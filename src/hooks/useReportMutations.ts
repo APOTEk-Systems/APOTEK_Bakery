@@ -57,7 +57,7 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 	}
 };
 
-const previewBlob = (blob: Blob, filename: string) => {
+export const previewBlob = (blob: Blob, filename: string) => {
 	try {
 		// Convert blob to data URL with proper MIME type
 		const reader = new FileReader();

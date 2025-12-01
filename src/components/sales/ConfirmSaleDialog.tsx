@@ -111,183 +111,44 @@ const ConfirmSaleDialog = ({
     }
   };
 
-  const handlePrintReceipt = () => {
-    const customer = soldCustomer;
-    const customerName = soldCustomerName;
-    const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
-    const tax = 0; // Assuming no tax for now
-    const total = subtotal + tax;
-   
+  const handlePrintReceipt = async () => {
+    try {
+      console.log('🧾 Print Receipt button clicked');
+      const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
+      const tax = 0; // Assuming no tax for now
+      const total = subtotal + tax;
 
-    // Generate clean HTML for printing
-    const printHTML = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Receipt</title>
-          <style>
-            body {
-              font-family: monospace;
-              font-size: 10px;
-              line-height: 1.2;
-              margin: 10px 0;
-              max-width: ${printMaxWidth};
-              padding: 0;
-            }
-            .header {
-              text-align: center;
-              margin-bottom: 10px;
-            }
-            .header h1 {
-              font-size: 14px;
-              font-weight: bold;
-              margin: 0 0 5px 0;
-            }
-            .header p {
-              margin: 2px 0;
-              font-size: 10px;
-            }
-            .info {
-              margin-bottom: 10px;
-            }
-            .info p {
-              margin: 2px 0;
-            }
-            table {
-              width: 100%;
-              border-collapse: collapse;
-              margin-bottom: 10px;
-            }
-            th, td {
-              text-align: left;
-              padding: 2px 0;
-            }
-            .qty, .amount {
-              text-align: right;
-            }
-            .thermal-header {
-              border-bottom: 1px solid #000;
-              margin-bottom: 5px;
-            }
-            .separator {
-              border-bottom: 1px solid #000;
-              margin: 5px 0;
-            }
-            .totals {
-              margin-bottom: 10px;
-            }
-            .totals div {
-              display: flex;
-              justify-content: space-between;
-              margin: 2px 0;
-            }
-            .footer {
-              text-align: center;
-              border-top: 1px solid #000;
-              padding-top: 5px;
-              margin-top: 10px;
-            }
-            .footer p {
-              margin: 2px 0;
-              font-size: 10px;
-            }
-            @media print {
-              body { margin: 20px 0; max-width:${printMaxWidth};}
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>${businessInfo?.bakeryName || 'Pastry Pros'}</h1>
-            ${businessInfo?.address ? `<p>${businessInfo.address}</p>` : ''}
-            ${businessInfo?.phone ? `<p>Tel: ${businessInfo.phone}</p>` : ''}
-            ${businessInfo?.email ? `<p>${businessInfo.email}</p>` : ''}
-          </div>
+      const receiptData = {
+        sale: newSale?.sale,
+        cart: soldCart,
+        customer: soldCustomer,
+        customerName: soldCustomerName,
+        paymentMethod: paymentMethod,
+        creditDueDate: creditDueDate,
+        total: total,
+        subtotal: subtotal,
+        tax: tax,
+        businessInfo: businessInfo,
+        user: user,
+      };
 
-          <div class="info">
-            <p>Receipt #: ${newSale?.sale.id || 'N/A'}</p>
-            <p>Customer: ${customer?.name || customerName || 'Cash'}</p>
-            <p>Issued By: ${user.name} </p>
-            <p>Date: ${format(new Date(), "dd-MM-yyyy HH:mm")}</p>
-          </div>
+      console.log('📋 Receipt data prepared:', receiptData);
 
-          ${receiptSize === 'a5' ?
-            `<table>
-              <thead>
-                <tr>
-                  <th>Item</th>
-                  <th class="qty">Qty</th>
-                  <th class="amount">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${soldCart.map(item => `
-                  <tr>
-                    <td>${item.name}</td>
-                    <td class="qty">${item.quantity}</td>
-                    <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>` :
-            `<table>
-              <thead>
-                <tr class="thermal-header">
-                  <th>Item</th>
-                  <th class="qty">Qty</th>
-                  <th class="amount">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${soldCart.map(item => `
-                  <tr>
-                    <td>${item.name}</td>
-                    <td class="qty">${item.quantity}</td>
-                    <td class="amount">${formatCurrency(item.price * item.quantity).replace("TSH", "")}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>`
-          }
+      const { reportsService } = await import('@/services/reports');
+      console.log('📦 Reports service imported');
 
-          <div class="separator"></div>
+      const pdfBlob = await reportsService.exportReceipt(receiptData, receiptFormat);
+      console.log('📄 PDF generated successfully');
 
-          <div class="totals">
-            <div>
-              <span>Subtotal:</span>
-              <span>${formatCurrency(subtotal)}</span>
-            </div>
-            <div>
-              <span>VAT:</span>
-              <span>${formatCurrency(tax)}</span>
-            </div>
-            <div style="font-weight: bold;">
-              <span>Total:</span>
-              <span>${formatCurrency(total)}</span>
-            </div>
-          </div>
+      // Open PDF in new tab instead of downloading
+      const { previewBlob } = await import('@/hooks/useReportMutations');
+      console.log('🔗 Preview function imported');
 
-          <div style="margin-bottom: 10px;">
-            <p>Payment: ${paymentMethod === 'credit' ? 'Credit' : 'Cash'}</p>
-            ${paymentMethod === 'credit' && creditDueDate ? `<p>Due: ${format(new Date(creditDueDate), 'dd-MM-yyyy')}</p>` : ''}
-          </div>
-
-          <div class="footer">
-            <p>Thank you for shopping with us!</p>
-            <p>Enjoy!</p>
-          </div>
-        </body>
-      </html>
-    `;
-
-    // Open print window and write the HTML
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(printHTML);
-      printWindow.document.close();
-      printWindow.focus();
-      // Note: Removed automatic print() and close() to prevent blocking the main tab.
-      // User can manually print from the new tab.
+      previewBlob(pdfBlob, `Receipt-${newSale?.sale?.id || 'N/A'}.pdf`);
+      console.log('✅ PDF opened in new tab');
+    } catch (error) {
+      console.error('❌ Error generating receipt:', error);
+      alert('Error generating receipt: ' + error.message);
     }
   };
   return (
@@ -365,7 +226,7 @@ const ConfirmSaleDialog = ({
         ) : previewFormat ? (
           <ReceiptPreview
             receiptFormat={receiptFormat}
-            sale={newSale}
+            sale={newSale?.sale}
             cart={soldCart}
             customer={soldCustomer}
             customerName={soldCustomerName}
@@ -378,7 +239,7 @@ const ConfirmSaleDialog = ({
           />
         ) : (
           <div className="text-center space-y-4">
-            <Button onClick={() => handlePrintReceipt()}>
+            <Button onClick={handlePrintReceipt} disabled={!saleCompleted || !newSale}>
               Print Receipt
             </Button>
           </div>

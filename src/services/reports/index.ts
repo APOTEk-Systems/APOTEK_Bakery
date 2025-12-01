@@ -142,6 +142,7 @@ import {
 	generateProductsPDF,
 	generateProductDetailsPDF,
 } from './generators/products-pdf';
+import { generateReceiptPDF } from './generators/receipt-pdf';
 
 // Re-export PDF generators
 export {
@@ -1225,6 +1226,21 @@ export const reportsService = {
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting outstanding payments report:', error);
+			throw error;
+		}
+	},
+
+	exportReceipt: async (
+		receiptData: any,
+		receiptFormat: 'a5' | 'thermal'
+	): Promise<Blob> => {
+		console.log('🧾 Starting receipt PDF generation...', { receiptFormat });
+		try {
+			const pdfBlob = generateReceiptPDF(receiptData, receiptFormat);
+			console.log('📄 Receipt PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error generating receipt PDF:', error);
 			throw error;
 		}
 	},
