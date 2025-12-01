@@ -44,6 +44,9 @@ const InventoryReportsTab = () => {
 							<SelectItem value='supplies-current'>
 								Supplies Current Stock
 							</SelectItem>
+							<SelectItem value='product-current-stock'>
+								Product Current Stock
+							</SelectItem>
 							<SelectItem value='materials-low-stock'>
 								Materials Below Min Level
 							</SelectItem>
@@ -63,6 +66,7 @@ const InventoryReportsTab = () => {
 								Supplies Out of Stock
 							</SelectItem>
 							<SelectItem value='product-details'>Product Details</SelectItem>
+							
 							<SelectItem value='suppliers-list'>Suppliers List</SelectItem>
 						</SelectContent>
 					</Select>

@@ -69,6 +69,7 @@ import {
 import {
 	generateProductsPDF,
 	generateProductDetailsPDF,
+	generateProductCurrentStockPDF,
 } from './generators/products-pdf';
 import { generatePurchaseSummaryPDF } from './generators/purchase-summary-pdf';
 
@@ -186,6 +187,7 @@ export {
 	generateExpenseBreakdownPDF,
 	generateProductsPDF,
 	generateProductDetailsPDF,
+	generateProductCurrentStockPDF,
 	generateSuppliersPDF,
 	generatePurchaseSummaryPDF,
 	generateExpensesPDF,
@@ -855,6 +857,30 @@ export const reportsService = {
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting products report:', error);
+			throw error;
+		}
+	},
+
+	exportProductsCurrentStockReport: async (): Promise<Blob> => {
+		console.log('📊 Starting products current stock report export...');
+		try {
+			const data = await getProductsReport();
+			console.log('✅ Products data fetched successfully (current stock):', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateProductCurrentStockPDF(data, settings);
+			console.log('📄 Products current stock PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting products current stock report:', error);
 			throw error;
 		}
 	},

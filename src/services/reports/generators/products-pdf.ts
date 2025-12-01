@@ -113,6 +113,56 @@ export const generateProductDetailsPDF = (
 	return doc.output('blob');
 };
 
+// Product Current Stock Report PDF - simplified columns
+export const generateProductCurrentStockPDF = (
+	data: ProductsReport,
+	settings?: any
+): Blob => {
+	const doc = new jsPDF();
+
+	// Add company header
+	const yPos = addCompanyHeader(
+		doc,
+		'Products Current Stock Report',
+		undefined,
+		undefined,
+		settings,
+		false
+	);
+
+	// Build table rows with simplified columns: #, name, qty, price
+	const tableData = data.data.map((product, index) => [
+		(index + 1).toString(),
+		product.name || '',
+		'N/A', // Quantity not available in products API
+		formatCurrencyPDF(product.price),
+	]);
+
+	autoTable(doc, {
+		head: [['#', 'Product Name', 'Quantity', 'Price']],
+		body: tableData,
+		startY: yPos,
+		...getDefaultTableStyles(),
+		columnStyles: {
+			0: { cellWidth: 15 }, // Narrow # column
+			2: { halign: 'right' }, // Right-align Quantity column
+			3: { halign: 'right' }, // Right-align Price column
+		},
+		didParseCell: function (data: any) {
+			// Right-align Quantity and Price headers
+			if (
+				data.section === 'head' &&
+				(data.column.index === 2 || data.column.index === 3)
+			) {
+				data.cell.styles.halign = 'right';
+			}
+		},
+	});
+
+	addPageNumbers(doc);
+	return doc.output('blob');
+};
+
 // Expenses Report PDF
 export const generateExpensesPDF = (
 	data: any,

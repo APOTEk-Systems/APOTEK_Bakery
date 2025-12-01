@@ -46,8 +46,8 @@ const PurchasesReportsTab = () => {
             <SelectContent>
               <SelectItem value="goods-received">Material Received Report</SelectItem>
               <SelectItem value="purchase-orders-detailed">Purchase Order Detailed Report</SelectItem>
-              <SelectItem value="suppliers-list">Suppliers List</SelectItem>
-              <SelectItem value="purchase-summary">Purchase Orders Summary</SelectItem>
+              <SelectItem value="suppliers-list">List of Supplier</SelectItem>
+              <SelectItem value="purchase-summary">Purchase Orders Summary Report</SelectItem>
             </SelectContent>
           </Select>
         </div>

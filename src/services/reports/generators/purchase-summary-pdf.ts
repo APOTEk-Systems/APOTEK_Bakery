@@ -16,7 +16,7 @@ export const generatePurchaseSummaryPDF = (
 
 	const yPos = addCompanyHeader(
 		doc,
-		'Purchase Orders Summary',
+		'Purchase Orders Summary Report',
 		undefined,
 		undefined,
 		settings

@@ -33,7 +33,9 @@ import {
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
   if (!user) return false;
-  if (user.permissions?.includes("all") || user.permissions?.includes("*")
+  if (user.permissions?.includes("all") || user.permissions?.includes("*")) {
+    return true;
+  }
   return user.permissions?.includes(permission) || false;
 };
 

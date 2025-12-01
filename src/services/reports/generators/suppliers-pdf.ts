@@ -16,7 +16,7 @@ export const generateSuppliersPDF = (
 	// Add company header. No dates here (explicit requirement)
 	let yPos = addCompanyHeader(
 		doc,
-		'Suppliers List',
+		'List of Supplier',
 		undefined,
 		undefined,
 		settings,
