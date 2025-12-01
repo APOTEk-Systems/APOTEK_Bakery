@@ -71,7 +71,7 @@ export default function PurchaseOrdersTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreatePODialogOpen, setIsCreatePODialogOpen] = useState(false);
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
@@ -108,13 +108,18 @@ export default function PurchaseOrdersTab() {
 
   const purchaseOrdersQuery = useQuery<{ purchaseOrders: PurchaseOrder[], total: number }>({
     queryKey: ["purchaseOrders", currentPage, filterStatus, dateRange, debouncedSearch],
-    queryFn: () => purchasesService.getAllPOs({
-      page: currentPage,
-      status: filterStatus === "all" ? undefined : filterStatus,
-      startDate: dateRange?.from?.toISOString(),
-      endDate: dateRange?.to?.toISOString(),
-      search: debouncedSearch || undefined,
-    }),
+    queryFn: () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      return purchasesService.getAllPOs({
+        page: currentPage,
+        status: filterStatus === "all" ? undefined : filterStatus,
+        startDate: dateRange?.from?.toISOString() ?? startOfMonth.toISOString(),
+        endDate: dateRange?.to?.toISOString() ?? now.toISOString(),
+        search: debouncedSearch || undefined,
+      });
+    },
   });
 
   const inventoryQuery = useQuery<InventoryItem[]>({

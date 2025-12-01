@@ -3,10 +3,11 @@ import { useMutation } from "@tanstack/react-query";
 import { reportsService } from "@/services/reports";
 import { DateRange } from "@/components/ui/DateRange";
 import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
 
 const generateFilename = (reportType: string, dateRange?: DateRange): string => {
-  const startDateStr = dateRange?.from?.toISOString().split('T')[0];
-  const endDateStr = dateRange?.to?.toISOString().split('T')[0];
+  const startDateStr = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
+  const endDateStr = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
 
   // Map report types to readable names
   const reportNames: Record<string, string> = {
@@ -108,8 +109,8 @@ export const useReportMutations = (dateRange?: DateRange, selectedSupplier?: str
   ) => {
     return useMutation({
       mutationFn: () => {
-        const from = dateRange?.from?.toISOString().split('T')[0];
-        const to = dateRange?.to?.toISOString().split('T')[0];
+        const from = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
+        const to = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
         const supplierId = selectedSupplier && selectedSupplier !== "all" ? parseInt(selectedSupplier) : undefined;
         return mutationFn(from, to, supplierId);
       },

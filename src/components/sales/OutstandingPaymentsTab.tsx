@@ -78,8 +78,8 @@ const OutstandingPaymentsTab: React.FC = () => {
   const hasViewSales = hasPermission(user, "view:sales");
   const hasManagePayments = hasPermission(user, "manage:payments");
 
-  const startDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-  const endDate = dateRange?.to ? dateRange.to.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const startDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : undefined;
+  const endDate = dateRange?.to ? dateRange.to.toISOString().split('T')[0] : undefined;
 
   // Fetch outstanding payments using React Query
   const { data: paginatedData, isLoading: loading, error } = useQuery({
@@ -92,6 +92,7 @@ const OutstandingPaymentsTab: React.FC = () => {
           isCredit: true,
           page,
           limit,
+          order:"asc",
         });
       } else {
         return salesService.getPaginatedSales({
@@ -101,6 +102,7 @@ const OutstandingPaymentsTab: React.FC = () => {
           isCredit: true,
           page,
           limit,
+          order:"asc",
         });
       }
     },

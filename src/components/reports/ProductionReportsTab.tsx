@@ -65,13 +65,13 @@ const ProductionReportsTab = () => {
       </div>
 
       {/* Display production runs data */}
-      {selectedProductionReport === "production" && productionRuns.length > 0 && (
+      {/* {selectedProductionReport === "production" && productionRuns.length > 0 && (
         <div className="mt-6">
           <div className="text-sm text-muted-foreground mb-2">
             Found {total} production runs for the selected date range
           </div>
         </div>
-      )}
+      )} */}
     </ReportLayout>
   );
 };

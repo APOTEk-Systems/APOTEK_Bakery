@@ -74,15 +74,15 @@ const InventoryAdjustments = () => {
     try {
       setLoading(true);
       const params: any = {type: "raw_material"};
-      if (dateRange?.from) {
-        params.startDate = dateRange.from.toISOString().split('T')[0];
-      }
-      if (dateRange?.to) {
-        params.endDate = dateRange.to.toISOString().split('T')[0];
-      }
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      params.startDate = (dateRange?.from ?? startOfMonth).toISOString().split('T')[0];
+      params.endDate = (dateRange?.to ?? now).toISOString().split('T')[0];
+      
       const data = await getAdjustments(params);
       setAdjustments(data);
-    } catch (err) {
+    } catch (err) => {
       toast({
         title: "Error",
         description: "Failed to load adjustments",
@@ -92,6 +92,7 @@ const InventoryAdjustments = () => {
       setLoading(false);
     }
   };
+
 
   const handleSubmitAdjustment = async (e: React.FormEvent) => {
     e.preventDefault();

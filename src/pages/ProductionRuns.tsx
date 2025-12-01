@@ -70,10 +70,7 @@ import { DateRangePicker, DateRange } from "@/components/ui/DateRange";
 const ProductionRuns = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-   const [dateRange, setDateRange] = useState<DateRange | undefined>(() => {
-    const today = new Date();
-    return { from: today, to: today };
-  });
+   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -115,11 +112,18 @@ const ProductionRuns = () => {
         params.productName = debouncedSearchTerm.trim();
       }
 
-      // Add date range if set (can be combined with productName)
+      // Apply date filter
       if (dateRange?.from && dateRange?.to) {
-        params.startDate = dateRange.from.toISOString().split('T')[0];
-        params.endDate = dateRange.to.toISOString().split('T')[0];
+        // User has explicitly set a date range
+        params.startDate = format(dateRange.from, "yyyy-MM-dd");
+        params.endDate = format(dateRange.to, "yyyy-MM-dd");
+      } else if (!debouncedSearchTerm.trim()) {
+        // No date range set by user AND no search term active, so apply default daily filter
+        const today = new Date();
+        params.startDate = format(today, "yyyy-MM-dd");
+        params.endDate = format(today, "yyyy-MM-dd");
       }
+      // If debouncedSearchTerm is active and dateRange is not explicitly set, no date filter is applied.
 
       return getProductionRuns(params);
     },

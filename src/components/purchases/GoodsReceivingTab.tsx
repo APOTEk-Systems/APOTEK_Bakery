@@ -32,20 +32,25 @@ export default function GoodsReceivingTab() {
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedGR, setSelectedGR] = useState<GoodsReceipt | null>(null);
   const [isViewGRDialogOpen, setIsViewGRDialogOpen] = useState(false);
 
   const goodsReceiptsQuery = useQuery<{ goodsReceipts: GoodsReceiptResponse[], total: number }>({
     queryKey: ['goodsReceipts', currentPage, filterStatus, dateRange, debouncedSearch],
-    queryFn: () => purchasesService.getAllReceipts({
-      page: currentPage,
-      status: filterStatus === "all" ? undefined : filterStatus,
-      startDate: dateRange?.from?.toISOString(),
-      endDate: dateRange?.to?.toISOString(),
-      search: debouncedSearch || undefined,
-    }),
+    queryFn: () => {
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      return purchasesService.getAllReceipts({
+        page: currentPage,
+        status: filterStatus === "all" ? undefined : filterStatus,
+        startDate: dateRange?.from?.toISOString() ?? startOfMonth.toISOString(),
+        endDate: dateRange?.to?.toISOString() ?? now.toISOString(),
+        search: debouncedSearch || undefined,
+      });
+    }
   });
 
   useEffect(() => {

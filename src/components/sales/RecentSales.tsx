@@ -22,6 +22,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { format } from 'date-fns';
 
 const RecentSales: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
@@ -55,8 +56,10 @@ const RecentSales: React.FC = () => {
     return rangeWithDots;
   };
 
-  const startDate = dateRange?.from ? dateRange.from.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-  const endDate = dateRange?.to ? dateRange.to.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+  const startDate = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+  const endDate = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
+
+ // console.log(startDate, endDate);
 
   const { data: paginatedData, isPending: loading, error, refetch } = useQuery<PaginatedSalesResponse>({
     queryKey: ['recentSales', searchQuery || startDate, searchQuery || endDate, page, limit],
@@ -66,6 +69,7 @@ const RecentSales: React.FC = () => {
           customerName: searchQuery,
           page,
           limit,
+          order:"desc",
         });
       } else {
         return salesService.getPaginatedSales({
@@ -73,6 +77,7 @@ const RecentSales: React.FC = () => {
           endDate,
           page,
           limit,
+          order:"desc",
         });
       }
     },

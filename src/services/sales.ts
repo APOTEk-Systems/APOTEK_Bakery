@@ -4,7 +4,7 @@ export interface SalesQueryParams {
   page?: number;
   limit?: number;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  order?: 'asc' | 'desc';
   isCredit?:boolean;
   status?: 'completed' | 'unpaid';
   createdAt?: number;
