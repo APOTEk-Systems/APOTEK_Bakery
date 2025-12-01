@@ -11,7 +11,7 @@ import type { SalesSummaryReport } from '@/types/reports';
 
 // Cash Sales Summary Report PDF
 export const generateCashSalesSummaryPDF = (
-	data: SalesSummaryReport | any,
+	data: SalesSummaryReport,
 	startDate?: string,
 	endDate?: string,
 	settings?: unknown
@@ -27,14 +27,17 @@ export const generateCashSalesSummaryPDF = (
 	);
 
 	// Build rows from server-driven summary data: expect { date, total }
-	const rows = (data?.data || []).map((r: any, idx: number) => [
-		(idx + 1).toString(),
-		format(new Date(r.date || r.createdAt || Date.now()), 'dd-MM-yyyy'),
-		formatCurrencyPDF(r.total ?? r.amount ?? 0),
-	]);
+	const rows = (data?.data || []).map(
+		(r: SalesSummaryReport['data'][number], idx: number) => [
+			(idx + 1).toString(),
+			format(new Date(r.date || r.createdAt || Date.now()), 'dd-MM-yyyy'),
+			formatCurrencyPDF(r.total ?? r.amount ?? 0),
+		]
+	);
 
 	const totalAll = (data?.data || []).reduce(
-		(sum: number, r: any) => sum + (r.total ?? r.amount ?? 0),
+		(sum: number, r: SalesSummaryReport['data'][number]) =>
+			sum + (r.total ?? r.amount ?? 0),
 		0
 	);
 	rows.push(['', 'Total:', formatCurrencyPDF(totalAll)]);
