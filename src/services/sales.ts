@@ -31,6 +31,8 @@ export interface SaleItem {
 }
 
 export interface Sale {
+  vat: number;
+  subtotal: number;
   id: number;
   customerId?: number;
   customerName?: string;

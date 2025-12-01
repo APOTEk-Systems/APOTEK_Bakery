@@ -114,9 +114,9 @@ const ConfirmSaleDialog = ({
   const handlePrintReceipt = async () => {
     try {
       console.log('🧾 Print Receipt button clicked');
-      const subtotal = soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
-      const tax = 0; // Assuming no tax for now
-      const total = subtotal + tax;
+      const subtotal = newSale?.sale?.subtotal || soldCart.reduce((s, it) => s + it.price * it.quantity, 0);
+      const tax = newSale?.sale?.vat || 0;
+      const total = newSale?.sale?.total || subtotal + tax;
 
       const receiptData = {
         sale: newSale?.sale,
@@ -232,9 +232,9 @@ const ConfirmSaleDialog = ({
             customerName={soldCustomerName}
             paymentMethod={paymentMethod}
             creditDueDate={creditDueDate}
-            total={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) + (soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0)}
-            subtotal={soldCart.reduce((s, it) => s + it.price * it.quantity, 0)}
-            tax={soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0}
+            total={newSale?.sale?.total || soldCart.reduce((s, it) => s + it.price * it.quantity, 0) + (soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0)}
+            subtotal={newSale?.sale?.subtotal || soldCart.reduce((s, it) => s + it.price * it.quantity, 0)}
+            tax={newSale?.sale?.vat || 0}
             businessInfo={businessInfo}
           />
         ) : (

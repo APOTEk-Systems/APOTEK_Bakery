@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -20,6 +21,8 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -31,11 +34,14 @@ const Login = () => {
 
   const { login } = useAuth();
 
+  const from = location.state?.from?.pathname || "/";
+
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
       await login(data.email, data.password);
       toast.success("Login successful!");
+      navigate(from, { replace: true });
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Login failed. Please try again.");
     } finally {

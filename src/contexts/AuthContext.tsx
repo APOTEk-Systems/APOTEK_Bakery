@@ -55,10 +55,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    apiLogout();
+    apiLogout(() => {
+      navigate('/login');
+    });
     setUser(null);
     setIsAuthenticated(false);
-    navigate('/login');
   };
 
   useEffect(() => {

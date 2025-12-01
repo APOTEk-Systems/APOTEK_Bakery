@@ -297,6 +297,8 @@ const NewSale = () => {
 
     const saleData: any = {
       items,
+      subtotal,
+      vat: tax,
       total,
       isCredit: paymentMethod === "credit",
       creditDueDate:

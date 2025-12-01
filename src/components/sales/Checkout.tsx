@@ -194,10 +194,12 @@ const Checkout = ({
                 <span>Subtotal:</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>VAT:</span>
-                <span>{formatCurrency(tax)}</span>
-              </div>
+              {tax > 0 && (
+                <div className="flex justify-between">
+                  <span>VAT:</span>
+                  <span>{formatCurrency(tax)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between font-semibold text-lg">
                 <span>Total:</span>

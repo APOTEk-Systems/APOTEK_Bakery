@@ -77,9 +77,10 @@ export const refreshToken = async (): Promise<RefreshResponse> => {
 };
 
 // Logout function
-export const logout = () => {
+export const logout = (callback?: () => void) => {
   localStorage.removeItem("token");
   // Optionally call api.post("/auth/logout") to invalidate server-side
+  if (callback) callback();
 };
 
 // Update user profile
@@ -121,7 +122,10 @@ api.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
-        logout();
+        logout(() => {
+          // Navigate to login with current location
+          window.location.href = '/login';
+        });
         return Promise.reject(refreshError);
       }
     }

@@ -145,9 +145,9 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
   const handlePrintReceipt = async (sale: Sale) => {
     try {
       const products = productsQuery.data || [];
-      const subtotal = sale.items.reduce((s, it) => s + it.price * it.quantity, 0);
-      const tax = 0; // Assuming no tax for now
-      const total = subtotal + tax;
+      const subtotal = sale.subtotal || sale.items.reduce((s, it) => s + it.price * it.quantity, 0);
+      const tax = sale.vat || 0;
+      const total = sale.total || subtotal + tax;
 
       // Get receipt format from settings
       const receiptSize = settingsQuery.data?.configuration?.receiptSize || 'a5';
@@ -167,7 +167,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
         customerName: sale.customer ? undefined : 'Cash',
         paymentMethod: sale.isCredit ? 'credit' : 'cash',
         creditDueDate: sale.creditDueDate || '',
-        total: sale.total,
+        total: total,
         subtotal: subtotal,
         tax: tax,
         businessInfo: settingsQuery.data?.information,
@@ -262,7 +262,7 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => handlePrintReceipt(sale)} className="mr-2">
                     <ReceiptText className='w-4 h-4' />
-                    Download PDF
+                    Print
                   </Button>
                   {isUnpaid && (
                     sale.status === 'unpaid' ? (
