@@ -10,7 +10,8 @@ export const addCompanyHeader = (
   startDate?: string,
   endDate?: string,
   settings?: any,
-  showDateRange: boolean = true
+  showDateRange: boolean = true,
+  showPrintedOn: boolean = true
 ): number => {
   let yPos = 10;
 
@@ -154,7 +155,7 @@ export const addCompanyHeader = (
   doc.setFont("helvetica", "normal");
   const printedText = `Printed On: ${format(new Date(), "dd-MM-yyyy: HH:mm:ss")}`;
   const printedWidth = doc.getTextWidth(printedText);
-  doc.text(printedText, (pageWidth - printedWidth) / 2, yPos);
+  showPrintedOn && doc.text(printedText, (pageWidth - printedWidth) / 2, yPos);
   yPos += 4;
 
   return yPos -=1; // Return the Y position after the header with further reduced spacing to table

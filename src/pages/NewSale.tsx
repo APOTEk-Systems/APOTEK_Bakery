@@ -330,6 +330,8 @@ const NewSale = () => {
 		const saleData: any = {
 			items,
 			total,
+			subtotal: subtotal.toString(),
+			vat: tax.toString(),
 			isCredit: paymentMethod === 'credit',
 			creditDueDate:
 				paymentMethod === 'credit' && creditDueDate

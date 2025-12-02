@@ -16,7 +16,7 @@ export const generateSuppliersPDF = (
 	// Add company header. No dates here (explicit requirement)
 	let yPos = addCompanyHeader(
 		doc,
-		'List of Supplier',
+		'List of Suppliers',
 		undefined,
 		undefined,
 		settings,
@@ -28,13 +28,13 @@ export const generateSuppliersPDF = (
 		(idx + 1).toString(),
 		s.name || '',
 		s.contactInfo || '',
-		s.email || '',
+		// s.email || '',
 		s.address || '',
 		s.status || '',
-		s.createdAt ? new Date(s.createdAt).toLocaleString() : '',
-		s.updatedAt ? new Date(s.updatedAt).toLocaleString() : '',
-		`/api/suppliers/${s.id}`,
-		JSON.stringify(s),
+		// s.createdAt ? new Date(s.createdAt).toLocaleString() : '',
+		// s.updatedAt ? new Date(s.updatedAt).toLocaleString() : '',
+		// `/api/suppliers/${s.id}`,
+		// JSON.stringify(s),
 	]);
 
 	autoTable(doc, {
@@ -43,24 +43,20 @@ export const generateSuppliersPDF = (
 				'#',
 				'Name',
 				'Contact',
-				'Email',
+				//'Email',
 				'Address',
 				'Status',
-				'Created At',
-				'Updated At',
-				'API Endpoint',
-				'Details (JSON)',
+				// 'Created At',
+				// 'Updated At',
+				// 'API Endpoint',
+				// 'Details (JSON)',
 			],
 		],
 		body: tableData,
 		startY: yPos,
 		...getDefaultTableStyles(),
 		columnStyles: {
-			0: { cellWidth: 10 },
-			1: { cellWidth: 40 },
-			2: { cellWidth: 30 },
-			3: { cellWidth: 40 },
-			4: { cellWidth: 60 },
+			
 			// Keep API endpoint column flexible
 		},
 	});

@@ -134,7 +134,7 @@ export const generateProductCurrentStockPDF = (
 	const tableData = data.data.map((product, index) => [
 		(index + 1).toString(),
 		product.name || '',
-		'N/A', // Quantity not available in products API
+		product.quantity?.toString() || '0',
 		formatCurrencyPDF(product.price),
 	]);
 
@@ -146,7 +146,7 @@ export const generateProductCurrentStockPDF = (
 		columnStyles: {
 			0: { cellWidth: 15 }, // Narrow # column
 			2: { halign: 'right' }, // Right-align Quantity column
-			3: { halign: 'right' }, // Right-align Price column
+			3: { cellWidth:40 , halign: 'right' }, // Right-align Price column
 		},
 		didParseCell: function (data: any) {
 			// Right-align Quantity and Price headers
