@@ -30,6 +30,8 @@ export const generateCashSalesSummaryPDF = (
 	const rows = (data?.data || []).map((r: any, idx: number) => [
 		(idx + 1).toString(),
 		format(new Date(r.date || r.createdAt || Date.now()), 'dd-MM-yyyy'),
+		formatCurrencyPDF(r.subtotal ?? 0),
+		formatCurrencyPDF(r.vat ?? 0),
 		formatCurrencyPDF(r.total ?? r.amount ?? 0),
 	]);
 
@@ -37,6 +39,19 @@ export const generateCashSalesSummaryPDF = (
 		(sum: number, r: any) => sum + (r.total ?? r.amount ?? 0),
 		0
 	);
+
+	const grandSubtotal = (data?.data || []).reduce(
+		(sum: number, r: any) => sum + (r.subtotal ?? 0),
+		0
+	);
+
+	const grandTax = (data?.data || []).reduce(
+		(sum: number, r: any) => sum + (r.vat ?? 0),
+		0
+	);
+
+	// rows.push(['', 'Subtotal:', formatCurrencyPDF(grandSubtotal)]);
+	// rows.push(['', 'Tax:', formatCurrencyPDF(grandTax)]);
 	rows.push(['', 'Total:', formatCurrencyPDF(totalAll)]);
 
 	autoTable(doc, {
