@@ -11,7 +11,7 @@ import type { ProductionSummaryReport } from '@/types/reports';
 
 // Production (Finished Goods) Summary Report PDF
 export const generateProductionSummaryPDF = (
-	data: ProductionSummaryReport | any,
+	data: ProductionSummaryReport,
 	startDate?: string,
 	endDate?: string,
 	settings?: unknown
@@ -27,7 +27,7 @@ export const generateProductionSummaryPDF = (
 	);
 
 	// Map rows from server-driven summary: expected fields: date, product, quantity
-	const rows = (data?.data || []).map((r: any, idx: number) => [
+	const rows = (data?.data || []).map((r: ProductionSummaryReport['data'][number], idx: number) => [
 		(idx + 1).toString(),
 		format(new Date(r.date || r.createdAt || Date.now()), 'dd-MM-yyyy'),
 		r.product ?? r.item ?? 'Unknown',
@@ -35,7 +35,7 @@ export const generateProductionSummaryPDF = (
 	]);
 
 	const totalAll = (data?.data || []).reduce(
-		(sum: number, r: any) => sum + (r.quantity ?? r.produced ?? r.total ?? 0),
+		(sum: number, r: ProductionSummaryReport['data'][number]) => sum + (r.quantity ?? r.produced ?? r.total ?? 0),
 		0
 	);
 
@@ -47,6 +47,12 @@ export const generateProductionSummaryPDF = (
 		startY: yPos,
 		margin: { left: 20, right: 20 },
 		...getDefaultTableStyles(),
+		columnStyles: {
+			0: { cellWidth: 12 },
+			1: {},
+			2: {},
+			3: { halign: 'right' },
+		},
 		columnStyles: { 0: { cellWidth: 12 }, 1: {}, 2: {}, 3: { halign: 'right' } },
 		didParseCell: function (dataItem: any) {
 			if (

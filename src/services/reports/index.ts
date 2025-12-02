@@ -43,6 +43,8 @@ import {
 	getExpenseBreakdownReport,
 	getProductsReport,
 	getProductDetailsReport,
+	getPurchaseOrderSummaryReport,
+	getSuppliersReport,
 	getGoodsReceivedReport,
 	getProductionSummary,
 	getExpensesReport,
@@ -51,6 +53,7 @@ import {
 	getSalesSummaryReport,
 	getCashSalesSummaryReport,
 	getCreditSummaryReport,
+	getCreditPaymentReport,
 } from './data';
 
 // Import PDF utilities
@@ -63,37 +66,16 @@ import {
 } from './pdf-utils';
 
 // Re-export for external use
-export {
-	getSalesReport,
-	getPurchasesReport,
-	getProductionReport,
-	getInventoryReport,
-	getInventoryAdjustmentsReport,
-	getLowStockReport,
-	getOutOfStockReport,
-	getFinancialReport,
-	getCustomerSalesReport,
-	getSupplierWisePurchasesReport,
-	getIngredientPurchaseTrendReport,
-	getFinishedGoodsSummaryReport,
-	getIngredientUsageReport,
-	getProfitAndLossReport,
-	getExpenseBreakdownReport,
-	getProductsReport,
-	getProductDetailsReport,
-	getGoodsReceivedReport,
-	getProductionSummary,
-	getProductionSummaryReport,
-	getIngredientSummaryReport,
-	getExpensesReport,
-	getOutstandingPaymentsReport,
-	getPurchaseOrderDetailedReport,
-	addCompanyHeader,
-	testPDFGeneration,
-	getDefaultTableStyles,
-	formatCurrencyPDF,
-	formatDatePDF,
-};
+import {
+	generateProductsPDF,
+	generateProductDetailsPDF,
+	generateProductCurrentStockPDF,
+} from './generators/products-pdf';
+import { generatePurchaseSummaryPDF } from './generators/purchase-summary-pdf';
+
+// Re-export PDF generators (grouped) consolidated later in the file
+
+// (Exports consolidated later in the file)
 
 // Import PDF generators
 import {
@@ -138,22 +120,56 @@ import {
 	generateOutstandingPaymentsPDF,
 } from './generators/financial-pdf';
 
-import {
-	generateProductsPDF,
-	generateProductDetailsPDF,
-} from './generators/products-pdf';
+import { generateCreditPaymentPDF } from './generators/credit-payment-pdf';
 import { generateReceiptPDF } from './generators/receipt-pdf';
 
-// Re-export PDF generators
+// NOTE: generators already imported above
+import { generateSuppliersPDF } from './generators/suppliers-pdf';
+
+// Re-export data fetchers, utilities, and PDF generators (single list)
 export {
+	// data fetchers
+	getSalesReport,
+	getPurchasesReport,
+	getPurchaseOrderSummaryReport,
+	getProductionReport,
+	getInventoryReport,
+	getInventoryAdjustmentsReport,
+	getLowStockReport,
+	getOutOfStockReport,
+	getFinancialReport,
+	getCustomerSalesReport,
+	getSupplierWisePurchasesReport,
+	getIngredientPurchaseTrendReport,
+	getFinishedGoodsSummaryReport,
+	getSuppliersReport,
+	getIngredientUsageReport,
+	getProfitAndLossReport,
+	getExpenseBreakdownReport,
+	getProductsReport,
+	getProductDetailsReport,
+	getGoodsReceivedReport,
+	getProductionSummary,
+	getProductionSummaryReport,
+	getIngredientSummaryReport,
+	getExpensesReport,
+	getOutstandingPaymentsReport,
+	getPurchaseOrderDetailedReport,
+
+	// utilities
+	addCompanyHeader,
+	testPDFGeneration,
+	getDefaultTableStyles,
+	formatCurrencyPDF,
+	formatDatePDF,
+
+	// PDF generators
 	generateSalesPDF,
-	generateCashSalesPDF,
-	generateCreditSalesPDF,
 	generateSalesSummaryPDF,
 	generateCashSalesSummaryPDF,
 	generateCreditSalesSummaryPDF,
-	generateProductionSummaryPDF,
-	generateIngredientSummaryPDF,
+	generateCashSalesPDF,
+	generateCreditSalesPDF,
 	generatePurchasesPDF,
 	generateSupplierWisePurchasesPDF,
 	generateGoodsReceivedPDF,
@@ -172,7 +188,11 @@ export {
 	generateExpenseBreakdownPDF,
 	generateProductsPDF,
 	generateProductDetailsPDF,
+	generateProductCurrentStockPDF,
+	generateSuppliersPDF,
+	generatePurchaseSummaryPDF,
 	generateExpensesPDF,
+	generateCreditPaymentPDF,
 };
 
 // Legacy service object for backward compatibility
@@ -203,6 +223,7 @@ export const reportsService = {
 	getProductionSummary: getProductionSummary,
 	getExpensesReport: getExpensesReport,
 	getOutstandingPaymentsReport: getOutstandingPaymentsReport,
+	getCreditPaymentReport: getCreditPaymentReport,
 
 	// PDF export functions
 	exportSalesReport: async (
@@ -308,6 +329,43 @@ export const reportsService = {
 		}
 	},
 
+	exportCreditPaymentReport: async (
+		startDate?: string,
+		endDate?: string,
+		customerId?: number
+	): Promise<Blob> => {
+		console.log('📊 Starting credit payment report export...', {
+			startDate,
+			endDate,
+			customerId,
+		});
+		try {
+			const data = await getCreditPaymentReport(startDate, endDate, customerId);
+			console.log('✅ Credit payment data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateCreditPaymentPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Credit payment PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting credit payment report:', error);
+			throw error;
+		}
+	},
+
 	exportCreditSalesSummaryReport: async (
 		startDate?: string,
 		endDate?: string
@@ -370,6 +428,30 @@ export const reportsService = {
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting purchases report:', error);
+			throw error;
+		}
+	},
+
+	exportPurchaseOrderSummaryReport: async (): Promise<Blob> => {
+		console.log('📊 Starting purchase order summary report export...');
+		try {
+			const data = await getPurchaseOrderSummaryReport();
+			console.log('✅ Purchase summary fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generatePurchaseSummaryPDF(data, settings);
+			console.log('📄 Purchase order summary PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting purchase order summary report:', error);
 			throw error;
 		}
 	},
@@ -780,6 +862,30 @@ export const reportsService = {
 		}
 	},
 
+	exportProductsCurrentStockReport: async (): Promise<Blob> => {
+		console.log('📊 Starting products current stock report export...');
+		try {
+			const data = await getProductsReport();
+			console.log('✅ Products data fetched successfully (current stock):', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateProductCurrentStockPDF(data, settings);
+			console.log('📄 Products current stock PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting products current stock report:', error);
+			throw error;
+		}
+	},
+
 	exportProductDetailsReport: async (): Promise<Blob> => {
 		console.log('📊 Starting product details report export...');
 		try {
@@ -801,6 +907,30 @@ export const reportsService = {
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting product details report:', error);
+			throw error;
+		}
+	},
+
+	exportSuppliersReport: async (): Promise<Blob> => {
+		console.log('📊 Starting suppliers list export...');
+		try {
+			const data = await getSuppliersReport();
+			console.log('✅ Suppliers data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateSuppliersPDF(data.data, settings);
+			console.log('📄 Suppliers PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting suppliers report:', error);
 			throw error;
 		}
 	},

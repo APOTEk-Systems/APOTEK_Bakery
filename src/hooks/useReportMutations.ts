@@ -16,6 +16,7 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 		'credit-sales': 'Credit Sales Report',
 		products: 'Price List Report',
 		'product-details': 'Product Details Report',
+		'product-current-stock': 'Product Current Stock Report',
 		'goods-received': 'Materials Received Report',
 		'purchase-orders-detailed': 'Purchase Orders Detailed Report',
 		'materials-current': 'Materials Current Stock Report',
@@ -34,10 +35,13 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 		'ingredient-summary': 'Ingredients Summary Report',
 		'cash-sales-summary': 'Cash Sales Summary Report',
 		'credit-sales-summary': 'Credit Sales Summary Report',
+		'credit-payments': 'Credit Payments Report',
 		'gross-profit': 'Gross Profit Report',
 		'net-profit': 'Net Profit Report',
 		expenses: 'Expenses Report',
 		'outstanding-payments': 'Outstanding Payments Report',
+		'suppliers-list': 'Suppliers List Report',
+		'purchase-summary': 'Purchase Orders Summary Report',
 	};
 
 	const baseName =
@@ -107,46 +111,115 @@ export const previewBlob = (blob: Blob, filename: string) => {
 
 export const useReportMutations = (
 	dateRange?: DateRange,
-	selectedSupplier?: string
+	selectedSupplier?: string,
+	selectedCustomer?: string
 ) => {
 	const { toast } = useToast();
 
-  const createReportMutation = (
-    mutationFn: (
-      startDate?: string,
-      endDate?: string,
-      supplierId?: number
-    ) => Promise<Blob>,
-    reportType: string,
-    successMessage: string,
-    errorMessage: string,
-    infoMessage: string = "No data found"
-  ) => {
-    return useMutation({
-      mutationFn: () => {
-        const from = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : undefined;
-        const to = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : undefined;
-        const supplierId = selectedSupplier && selectedSupplier !== "all" ? parseInt(selectedSupplier) : undefined;
-        return mutationFn(from, to, supplierId);
-      },
-      onSuccess: (blob) => {
-        if (blob && blob.size > 0) {
-          previewBlob(blob, generateFilename(reportType, dateRange));
-          toast({ title: "Success", description: successMessage });
-        } else {
-          toast({ title: "Info", description: infoMessage, variant: "default" });
-        }
-      },
-      onError: (error: any) => {
-        const message = error.message || errorMessage;
-        toast({
-          title: "Error",
-          description: message,
-          variant: message.includes("No") ? "default" : "destructive",
-        });
-      },
-    });
-  };
+	const useCreateReportMutation = (
+		mutationFn: (
+			startDate?: string,
+			endDate?: string,
+			customerId?: number,
+			supplierId?: number
+		) => Promise<Blob>,
+		reportType: string,
+		successMessage: string,
+		errorMessage: string,
+		infoMessage: string = 'No data found'
+	) => {
+		return useMutation({
+			mutationFn: () => {
+				const from = dateRange?.from?.toISOString().split('T')[0];
+				const to = dateRange?.to?.toISOString().split('T')[0];
+				const supplierId =
+					selectedSupplier && selectedSupplier !== 'all'
+						? parseInt(selectedSupplier)
+						: undefined;
+				const customerId =
+					selectedCustomer && selectedCustomer !== 'all'
+						? parseInt(selectedCustomer)
+						: undefined;
+				return mutationFn(from, to, customerId, supplierId);
+			},
+			onSuccess: (blob) => {
+				if (blob && blob.size > 0) {
+					previewBlob(blob, generateFilename(reportType, dateRange));
+					toast({ title: 'Success', description: successMessage });
+				} else {
+					toast({
+						title: 'Info',
+						description: infoMessage,
+						variant: 'default',
+					});
+				}
+			},
+			onError: (error: unknown) => {
+				let message = errorMessage;
+				if (typeof error === 'string') {
+					message = error;
+				} else if (
+					error &&
+					typeof error === 'object' &&
+					'message' in (error as { message?: string })
+				) {
+					message = (error as { message?: string }).message || message;
+				}
+				toast({
+					title: 'Error',
+					description: message,
+					variant: message.includes('No') ? 'default' : 'destructive',
+				});
+			},
+		});
+	};
+	const createReportMutation = (
+		mutationFn: (
+			startDate?: string,
+			endDate?: string,
+			supplierId?: number
+		) => Promise<Blob>,
+		reportType: string,
+		successMessage: string,
+		errorMessage: string,
+		infoMessage: string = 'No data found'
+	) => {
+		return useMutation({
+			mutationFn: () => {
+				const from = dateRange?.from
+					? format(dateRange.from, 'yyyy-MM-dd')
+					: undefined;
+				const to = dateRange?.to
+					? format(dateRange.to, 'yyyy-MM-dd')
+					: undefined;
+				const supplierId =
+					selectedSupplier && selectedSupplier !== 'all'
+						? parseInt(selectedSupplier)
+						: undefined;
+				return mutationFn(from, to, supplierId);
+			},
+			onSuccess: (blob) => {
+				if (blob && blob.size > 0) {
+					previewBlob(blob, generateFilename(reportType, dateRange));
+					toast({ title: 'Success', description: successMessage });
+				} else {
+					toast({
+						title: 'Info',
+						description: infoMessage,
+						variant: 'default',
+					});
+				}
+			},
+			onError: (error: any) => {
+				const message = error.message || errorMessage;
+				toast({
+					title: 'Error',
+					description: message,
+					variant: message.includes('No') ? 'default' : 'destructive',
+				});
+			},
+		});
+	};
 
 	// Sales
 	const exportSalesMutation = createReportMutation(
@@ -176,6 +249,18 @@ export const useReportMutations = (
 		'sales-summary',
 		'Sales summary report generated successfully',
 		'Failed to export sales summary report'
+	);
+
+	const exportCreditPaymentsMutation = useCreateReportMutation(
+		(from, to, customerId) =>
+			(reportsService as ReportsServiceType).exportCreditPaymentReport(
+				from,
+				to,
+				customerId
+			),
+		'credit-payments',
+		'Credit payments report generated successfully',
+		'Failed to export credit payments report'
 	);
 
 	const exportCashSalesSummaryMutation = createReportMutation(
@@ -309,7 +394,6 @@ export const useReportMutations = (
 		'Failed to export ingredients summary report'
 	);
 
-
 	// Accounting
 	const exportGrossProfitMutation = createReportMutation(
 		(from, to) => reportsService.exportGrossProfitReport(from, to),
@@ -347,11 +431,35 @@ export const useReportMutations = (
 		'Failed to export purchase order detailed report'
 	);
 
+	const exportPurchaseSummaryMutation = useCreateReportMutation(
+		() =>
+			(reportsService as ReportsServiceType).exportPurchaseOrderSummaryReport(),
+		'purchase-summary',
+		'Purchase order summary report generated successfully',
+		'Failed to export purchase order summary report'
+	);
+
 	const exportProductsMutation = createReportMutation(
 		() => reportsService.exportProductsReport(),
 		'products',
 		'Products report generated successfully',
 		'Failed to export products report'
+	);
+
+	const exportProductsCurrentStockMutation = createReportMutation(
+		() =>
+			(reportsService as ReportsServiceType).exportProductsCurrentStockReport(),
+		'product-current-stock',
+		'Products current stock report generated successfully',
+		'Failed to export products current stock report'
+	);
+
+	// Suppliers list (no args)
+	const exportSuppliersListMutation = useCreateReportMutation(
+		() => (reportsService as ReportsServiceType).exportSuppliersReport(),
+		'suppliers-list',
+		'Suppliers list generated successfully',
+		'Failed to export suppliers list'
 	);
 
 	type ReportMutation = UseMutationResult<Blob, unknown, void, unknown>;
@@ -363,8 +471,10 @@ export const useReportMutations = (
 		'sales-summary': exportSalesSummaryMutation,
 		'cash-sales-summary': exportCashSalesSummaryMutation,
 		'credit-sales-summary': exportCreditSalesSummaryMutation,
+		'credit-payments': exportCreditPaymentsMutation,
 		'goods-received': exportGoodsReceivedMutation,
 		'purchase-orders-detailed': exportPurchaseOrderDetailedMutation,
+		'purchase-summary': exportPurchaseSummaryMutation,
 		'materials-current': exportMaterialsInventoryMutation,
 		'supplies-current': exportSuppliesInventoryMutation,
 		'materials-adjustment': exportMaterialsAdjustmentsMutation,
@@ -384,6 +494,8 @@ export const useReportMutations = (
 		expenses: exportExpensesMutation,
 		'outstanding-payments': exportOutstandingPaymentsMutation,
 		products: exportProductsMutation,
+		'product-current-stock': exportProductsCurrentStockMutation,
+		'suppliers-list': exportSuppliersListMutation,
 	};
 
 	const handleExport = (reportType: string) => {
