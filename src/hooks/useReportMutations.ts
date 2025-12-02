@@ -1,6 +1,6 @@
 
 import { useMutation, UseMutationResult } from "@tanstack/react-query";
-import { reportsService } from "@/services/reports";
+import { reportsService, ReportsServiceType } from "@/services/reports";
 import { DateRange } from "@/components/ui/DateRange";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";

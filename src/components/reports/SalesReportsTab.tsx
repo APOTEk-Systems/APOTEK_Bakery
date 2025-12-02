@@ -76,7 +76,7 @@ const SalesReportsTab = () => {
 									<Select
 										value={selectedCustomer}
 										onValueChange={(v: string) => setSelectedCustomer(v)}
-										className='mt-1'>
+										>
 										<SelectTrigger className='my-1'>
 											<SelectValue placeholder='Select customer or all' />
 										</SelectTrigger>

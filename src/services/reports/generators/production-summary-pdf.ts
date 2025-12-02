@@ -53,7 +53,6 @@ export const generateProductionSummaryPDF = (
 			2: {},
 			3: { halign: 'right' },
 		},
-		columnStyles: { 0: { cellWidth: 12 }, 1: {}, 2: {}, 3: { halign: 'right' } },
 		didParseCell: function (dataItem: any) {
 			if (
 				dataItem.section === 'head' &&

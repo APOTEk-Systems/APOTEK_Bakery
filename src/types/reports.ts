@@ -166,6 +166,8 @@ export interface CustomerSalesReport {
 
 export interface SalesSummaryReport {
 	data: Array<{
+		createdAt: string;
+		amount: number;
 		date: string;
 		total: number;
 	}>;
@@ -240,6 +242,10 @@ export interface ProfitAndLossReport {
 
 export interface ProductionSummaryReport {
 	data: Array<{
+		createdAt: string;
+		item: string;
+		produced: number;
+		total: any;
 		date: string;
 		product: string;
 		quantity: number;

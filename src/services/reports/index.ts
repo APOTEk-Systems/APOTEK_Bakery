@@ -195,6 +195,9 @@ export {
 	generateCreditPaymentPDF,
 };
 
+// Type for the reports service
+export type ReportsServiceType = typeof reportsService;
+
 // Legacy service object for backward compatibility
 export const reportsService = {
 	// Helper functions
