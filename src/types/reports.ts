@@ -182,6 +182,13 @@ export interface SupplierWisePurchasesReport {
 	};
 }
 
+export interface PurchaseOrderSummaryReport {
+	totalPurchasesThisMonth: number;
+	pendingPurchaseOrders: number;
+	purchaseGrowth: string | number;
+	weeklyPurchasesList: Array<{ weekStart: string; total: number }>;
+}
+
 export interface IngredientPurchaseTrendReport {
 	data: Array<{
 		item: string;
@@ -219,22 +226,6 @@ export interface ProfitAndLossReport {
 				totalSales: number;
 				costOfGoodsSold: number;
 			};
-
-			export interface ProductionSummaryReport {
-				data: Array<{
-					date: string;
-					product: string;
-					quantity: number;
-				}>;
-			}
-
-			export interface IngredientSummaryReport {
-				data: Array<{
-					date: string;
-					ingredient: string;
-					quantity: number;
-				}>;
-			}
 			result: number;
 		};
 		netProfit: {
@@ -245,6 +236,32 @@ export interface ProfitAndLossReport {
 			result: number;
 		};
 	};
+}
+
+export interface ProductionSummaryReport {
+	data: Array<{
+		date: string;
+		product: string;
+		quantity: number;
+	}>;
+}
+
+export interface IngredientSummaryReport {
+	data: Array<{
+		date: string;
+		ingredient: string;
+		quantity: number;
+	}>;
+}
+
+export interface CreditPaymentReport {
+	data: Array<{
+		customerId: number;
+		customerName: string;
+		total: number;
+		paid: number;
+		balance: number;
+	}>;
 }
 
 export interface ExpenseBreakdownReport {

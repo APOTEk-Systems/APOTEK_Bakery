@@ -42,13 +42,6 @@ export const generateIngredientSummaryPDF = (
 		margin: { left: 20, right: 20 },
 		...getDefaultTableStyles(),
 		columnStyles: { 0: { cellWidth: 12 }, 1: {}, 2: {}, 3: { halign: 'right' } },
-		didParseCell: function (dataItem: any) {
-			if (
-				dataItem.section === 'head' &&
-				dataItem.column.index === 3){
-				dataItem.cell.styles.halign = 'right';
-				}
-			}
 	});
 
 	addPageNumbers(doc);
