@@ -263,7 +263,7 @@ const Customers = () => {
 
                     {/* Credit Status */}
                     <TableCell className="text-center align-middle">
-                      {formatCurrency(customer.creditLimit)}
+                      {formatCurrency(customer.creditLimit || 0)}
                     </TableCell>
 
                     {/* Status */}
