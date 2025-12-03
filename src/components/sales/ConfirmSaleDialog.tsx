@@ -27,8 +27,8 @@ interface ConfirmSaleDialogProps {
   showConfirmDialog: boolean;
   setShowConfirmDialog: (show: boolean) => void;
   saleCompleted: boolean;
-  previewFormat: 'a5' | 'thermal' | null;
-  setPreviewFormat: (format: 'a5' | 'thermal' | null) => void;
+  previewFormat: 'a4' | 'a5' | 'thermal' | null;
+  setPreviewFormat: (format: 'a4' | 'a5' | 'thermal' | null) => void;
   total: number;
   paymentMethod: string;
   creditDueDate: string;
@@ -85,9 +85,10 @@ const ConfirmSaleDialog = ({
    const receiptSize = settings?.configuration?.receiptSize || 'a5';
 
    // Map receiptSize to receiptFormat for preview
-   const getReceiptFormat = (size: string): 'a5' | 'thermal' => {
+   const getReceiptFormat = (size: string): 'a4' | 'a5' | 'thermal' => {
      if (size.startsWith('thermal')) return 'thermal';
-     return 'a5'; // a4 and a5 both use a5 format for preview
+     if (size === 'a4') return 'a4';
+     return 'a5'; // default to a5 for a5 format
    };
 
    // Get max width for print based on receiptSize
@@ -232,7 +233,7 @@ const ConfirmSaleDialog = ({
             customerName={soldCustomerName}
             paymentMethod={paymentMethod}
             creditDueDate={creditDueDate}
-            total={newSale?.sale?.total || soldCart.reduce((s, it) => s + it.price * it.quantity, 0) + (soldCart.reduce((s, it) => s + it.price * it.quantity, 0) * 0)}
+            total={newSale?.sale?.total || soldCart.reduce((s, it) => s + it.price * it.quantity, 0)}
             subtotal={newSale?.sale?.subtotal || soldCart.reduce((s, it) => s + it.price * it.quantity, 0)}
             tax={newSale?.sale?.vat || 0}
             businessInfo={businessInfo}

@@ -151,9 +151,13 @@ const SalesTable: React.FC<SalesTableProps> = ({ sales, loading, error, isUnpaid
 
       // Get receipt format from settings
       const receiptSize = settingsQuery.data?.configuration?.receiptSize || 'a5';
-      let receiptFormat: 'a5' | 'thermal' = 'a5';
+      let receiptFormat: 'a4' | 'a5' | 'thermal' = 'a5';
 
-      if (receiptSize.includes('thermal')) {
+      if (receiptSize === 'a4') {
+        receiptFormat = 'a4';
+      } else if (receiptSize === 'a5') {
+        receiptFormat = 'a5';
+      } else if (receiptSize.includes('thermal')) {
         receiptFormat = 'thermal';
       }
 

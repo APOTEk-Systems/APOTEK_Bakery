@@ -307,7 +307,7 @@ const SaleDetail = () => {
                   <Label className="text-sm font-medium text-muted-foreground">
                     Customer
                   </Label>
-                  <p className="font-medium">{sale.customerName ? sale.customerName : "CASH"}</p>
+                  <p className="font-medium">{sale.customer.name ? sale.customer.name: "CASH"}</p>
                 </div>
               </div>
 

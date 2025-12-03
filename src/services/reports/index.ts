@@ -1365,7 +1365,7 @@ export const reportsService = {
 
 	exportReceipt: async (
 		receiptData: any,
-		receiptFormat: 'a5' | 'thermal'
+		receiptFormat: 'a4' | 'a5' | 'thermal'
 	): Promise<Blob> => {
 		console.log('🧾 Starting receipt PDF generation...', { receiptFormat });
 		try {

@@ -3,7 +3,7 @@ import { formatCurrency } from "@/lib/funcs";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface ReceiptPreviewProps {
-  receiptFormat: 'a5' | 'thermal' | null;
+  receiptFormat: 'a4' | 'a5' | 'thermal' | null;
   sale: any;
   cart: any[];
   customer: any;
@@ -35,13 +35,14 @@ const ReceiptPreview = ({
   businessInfo
 }: ReceiptPreviewProps) => {
   const { user } = useAuth();
+  const isA4 = receiptFormat === 'a4';
   const isA5 = receiptFormat === 'a5';
-  const className = isA5 ? 'w-full max-w-2xl mx-auto' : 'w-full max-w-sm mx-auto';
+  const className = isA4 ? 'w-full max-w-3xl mx-auto' : isA5 ? 'w-full max-w-2xl mx-auto' : 'w-full max-w-sm mx-auto';
 
  // console.log(user)
   const renderItems = () => {
-    if (isA5) {
-      // A5: Full table with borders and alternating row colors
+    if (isA4 || isA5) {
+      // A4/A5: Full table with borders and alternating row colors
       return (
         <table className="w-full border-collapse border">
           <thead>

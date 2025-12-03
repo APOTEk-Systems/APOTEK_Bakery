@@ -83,7 +83,7 @@ const NewSale = () => {
 	const [soldCart, setSoldCart] = useState<CartItem[]>([]);
 	const [saleCompleted, setSaleCompleted] = useState(false);
 	const [newSale, setNewSale] = useState<any>(null);
-	const [previewFormat, setPreviewFormat] = useState<'a5' | 'thermal' | null>(
+	const [previewFormat, setPreviewFormat] = useState<'a4' | 'a5' | 'thermal' | null>(
 		null
 	);
 	const [soldCustomer, setSoldCustomer] = useState<Customer | null>(null);

@@ -35,7 +35,6 @@ export interface Sale {
   subtotal: number;
   id: number;
   customerId?: number;
-  customerName?: string;
   soldById?: number;
   isCredit?: boolean;
   creditDueDate?: string;
