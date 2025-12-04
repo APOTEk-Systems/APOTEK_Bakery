@@ -114,6 +114,28 @@ export interface InventoryAdjustmentsReport {
 	};
 }
 
+export interface ProductAdjustmentsReport {
+	adjustments: Array<{
+		id: number;
+		productId: number;
+		amount: number;
+		reason: string;
+		createdAt: string;
+		createdById: number;
+		product?: {
+			id: number;
+			name: string;
+		};
+		createdBy?: {
+			id: number;
+			name: string;
+		};
+	}>;
+	total: number;
+	page: number;
+	limit: number;
+}
+
 export interface LowStockReport {
 	data: {
 		inventoryItem: Array<{

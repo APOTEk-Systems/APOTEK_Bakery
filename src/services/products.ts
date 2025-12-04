@@ -91,3 +91,56 @@ export const updateProduct = async (
 export const deleteProduct = async (id: number): Promise<void> => {
   await api.delete(`/products/${id}`);
 };
+
+export interface ProductAdjustment {
+  id: number;
+  productId: number;
+  amount: number;
+  reason: string;
+  createdAt: string;
+  createdById: number;
+  product?: Product;
+  createdBy?: {
+    id: number;
+    name: string;
+  };
+}
+
+export interface GetProductAdjustmentsParams {
+  page?: number;
+  limit?: number;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+}
+
+export interface ProductAdjustmentsResponse {
+  adjustments: ProductAdjustment[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Get product adjustments
+export const getProductAdjustments = async (
+  params: GetProductAdjustmentsParams
+): Promise<ProductAdjustmentsResponse> => {
+  const response = await api.get<ProductAdjustmentsResponse>(
+    "/product-adjustments",
+    {params}
+  );
+  return response.data;
+};
+
+// Create product adjustment
+export const createProductAdjustment = async (data: {
+  productId: number;
+  amount: number;
+  reason: string;
+}): Promise<ProductAdjustment> => {
+  const response = await api.post<ProductAdjustment>(
+    "/product-adjustments",
+    data
+  );
+  return response.data;
+};

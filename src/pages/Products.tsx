@@ -26,6 +26,8 @@ import {
   DialogDescription,
 } from "@radix-ui/react-dialog";
 import {formatCurrency} from "@/lib/funcs";
+import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs";
+import ProductAdjustmentsTab from "@/components/products/ProductAdjustmentsTab";
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -108,167 +110,159 @@ const Products = () => {
 
   return (
     <Layout>
-      {" "}
       <div className="p-6">
-        <div className="mb-1">
-          <div className="flex justify-between items-start mb-2">
+        <div className="mb-4">
+          <div className="flex justify-between items-start">
             <div>
               <h1 className="text-3xl font-bold text-foreground">Products</h1>
             </div>
-            <Button className="shadow-warm" asChild>
-              <Link to="/products/new">
-                <Plus className="h-4 w-4 mr-2" />
-                New Product
-              </Link>
-            </Button>
           </div>
         </div>
 
-        {/* Filters - Moved to top */}
-        <Card className="bg-transparent shadow-none border-0 py-4">
-          <CardContent className="space-y-4 py-0 flex items-center">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="search"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
+        <Tabs defaultValue="list" className=" w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="list">Product List</TabsTrigger>
+            <TabsTrigger value="adjustments">Adjustments</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="list" className="space-y-4">
+            <div className="flex justify-end mb-4">
+              <Button className="shadow-warm" asChild>
+                <Link to="/products/new">
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Product
+                </Link>
+              </Button>
             </div>
-            {/* <div className="space-y-2" style={{marginTop: "0"}}>
-              <Label htmlFor="sort">Sort By</Label>
-              <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Sort products" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="name">Name</SelectItem>
-                  <SelectItem value="price">Price</SelectItem>
-                  <SelectItem value="stock">Stock</SelectItem>
-                </SelectContent>
-              </Select>
-            </div> */}
-          </CardContent>
-        </Card>
 
-        <div className="w-full flex justify-end mb-4"> </div>
-        <div className="grid grid-cols-1 gap-6">
-          {/* Products Table */}
-          <div className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin" />
+            {/* Filters - Moved to top */}
+            <Card className="bg-transparent shadow-none border-0 py-4">
+              <CardContent className="space-y-4 py-0 px-2 flex items-center">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="search"
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 gap-6">
+              {/* Products Table */}
+              <div className="space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                  </div>
+                ) : productsQuery.error ? (
+                  <Card>
+                    <CardContent className="p-6 text-center">
+                      <p className="text-destructive">
+                        {productsQuery.error instanceof Error
+                          ? productsQuery.error.message
+                          : "Failed to load products"}
+                      </p>
+                      <Button
+                        onClick={() => productsQuery.refetch()}
+                        className="mt-4"
+                      >
+                        Retry
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Product Name</TableHead>
+                          <TableHead>Price</TableHead>
+                          <TableHead>Stock</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredProducts.map((product) => (
+                          <TableRow key={product.id}>
+                            <TableCell className="font-medium">
+                              {product.name}
+                            </TableCell>
+                            <TableCell>{formatCurrency(product.price)}</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={getStockColor(product.quantity)}
+                              >
+                                {getStockStatus(product.quantity)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  product.status === "active"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {product.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleEditProduct(product)}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  onClick={() => openDeleteDialog(product.id)}
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Card>
+                )}
               </div>
-            ) : productsQuery.error ? (
-              <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-destructive">
-                    {productsQuery.error instanceof Error
-                      ? productsQuery.error.message
-                      : "Failed to load products"}
-                  </p>
-                  <Button
-                    onClick={() => productsQuery.refetch()}
-                    className="mt-4"
-                  >
-                    Retry
-                  </Button>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Price</TableHead>
-                      <TableHead>Stock</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">
-                          {product.name}
-                        </TableCell>
-                        <TableCell>{formatCurrency(product.price)}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={getStockColor(product.quantity)}
-                          >
-                            {getStockStatus(product.quantity)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={
-                              product.status === "active"
-                                ? "default"
-                                : "secondary"
-                            }
-                          >
-                            {product.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEditProduct(product)}
-                            >
-                              <Edit className="h-3 w-3" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => openDeleteDialog(product.id)}
-                            >
-                              <Trash2 className="h-3 w-3" />
-                              Delete
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Card>
+            </div>
+
+            {filteredProducts.length === 0 && !loading && (
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  No products found
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  {searchTerm
+                    ? "Try adjusting your search"
+                    : "Get started by adding your first product"}
+                </p>
+                <Button asChild>
+                  <Link to="/products/new">Add Product</Link>
+                </Button>
+              </div>
             )}
-          </div>
-        </div>
+          </TabsContent>
 
-        {filteredProducts.length === 0 && !loading && (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
-              No products found
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {searchTerm
-                ? "Try adjusting your search"
-                : "Get started by adding your first product"}
-            </p>
-            <Button asChild>
-              <Link to="/products/new">Add Product</Link>
-            </Button>
-          </div>
-        )}
-
-        {/* Delete Confirmation Dialog */}
-        <ConfirmationDialog
-          open={deleteDialogOpen}
-          onOpenChange={setDeleteDialogOpen}
-          title="Confirm Delete"
-          message="Are you sure you want to delete this product? This action cannot be undone."
-          onConfirm={() => selectedDeleteId && confirmDelete(selectedDeleteId)}
-        />
+          <TabsContent value="adjustments">
+            <ProductAdjustmentsTab />
+          </TabsContent>
+        </Tabs>
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog
@@ -308,7 +302,7 @@ const Products = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      </div>{" "}
+      </div>
     </Layout>
   );
 };

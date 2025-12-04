@@ -4,7 +4,7 @@ import { inventoryService } from '../inventory';
 import { salesService, type SalesQueryParams } from '../sales';
 import { suppliersService } from '../suppliers';
 import { purchasesService } from '../purchases';
-import { getPurchaseSummary } from '../purchases'; // Importing getPurchaseSummary for export
+import { getProductAdjustments, type ProductAdjustmentsResponse } from '../products'; // Import for product adjustments
 import type {
 	SalesReport,
 	PurchasesReport,
@@ -556,7 +556,7 @@ export const getCreditPaymentReport = async (
 			> = {};
 			for (const sale of resp.sales || []) {
 				const custId = sale.customer?.id || sale.customerId || 0;
-				const custName = sale.customer?.name || sale.customerName || 'Unknown';
+				const custName = sale.customer?.name || 'Unknown';
 				const total = sale.total || 0;
 				const paid =
 					sale.paid ??
@@ -620,4 +620,19 @@ export const getSuppliersReport = async (): Promise<{
 }> => {
 	const response = await suppliersService.getAll();
 	return { data: response };
+};
+
+// Product Adjustments Report
+export const getProductAdjustmentsReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<ProductAdjustmentsResponse> => {
+	const params: any = {};
+	
+	if (startDate) params.startDate = startDate;
+	if (endDate) params.endDate = endDate;
+	params.limit = 10000; // Get all records for reports
+
+	const response = await getProductAdjustments(params);
+	return response;
 };

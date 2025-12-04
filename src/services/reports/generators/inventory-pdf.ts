@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { fromBaseUnits } from "@/lib/funcs";
 import { addCompanyHeader, getDefaultTableStyles, formatCurrencyPDF, addPageNumbers } from "../pdf-utils";
-import type { InventoryReport, InventoryAdjustmentsReport, LowStockReport, OutOfStockReport } from "@/types/reports";
+import type { InventoryReport, InventoryAdjustmentsReport, LowStockReport, OutOfStockReport, ProductAdjustmentsReport } from "@/types/reports";
 
 // Inventory Report PDF
 export const generateInventoryPDF = (data: InventoryReport, type?: 'raw_material' | 'supplies', settings?: any): Blob => {
@@ -235,6 +235,55 @@ export const generateOutOfStockPDF = (data: OutOfStockReport, type?: 'raw_materi
 
   autoTable(doc, {
     head: [["#", "Item Name", "Unit"]],
+    body: tableData,
+    startY: yPos,
+    ...getDefaultTableStyles(),
+  });
+
+  // Add generated date at bottom
+  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  addPageNumbers(doc);
+
+  return doc.output("blob");
+};
+
+// Product Adjustments Report PDF
+export const generateProductAdjustmentsPDF = (
+  data: ProductAdjustmentsReport,
+  startDate?: string,
+  endDate?: string,
+  settings?: any
+): Blob => {
+  const doc = new jsPDF();
+
+  // Add company header
+  const reportTitle = "Product Adjustments Report";
+  let yPos = addCompanyHeader(
+    doc,
+    reportTitle,
+    startDate,
+    endDate,
+    settings
+  );
+
+  // Product adjustments table (similar to inventory adjustments but without type column)
+  const tableData = data.adjustments.map((adjustment, index) => {
+    const adjustmentType = adjustment.amount > 0 ? "Increased" : "Deducted";
+    const displayAmount = Math.abs(adjustment.amount);
+
+    return [
+      (index + 1).toString(),
+      adjustment.product?.name || "Unknown Product",
+      format(new Date(adjustment.createdAt), "dd-MM-yyyy"),
+      adjustmentType,
+      `${adjustment.amount > 0 ? "+" : "-"}${displayAmount.toLocaleString()}`,
+    //  adjustment.reason || "No reason provided",
+      adjustment.createdBy?.name || "Unknown",
+    ];
+  });
+
+  autoTable(doc, {
+    head: [["#", "Product Name", "Date", "Quantity", "Reason", "Adjusted By"]],
     body: tableData,
     startY: yPos,
     ...getDefaultTableStyles(),

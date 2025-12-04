@@ -1,16 +1,16 @@
-import {useParams, Link, useLocation} from "react-router-dom";
-import {useState} from "react";
-import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {useQuery} from "@tanstack/react-query";
+import { useParams, Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import {Button} from "@/components/ui/button";
-import {ConfirmationDialog} from "@/components/ConfirmationDialog";
-import {useToast} from "@/hooks/use-toast";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {ArrowLeft} from "lucide-react";
-import {salesService, Sale} from "../services/sales";
-import {Label} from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft } from "lucide-react";
+import { salesService, Sale } from "../services/sales";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -19,32 +19,38 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {formatCurrency} from "../lib/funcs";
-import { format } from 'date-fns';
+import { formatCurrency } from "../lib/funcs";
+import { format } from "date-fns";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const SaleDetail = () => {
-  const {id} = useParams<{id: string}>();
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const saleId = parseInt(id || "0");
   const queryClient = useQueryClient();
-  const {toast} = useToast();
+  const { toast } = useToast();
   const [isConfirmOpen, setConfirmOpen] = useState(false);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentAmount, setPaymentAmount] = useState("");
 
   // Determine back navigation based on referrer
   const getBackLink = () => {
     const searchParams = new URLSearchParams(location.search);
-    const tab = searchParams.get('tab');
-    if (tab === 'recent') {
-      return { to: '/sales?tab=recent', label: 'Back to Recent Sales' };
-    } else if (tab === 'unpaid') {
-      return { to: '/sales?tab=unpaid', label: 'Back to Unpaid Sales' };
+    const tab = searchParams.get("tab");
+    if (tab === "recent") {
+      return { to: "/sales?tab=recent", label: "Back to Recent Sales" };
+    } else if (tab === "unpaid") {
+      return { to: "/sales?tab=unpaid", label: "Back to Unpaid Sales" };
     }
-    return { to: '/sales', label: 'Back to Sales' };
+    return { to: "/sales", label: "Back to Sales" };
   };
 
   const backLink = getBackLink();
@@ -52,7 +58,7 @@ const SaleDetail = () => {
   const payMutation = useMutation({
     mutationFn: (saleId: number) => salesService.paySale(saleId),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["sale", saleId]});
+      queryClient.invalidateQueries({ queryKey: ["sale", saleId] });
       toast({
         title: "Success",
         description: "Sale marked as complete.",
@@ -77,13 +83,13 @@ const SaleDetail = () => {
         title: "Success",
         description: "Payment recorded successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ['sale', saleId] });
-      queryClient.invalidateQueries({ queryKey: ['unpaidSales'] });
-      queryClient.invalidateQueries({ queryKey: ['outstanding-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['recentSales'] });
+      queryClient.invalidateQueries({ queryKey: ["sale", saleId] });
+      queryClient.invalidateQueries({ queryKey: ["unpaidSales"] });
+      queryClient.invalidateQueries({ queryKey: ["outstanding-payments"] });
+      queryClient.invalidateQueries({ queryKey: ["recentSales"] });
     },
     onError: (error) => {
-      console.error('Error making payment:', error);
+      console.error("Error making payment:", error);
       toast({
         title: "Error",
         description: "Failed to record payment",
@@ -200,70 +206,86 @@ const SaleDetail = () => {
                 Sale #{sale.id}
               </h1>
             </div>
-            {sale.status === "unpaid" && sale.outstandingBalance && sale.outstandingBalance > 0 && (
-              <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    size="sm"
-                    onClick={() => setIsPaymentDialogOpen(true)}
-                    disabled={createPaymentMutation.isPending}
-                  >
-                    {createPaymentMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : null}
-                    Pay
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Pay</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <Label className="text-sm font-medium">Receipt #</Label>
-                        <p className="text-lg font-semibold">{sale.id}</p>
+            {sale.status === "unpaid" &&
+              sale.outstandingBalance &&
+              sale.outstandingBalance > 0 && (
+                <Dialog
+                  open={isPaymentDialogOpen}
+                  onOpenChange={setIsPaymentDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      size="sm"
+                      onClick={() => setIsPaymentDialogOpen(true)}
+                      disabled={createPaymentMutation.isPending}
+                    >
+                      {createPaymentMutation.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : null}
+                      Pay
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Pay</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 gap-4">
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <Label className="text-sm font-medium">
+                            Receipt #
+                          </Label>
+                          <p className="text-lg font-semibold">{sale.id}</p>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b">
+                          <Label className="text-sm font-medium">
+                            Outstanding Balance
+                          </Label>
+                          <p className="text-lg font-semibold text-destructive">
+                            {formatCurrency(sale.outstandingBalance || 0)}
+                          </p>
+                        </div>
+                        <div className="flex justify-between items-center py-2">
+                          <Label
+                            htmlFor="amount"
+                            className="text-sm font-medium"
+                          >
+                            Amount
+                          </Label>
+                          <Input
+                            id="amount"
+                            type="text"
+                            inputMode="numeric"
+                            value={
+                              paymentAmount
+                                ? Number(paymentAmount).toLocaleString("en-TZ")
+                                : ""
+                            }
+                            onChange={(e) => {
+                              const raw = e.target.value.replace(/,/g, "");
+                              setPaymentAmount(raw === "" ? "" : raw);
+                            }}
+                            placeholder="Enter amount"
+                            className="w-40 text-right"
+                          />
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <Label className="text-sm font-medium">Outstanding Balance</Label>
-                        <p className="text-lg font-semibold text-destructive">
-                          {formatCurrency(sale.outstandingBalance || 0)}
-                        </p>
-                      </div>
-                      <div className="flex justify-between items-center py-2">
-                        <Label htmlFor="amount" className="text-sm font-medium">Amount</Label>
-                        <Input
-                          id="amount"
-                          type="text"
-                          inputMode="numeric"
-                          value={paymentAmount ? Number(paymentAmount).toLocaleString('en-TZ') : ''}
-                          onChange={(e) => {
-                            const raw = e.target.value.replace(/,/g, '');
-                            setPaymentAmount(raw === '' ? '' : raw);
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setIsPaymentDialogOpen(false);
+                            setPaymentAmount("");
                           }}
-                          placeholder="Enter amount"
-                          className="w-40 text-right"
-                        />
+                        >
+                          Cancel
+                        </Button>
+                        <Button onClick={handleMakePayment}>Pay</Button>
                       </div>
                     </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setIsPaymentDialogOpen(false);
-                          setPaymentAmount('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleMakePayment}>
-                        Pay
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            )}
+                  </DialogContent>
+                </Dialog>
+              )}
           </div>
         </div>
 
@@ -280,7 +302,7 @@ const SaleDetail = () => {
                     Date
                   </Label>
                   <p className="font-medium">
-                    {format(new Date(sale.createdAt), 'dd-MM-yyyy')}
+                    {format(new Date(sale.createdAt), "dd-MM-yyyy")}
                   </p>
                 </div>
                 <div className="flex flex-col">
@@ -301,17 +323,19 @@ const SaleDetail = () => {
                   <Label className="text-sm font-medium text-muted-foreground">
                     Payment Method
                   </Label>
-                  <p className="font-medium">{sale.isCredit ? "Credit" : "Cash"}</p>
+                  <p className="font-medium">
+                    {sale.isCredit ? "Credit" : "Cash"}
+                  </p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">
                     Customer
                   </Label>
-                  <p className="font-medium">{sale.customer?.name ? sale.customer.name: "CASH"}</p>
+                  <p className="font-medium">
+                    {sale.customer?.name ? sale.customer.name : "CASH"}
+                  </p>
                 </div>
               </div>
-
-           
 
               {sale.notes && (
                 <div>
@@ -341,7 +365,6 @@ const SaleDetail = () => {
           <Card>
             <CardHeader>
               <CardTitle>Items Sold</CardTitle>
-             
             </CardHeader>
             <CardContent>
               <Table>

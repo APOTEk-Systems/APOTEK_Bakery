@@ -19,6 +19,7 @@ const InventoryReportsTab = () => {
 	const needsDateRange = [
 		'materials-adjustment',
 		'supplies-adjustment',
+		'product-adjustment',
 	].includes(selectedInventoryReport);
 
 	return (
@@ -66,7 +67,7 @@ const InventoryReportsTab = () => {
 								Supplies Out of Stock
 							</SelectItem>
 							<SelectItem value='product-details'>Product Details</SelectItem>
-							
+							<SelectItem value='product-adjustment'>Product Adjustments</SelectItem>
 							<SelectItem value='suppliers-list'>Suppliers List</SelectItem>
 						</SelectContent>
 					</Select>

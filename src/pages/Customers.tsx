@@ -1,14 +1,14 @@
-import {useState} from "react";
-import {Link} from "react-router-dom";
-import {useQuery, useMutation, useQueryClient} from "@tanstack/react-query";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import Layout from "../components/Layout";
-import {Button} from "@/components/ui/button";
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card";
-import {Badge} from "@/components/ui/badge";
-import {Input} from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import {useToast} from "@/hooks/use-toast";
-import {Search, Plus, Edit, User, Loader2, Trash} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Search, Plus, Edit, User, Loader2, Trash } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -17,16 +17,18 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import {customersService, type Customer} from "../services/customers";
-import {format} from "date-fns";
-import {formatCurrency} from "@/lib/funcs";
+import { customersService, type Customer } from "../services/customers";
+import { format } from "date-fns";
+import { formatCurrency } from "@/lib/funcs";
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [deleteItemId, setDeleteItemId] = useState<number | null>(null);
-  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
-  const {toast} = useToast();
+  const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(
+    null
+  );
+  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   console.log("Customer", customerToDelete);
@@ -36,7 +38,7 @@ const Customers = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async ({id, hasSales}: {id: number, hasSales: boolean}) => {
+    mutationFn: async ({ id, hasSales }: { id: number; hasSales: boolean }) => {
       if (hasSales) {
         return customersService.update(id, { status: "inactive" });
       } else {
@@ -44,11 +46,13 @@ const Customers = () => {
         return null;
       }
     },
-    onSuccess: (_, {hasSales}) => {
-      queryClient.invalidateQueries({queryKey: ["customers"]});
+    onSuccess: (_, { hasSales }) => {
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
       toast({
         title: hasSales ? "Customer Deactivated" : "Customer Deleted",
-        description: hasSales ? "Customer deactivated successfully." : "Customer deleted successfully.",
+        description: hasSales
+          ? "Customer deactivated successfully."
+          : "Customer deleted successfully.",
         variant: "default",
       });
       setIsDeleteConfirmOpen(false);
@@ -87,7 +91,7 @@ const Customers = () => {
   const loading = customersQuery.isLoading;
   const error = customersQuery.error;
 
-  console.log(allCustomers)
+  console.log(allCustomers);
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -110,11 +114,13 @@ const Customers = () => {
     setIsDeleteConfirmOpen(true);
   };
 
-  const hasSales = customerToDelete ? (customerToDelete.sales?.length || 0) > 0 : false;
+  const hasSales = customerToDelete
+    ? (customerToDelete.sales?.length || 0) > 0
+    : false;
 
   const confirmDelete = () => {
     if (deleteItemId && customerToDelete) {
-      deleteMutation.mutate({id: deleteItemId, hasSales});
+      deleteMutation.mutate({ id: deleteItemId, hasSales });
     }
   };
 
@@ -190,7 +196,7 @@ const Customers = () => {
               <TableRow>
                 <TableHead>Customer</TableHead>
                 <TableHead>Phone</TableHead>
-                 <TableHead>Total Credit</TableHead>
+                <TableHead>Total Credit</TableHead>
                 <TableHead className="text-center">Credit Limit</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -246,7 +252,6 @@ const Customers = () => {
                     <TableCell className="align-middle">
                       <span className="">{customer.name}</span>
                     </TableCell>
-                
 
                     {/* Phone */}
                     <TableCell className="align-middle">
@@ -275,31 +280,26 @@ const Customers = () => {
 
                     {/* Actions */}
                     <TableCell className="text-right align-middle">
-                      {customer.id === "cash" ? (
-                        <span className="text-muted-foreground text-sm">
-                          Default
-                        </span>
-                      ) : (
-                        <div className="flex gap-1 justify-end">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link to={`/customers/${customer.id}/edit`}>
-                              <Edit className="h-4 w-4" />
-                              Edit
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() =>
-                              handleDeleteCustomer(customer)
-                            }
-                            disabled={deleteMutation.isPending || customer.status === "inactive"}
-                          >
-                            <Trash className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-1 justify-end">
+                        <Button variant="outline" size="sm" asChild>
+                          <Link to={`/customers/${customer.id}/edit`}>
+                            <Edit className="h-4 w-4" />
+                            Edit
+                          </Link>
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => handleDeleteCustomer(customer)}
+                          disabled={
+                            deleteMutation.isPending ||
+                            customer.status === "inactive"
+                          }
+                        >
+                          <Trash className="h-4 w-4" />
+                          Delete
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -312,7 +312,7 @@ const Customers = () => {
         <ConfirmationDialog
           open={isDeleteConfirmOpen}
           onOpenChange={setIsDeleteConfirmOpen}
-          title={`Confirm ${hasSales ? 'Deactivation' : 'Deletion'}`}
+          title={`Confirm ${hasSales ? "Deactivation" : "Deletion"}`}
           message={
             hasSales
               ? "This customer has made sales. They will be deactivated but their data will be preserved."

@@ -8,6 +8,7 @@ export type {
 	ProductionReport,
 	InventoryReport,
 	InventoryAdjustmentsReport,
+	ProductAdjustmentsReport,
 	LowStockReport,
 	OutOfStockReport,
 	FinancialReport,
@@ -29,6 +30,7 @@ import {
 	getProductionReport,
 	getInventoryReport,
 	getInventoryAdjustmentsReport,
+	getProductAdjustmentsReport,
 	getLowStockReport,
 	getOutOfStockReport,
 	getFinancialReport,
@@ -106,6 +108,7 @@ import {
 import {
 	generateInventoryPDF,
 	generateInventoryAdjustmentsPDF,
+	generateProductAdjustmentsPDF,
 	generateLowStockPDF,
 	generateOutOfStockPDF,
 } from './generators/inventory-pdf';
@@ -135,6 +138,7 @@ export {
 	getProductionReport,
 	getInventoryReport,
 	getInventoryAdjustmentsReport,
+	getProductAdjustmentsReport,
 	getLowStockReport,
 	getOutOfStockReport,
 	getFinancialReport,
@@ -179,6 +183,7 @@ export {
 	generateIngredientUsagePDF,
 	generateInventoryPDF,
 	generateInventoryAdjustmentsPDF,
+	generateProductAdjustmentsPDF,
 	generateLowStockPDF,
 	generateOutOfStockPDF,
 	generateFinancialPDF,
@@ -210,6 +215,7 @@ export const reportsService = {
 	getProductionReport: getProductionReport,
 	getInventoryReport: getInventoryReport,
 	getInventoryAdjustmentsReport: getInventoryAdjustmentsReport,
+	getProductAdjustmentsReport: getProductAdjustmentsReport,
 	getLowStockReport: getLowStockReport,
 	getOutOfStockReport: getOutOfStockReport,
 	getFinancialReport: getFinancialReport,
@@ -605,6 +611,41 @@ export const reportsService = {
 				// Return a resolved promise with null to indicate no PDF was generated
 				return Promise.resolve(null as any);
 			}
+			throw error;
+		}
+	},
+
+	exportProductAdjustmentsReport: async (
+		startDate?: string,
+		endDate?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting product adjustments report export...', {
+			startDate,
+			endDate,
+		});
+		try {
+			const data = await getProductAdjustmentsReport(startDate, endDate);
+			console.log('✅ Product adjustments data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateProductAdjustmentsPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Product adjustments PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting product adjustments report:', error);
 			throw error;
 		}
 	},

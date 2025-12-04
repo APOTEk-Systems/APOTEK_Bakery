@@ -24,6 +24,7 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 		'supplies-current': 'Supplies Current Stock Report',
 		'materials-adjustment': 'Materials Adjustments Report',
 		'supplies-adjustment': 'Supplies Adjustments Report',
+		'product-adjustment': 'Product Adjustments Report',
 		'materials-low-stock': 'Materials Low Stock Report',
 		'supplies-low-stock': 'Supplies Low Stock Report',
 		'materials-out-of-stock': 'Materials Out of Stock Report',
@@ -319,6 +320,15 @@ export const useReportMutations = (
 		'No adjustments found for supplies'
 	);
 
+	const exportProductAdjustmentsMutation = createReportMutation(
+		(from, to) =>
+			reportsService.exportProductAdjustmentsReport(from, to),
+		'product-adjustment',
+		'Product adjustments report generated successfully',
+		'Failed to export product adjustments report',
+		'No adjustments found for products'
+	);
+
 	const exportMaterialsLowStockMutation = createReportMutation(
 		() => reportsService.exportLowStockReport('raw_material'),
 		'materials-low-stock',
@@ -479,6 +489,7 @@ export const useReportMutations = (
 		'supplies-current': exportSuppliesInventoryMutation,
 		'materials-adjustment': exportMaterialsAdjustmentsMutation,
 		'supplies-adjustment': exportSuppliesAdjustmentsMutation,
+		'product-adjustment': exportProductAdjustmentsMutation,
 		'materials-low-stock': exportMaterialsLowStockMutation,
 		'supplies-low-stock': exportSuppliesLowStockMutation,
 		'materials-out-of-stock': exportMaterialsOutOfStockMutation,
