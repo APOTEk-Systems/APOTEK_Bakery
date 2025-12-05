@@ -317,3 +317,19 @@ export interface ProductDetailsReport {
 		profit: number;
 	}>;
 }
+
+export interface SalesReturnsReport {
+	data: Array<{
+		productName: string;
+		saleDate: string;
+		returnedDate: string;
+		soldQty: number;
+		returnedQty: number;
+		returnedAmount: number;
+		saleId: number;
+		adjustmentId: number;
+		reason: string;
+		approvedBy: string;
+		requestedBy: string;
+	}>;
+}

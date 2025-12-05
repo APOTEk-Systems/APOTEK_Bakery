@@ -74,8 +74,11 @@ interface ReturnDialogProps {
 **Enhancements**:
 - Added Return button to action toolbar (line 294)
 - Integrated ReturnDialog component
+- Added logic to hide Return button if sale already has an existing return
+- Added query to check for existing returns for this sale
 - Maintains existing payment and view functionality
 - Added RotateCcw icon import
+- Conditional rendering: `{!existingReturn && <ReturnDialog sale={sale} />}`
 
 #### 4. Updated Sales Page
 **Location**: `src/pages/Sales.tsx`
@@ -273,6 +276,81 @@ interface SalesAdjustment {
    - Removed redundant Returns navigation item from Navigation.tsx
    - Returns are accessible via Sales page tab: `/sales?tab=returns`
    - Removed unused RotateCcw icon import from Navigation.tsx
+
+7. **Return Button Visibility Logic**
+   - Added query to check for existing returns for each sale
+   - Return button hidden if sale already has a return request
+   - Prevents duplicate return requests for the same sale
+   - Query: `['sale-return', saleId]` checks existing returns
+   - Conditional rendering: `{!existingReturn && <ReturnDialog sale={sale>`
+
+## Service Layer Architecture
+
+### 8. **Dedicated Sales Adjustments Service**
+**Location**: `src/services/salesAdjustments.ts`
+
+**Purpose**: Centralized API access layer for sales adjustments/returns to eliminate direct `api` calls in components and promote better code organization.
+
+**Benefits**:
+- Centralized API configuration
+- Type safety with TypeScript interfaces
+- Consistent error handling patterns
+- Reusable across multiple components
+- Easy testing and maintenance
+
+**Service Methods**:
+```typescript
+export const salesAdjustmentsService = {
+  // Get all sales adjustments with pagination
+  getAll: async (params: SalesAdjustmentQueryParams = {}): Promise<PaginatedSalesAdjustmentsResponse>
+  
+  // Get a specific sales adjustment by ID
+  getById: async (id: number): Promise<SalesAdjustment>
+  
+  // Get sales adjustments for a specific sale
+  getBySaleId: async (saleId: number): Promise<SalesAdjustment[]>
+  
+  // Create a new sales adjustment (return request)
+  create: async (data: CreateSalesAdjustmentData): Promise<SalesAdjustment>
+  
+  // Approve a sales adjustment
+  approve: async (id: number): Promise<SalesAdjustment>
+  
+  // Decline a sales adjustment
+  decline: async (id: number): Promise<SalesAdjustment>
+  
+  // Delete a sales adjustment
+  delete: async (id: number): Promise<void>
+}
+```
+
+**Component Usage**:
+- **ReturnDialog**: Uses `salesAdjustmentsService.create()` for return creation
+- **ReturnsTab**: Uses `salesAdjustmentsService.getAll()`, `approve()`, and `decline()`
+- **SaleDetail**: Uses `salesAdjustmentsService.getBySaleId()` for existing return checks
+
+### 9. **Component Refactoring Results**
+
+**Before (Direct API calls)**:
+```typescript
+const response = await api.get('/sales-adjustments', { params });
+const response = await api.post('/sales-adjustments', data);
+const response = await api.patch(`/sales-adjustments/${id}/approve`);
+```
+
+**After (Service layer)**:
+```typescript
+const response = await salesAdjustmentsService.getAll(params);
+const response = await salesAdjustmentsService.create(data);
+const response = await salesAdjustmentsService.approve(id);
+```
+
+**Improvements**:
+- Better separation of concerns
+- Type safety with proper interfaces
+- Centralized error handling
+- Easier to mock for testing
+- Consistent API patterns across the codebase
 
 ### Key Features Implemented
 

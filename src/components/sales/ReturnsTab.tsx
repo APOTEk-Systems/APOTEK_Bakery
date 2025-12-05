@@ -19,7 +19,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Loader2, RotateCcw, Check, X } from 'lucide-react';
-import { api } from '@/lib/api';
 import {
   Pagination,
   PaginationContent,
@@ -29,6 +28,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
+import { salesAdjustmentsService, SalesAdjustment, type SalesAdjustmentQueryParams } from '@/services/salesAdjustments';
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
@@ -37,58 +37,6 @@ const hasPermission = (user: any, permission: string): boolean => {
     return true;
   }
   return user.permissions?.includes(permission) || false;
-};
-
-// Types for sales adjustments (returns)
-interface SalesAdjustment {
-  id: number;
-  saleId: number;
-  reason: string;
-  status: 'PENDING' | 'APPROVED' | 'DECLINED';
-  createdAt: string;
-  requestedBy: {
-    id: number;
-    name: string;
-  };
-  approvedBy?: {
-    id: number;
-    name: string;
-  };
-  items: Array<{
-    id: number;
-    productId: number;
-    quantity: number;
-    notes?: string;
-    product?: {
-      id: number;
-      name: string;
-      price: number;
-    };
-  }>;
-  sale?: {
-    id: number;
-    customer?: {
-      name: string;
-    };
-    total: number;
-    createdAt: string;
-  };
-}
-
-// API service for sales adjustments
-const salesAdjustmentsApi = {
-getAll: async (params: any = {}) => {
-  const response = await api.get('/sales-adjustments', { params });
-  return response.data;
-},
-approve: async (id: number) => {
-  const response = await api.patch(`/sales-adjustments/${id}/approve`);
-  return response.data;
-},
-decline: async (id: number) => {
-  const response = await api.patch(`/sales-adjustments/${id}/decline`);
-  return response.data;
-},
 };
 
 const ReturnsTab: React.FC = () => {
@@ -136,7 +84,7 @@ const ReturnsTab: React.FC = () => {
   const { data: returnsData, isLoading: loading, error } = useQuery({
     queryKey: ['sales-adjustments', searchTerm, dateRange, page, limit],
     queryFn: async () => {
-      const params: any = { page, limit };
+      const params: SalesAdjustmentQueryParams = { page, limit };
       if (searchTerm) {
         params.search = searchTerm;
       }
@@ -147,7 +95,7 @@ const ReturnsTab: React.FC = () => {
         params.endDate = dateRange.to.toISOString().split('T')[0];
       }
       
-      const response = await salesAdjustmentsApi.getAll(params);
+      const response = await salesAdjustmentsService.getAll(params);
       return {
         adjustments: response.returns || [],
         total: response.total || 0,
@@ -165,7 +113,7 @@ const ReturnsTab: React.FC = () => {
 
   // Mutations for approving/declining returns
   const approveMutation = useMutation({
-    mutationFn: (id: number) => salesAdjustmentsApi.approve(id),
+    mutationFn: (id: number) => salesAdjustmentsService.approve(id),
     onSuccess: () => {
       toast({
         title: "Success",
@@ -185,7 +133,7 @@ const ReturnsTab: React.FC = () => {
   });
 
   const declineMutation = useMutation({
-    mutationFn: (id: number) => salesAdjustmentsApi.decline(id),
+    mutationFn: (id: number) => salesAdjustmentsService.decline(id),
     onSuccess: () => {
       toast({
         title: "Success",

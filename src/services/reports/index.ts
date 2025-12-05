@@ -3,6 +3,7 @@
 // Import types
 export type {
 	SalesReport,
+	SalesReturnsReport,
 	SalesSummaryReport,
 	PurchasesReport,
 	ProductionReport,
@@ -26,6 +27,7 @@ export type {
 // Import data fetching functions
 import {
 	getSalesReport,
+	getSalesReturnsReport,
 	getPurchasesReport,
 	getProductionReport,
 	getInventoryReport,
@@ -125,6 +127,7 @@ import {
 
 import { generateCreditPaymentPDF } from './generators/credit-payment-pdf';
 import { generateReceiptPDF } from './generators/receipt-pdf';
+import { generateSalesReturnsPDF } from './generators/sales-returns-pdf';
 
 // NOTE: generators already imported above
 import { generateSuppliersPDF } from './generators/suppliers-pdf';
@@ -133,6 +136,7 @@ import { generateSuppliersPDF } from './generators/suppliers-pdf';
 export {
 	// data fetchers
 	getSalesReport,
+	getSalesReturnsReport,
 	getPurchasesReport,
 	getPurchaseOrderSummaryReport,
 	getProductionReport,
@@ -198,6 +202,7 @@ export {
 	generatePurchaseSummaryPDF,
 	generateExpensesPDF,
 	generateCreditPaymentPDF,
+	generateSalesReturnsPDF,
 };
 
 // Type for the reports service
@@ -211,6 +216,7 @@ export const reportsService = {
 
 	// Data fetching functions
 	getSalesReport: getSalesReport,
+	getSalesReturnsReport: getSalesReturnsReport,
 	getPurchasesReport: getPurchasesReport,
 	getProductionReport: getProductionReport,
 	getInventoryReport: getInventoryReport,
@@ -1463,6 +1469,41 @@ export const reportsService = {
 				'❌ Error exporting purchase order detailed report:',
 				error
 			);
+			throw error;
+		}
+	},
+
+	exportSalesReturnsReport: async (
+		startDate?: string,
+		endDate?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting sales returns report export...', {
+			startDate,
+			endDate,
+		});
+		try {
+			const data = await getSalesReturnsReport(startDate, endDate);
+			console.log('✅ Sales returns data fetched successfully:', data);
+
+			let settings;
+			try {
+				const settingsService = (await import('@/services/settings'))
+					.settingsService;
+				settings = await settingsService.getAll();
+			} catch (error) {
+				console.warn('Could not fetch settings for PDF header:', error);
+			}
+
+			const pdfBlob = generateSalesReturnsPDF(
+				data,
+				startDate,
+				endDate,
+				settings
+			);
+			console.log('📄 Sales returns PDF generated successfully');
+			return pdfBlob;
+		} catch (error) {
+			console.error('❌ Error exporting sales returns report:', error);
 			throw error;
 		}
 	},

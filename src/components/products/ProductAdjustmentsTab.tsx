@@ -285,7 +285,13 @@ const ProductAdjustmentsTab = () => {
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="product">Product</Label>
-              <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+              <Select
+                value={selectedProductId}
+                onValueChange={(value) => {
+                  setSelectedProductId(value);
+                  setAmount(""); // Clear amount when product changes
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select product" />
                 </SelectTrigger>
@@ -298,14 +304,31 @@ const ProductAdjustmentsTab = () => {
                 </SelectContent>
               </Select>
             </div>
+            {selectedProductId && (
+              <div className="space-y-2">
+                <Label>Current Stock</Label>
+                <div className="p-3 bg-muted rounded-md">
+                  <div className="text-lg font-semibold">
+                    {(() => {
+                      const selectedProduct = productsQuery.data?.find(p => p.id.toString() === selectedProductId);
+                      return selectedProduct?.quantity?.toLocaleString() || '0';
+                    })()}
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Available for reduction
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="space-y-2">
-              <Label htmlFor="amount">Quantity</Label>
+              <Label htmlFor="amount">Quantity to Reduce</Label>
               <Input
                 id="amount"
                 type="text"
                 value={amount ? parseFloat(amount).toLocaleString() : ''}
                 onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
-                placeholder="Enter quantity"
+                placeholder="Enter quantity to reduce"
+                max={selectedProductId ? productsQuery.data?.find(p => p.id.toString() === selectedProductId)?.quantity : undefined}
               />
             </div>
             <div className="space-y-2">

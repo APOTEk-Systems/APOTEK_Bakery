@@ -5,6 +5,7 @@ import {
   addCompanyHeader,
   getDefaultTableStyles,
   formatCurrencyPDF,
+  addCompanyHeaderA5Recepit,
 } from "../pdf-utils";
 
 interface ReceiptData {
@@ -333,7 +334,7 @@ export const generateReceiptPDF = (
     } else if (receiptFormat === "a5") {
       // A4 receipt - table-based layout
       // Add company header with logo and business info
-      let yPos = addCompanyHeader(
+      let yPos = addCompanyHeaderA5Recepit(
         doc,
         "SALES RECEIPT",
         undefined,
@@ -393,6 +394,10 @@ export const generateReceiptPDF = (
         body: tableData,
         startY: yPos,
         ...getDefaultTableStyles(),
+         styles:{
+          cellPadding:2,
+          fontSize:8
+        },
         columnStyles: {
           0: { cellWidth: 10 }, // #
           1: { cellWidth: 60 }, // Item

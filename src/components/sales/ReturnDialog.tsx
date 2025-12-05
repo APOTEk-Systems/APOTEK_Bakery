@@ -25,7 +25,7 @@ import {
 import { Loader2, RotateCcw } from "lucide-react";
 import { Sale } from "@/services/sales";
 import { settingsService } from "@/services/settings";
-import { api } from "@/lib/api";
+import { salesAdjustmentsService, CreateSalesAdjustmentData } from "@/services/salesAdjustments";
 import { formatCurrency } from "@/lib/funcs";
 
 interface ReturnItem {
@@ -65,18 +65,8 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
 
   // Create return mutation - this would integrate with the sales adjustments API
   const createReturnMutation = useMutation({
-    mutationFn: async (returnData: {
-      saleId: number;
-      reason: string;
-      items: Array<{
-        productId: number;
-        quantity: number;
-        notes?: string;
-      }>;
-    }) => {
-      // Call the sales adjustments API using axios
-      const response = await api.post("/sales-adjustments", returnData);
-      return response.data;
+    mutationFn: (returnData: CreateSalesAdjustmentData) => {
+      return salesAdjustmentsService.create(returnData);
     },
     onSuccess: () => {
       toast({
@@ -144,7 +134,7 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
     }
 
     // Prepare return data
-    const returnData = {
+    const returnData: CreateSalesAdjustmentData = {
       saleId: sale.id,
       reason,
       items: itemsWithReturns.map(item => ({

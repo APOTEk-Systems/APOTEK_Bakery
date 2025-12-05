@@ -60,6 +60,9 @@ const SalesReportsTab = () => {
 							<SelectItem value='credit-sales-summary'>
 								Credit Sales Summary Report
 							</SelectItem>
+							<SelectItem value='sales-returns'>
+								Sales Returns Report
+							</SelectItem>
 							<SelectItem value='products'>Price List Report</SelectItem>
 							<SelectItem value='credit-payments'>
 								Credit Payments Report

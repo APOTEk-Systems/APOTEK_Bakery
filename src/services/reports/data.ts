@@ -6,27 +6,28 @@ import { suppliersService } from '../suppliers';
 import { purchasesService } from '../purchases';
 import { getProductAdjustments, type ProductAdjustmentsResponse } from '../products'; // Import for product adjustments
 import type {
-	SalesReport,
-	PurchasesReport,
-	ProductionReport,
-	InventoryReport,
-	InventoryAdjustmentsReport,
-	LowStockReport,
-	OutOfStockReport,
-	FinancialReport,
-	CustomerSalesReport,
-	SupplierWisePurchasesReport,
-	IngredientPurchaseTrendReport,
-	FinishedGoodsSummaryReport,
-	IngredientUsageReport,
-	SalesSummaryReport,
-	ProfitAndLossReport,
-	ExpenseBreakdownReport,
-	ProductsReport,
-	ProductDetailsReport,
-	ProductionSummaryReport,
-	IngredientSummaryReport,
-	CreditPaymentReport,
+SalesReport,
+SalesReturnsReport,
+PurchasesReport,
+ProductionReport,
+InventoryReport,
+InventoryAdjustmentsReport,
+LowStockReport,
+OutOfStockReport,
+FinancialReport,
+CustomerSalesReport,
+SupplierWisePurchasesReport,
+IngredientPurchaseTrendReport,
+FinishedGoodsSummaryReport,
+IngredientUsageReport,
+SalesSummaryReport,
+ProfitAndLossReport,
+ExpenseBreakdownReport,
+ProductsReport,
+ProductDetailsReport,
+ProductionSummaryReport,
+IngredientSummaryReport,
+CreditPaymentReport,
 } from '@/types/reports';
 
 // Sales Report - now pulls from sales service with proper filtering
@@ -635,4 +636,25 @@ export const getProductAdjustmentsReport = async (
 
 	const response = await getProductAdjustments(params);
 	return response;
+};
+
+// Sales Returns Report
+export const getSalesReturnsReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<SalesReturnsReport> => {
+	const params = new URLSearchParams();
+	if (startDate) params.append('startDate', startDate);
+	if (endDate) params.append('endDate', endDate);
+
+	try {
+		const response = await api.get(`/reports/sales-returns?${params.toString()}`);
+		return response.data;
+	} catch (err: unknown) {
+		// Fallback: if the endpoint doesn't exist, return empty data
+		if (axios.isAxiosError(err) && err.response?.status === 404) {
+			return { data: [] };
+		}
+		throw err;
+	}
 };

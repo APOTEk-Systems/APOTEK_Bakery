@@ -12,6 +12,7 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 	// Map report types to readable names
 	const reportNames: Record<string, string> = {
 		sales: 'Sales Report',
+		'sales-returns': 'Sales Returns Report',
 		'cash-sales': 'Cash Sales Report',
 		'credit-sales': 'Credit Sales Report',
 		products: 'Price List Report',
@@ -228,6 +229,13 @@ export const useReportMutations = (
 		'sales',
 		'Sales report generated successfully',
 		'Failed to export sales report'
+	);
+
+	const exportSalesReturnsMutation = createReportMutation(
+		(from, to) => reportsService.exportSalesReturnsReport(from, to),
+		'sales-returns',
+		'Sales returns report generated successfully',
+		'Failed to export sales returns report'
 	);
 
 	const exportCashSalesMutation = createReportMutation(
@@ -476,6 +484,7 @@ export const useReportMutations = (
 
 	const mutations: Record<string, ReportMutation> = {
 		sales: exportSalesMutation,
+		'sales-returns': exportSalesReturnsMutation,
 		'cash-sales': exportCashSalesMutation,
 		'credit-sales': exportCreditSalesMutation,
 		'sales-summary': exportSalesSummaryMutation,

@@ -247,9 +247,11 @@ const NewSale = () => {
 
 	// totals
 	const subtotal = cart.reduce((s, it) => s + it.price * it.cartQuantity, 0);
-	const taxRate = settings?.information?.vatPercentage
-		? parseFloat(settings.information.vatPercentage)
+	const taxRate = settings?.configuration?.vat
+		? parseFloat(settings.configuration.vat.toString())
 		: 0;
+
+	console.log('taxRate:', taxRate);
 	const tax = subtotal * (taxRate / 100);
 	const total = subtotal + tax;
 

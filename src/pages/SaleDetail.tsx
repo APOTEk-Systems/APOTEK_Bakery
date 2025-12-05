@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, RotateCcw } from "lucide-react";
 import { salesService, Sale } from "../services/sales";
+import { salesAdjustmentsService } from "@/services/salesAdjustments";
 import { Label } from "@/components/ui/label";
 import {
   Table,
@@ -106,6 +107,16 @@ const SaleDetail = () => {
   } = useQuery({
     queryKey: ["sale", saleId],
     queryFn: () => salesService.getSaleById(saleId),
+    enabled: !!id,
+  });
+
+  // Check if there's already a return for this sale
+  const { data: existingReturn } = useQuery({
+    queryKey: ["sale-return", saleId],
+    queryFn: async () => {
+      const returns = await salesAdjustmentsService.getBySaleId(saleId);
+      return returns[0] || null;
+    },
     enabled: !!id,
   });
 
@@ -290,8 +301,8 @@ const SaleDetail = () => {
                   </Dialog>
                 )}
               
-              {/* Return Action - available for all sales */}
-              <ReturnDialog sale={sale} />
+              {/* Return Action - only show if no existing return */}
+              {!existingReturn && <ReturnDialog sale={sale} />}
             </div>
           </div>
         </div>
