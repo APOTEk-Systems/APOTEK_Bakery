@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import RecentSales from '@/components/sales/RecentSales';
 import OutstandingPaymentsTab from '@/components/sales/OutstandingPaymentsTab';
 import PaymentHistoryTab from '@/components/sales/PaymentHistoryTab';
+import ReturnsTab from '@/components/sales/ReturnsTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -67,10 +68,11 @@ const Sales: React.FC = () => {
 					value={activeTab}
 					onValueChange={handleTabChange}
 					className='space-y-6'>
-					<TabsList className='grid w-full grid-cols-3'>
+					<TabsList className='grid w-full grid-cols-4'>
 						<TabsTrigger value='recent'>Sales History</TabsTrigger>
 						<TabsTrigger value='unpaid'>Outstanding Payments</TabsTrigger>
 						<TabsTrigger value='payments'>Payment History</TabsTrigger>
+						<TabsTrigger value='returns'>Returns</TabsTrigger>
 					</TabsList>
 					<TabsContent value='recent'>
 						<RecentSales />
@@ -80,6 +82,9 @@ const Sales: React.FC = () => {
 					</TabsContent>
 					<TabsContent value='payments'>
 						<PaymentHistoryTab />
+					</TabsContent>
+					<TabsContent value='returns'>
+						<ReturnsTab />
 					</TabsContent>
 				</Tabs>
 			</div>

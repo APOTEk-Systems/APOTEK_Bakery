@@ -5,10 +5,11 @@ import { useQuery } from "@tanstack/react-query";
 import Layout from "../components/Layout";
 import { Button } from "@/components/ui/button";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import ReturnDialog from "../components/sales/ReturnDialog";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RotateCcw } from "lucide-react";
 import { salesService, Sale } from "../services/sales";
 import { Label } from "@/components/ui/label";
 import {
@@ -206,86 +207,92 @@ const SaleDetail = () => {
                 Sale #{sale.id}
               </h1>
             </div>
-            {sale.status === "unpaid" &&
-              sale.outstandingBalance &&
-              sale.outstandingBalance > 0 && (
-                <Dialog
-                  open={isPaymentDialogOpen}
-                  onOpenChange={setIsPaymentDialogOpen}
-                >
-                  <DialogTrigger asChild>
-                    <Button
-                      size="sm"
-                      onClick={() => setIsPaymentDialogOpen(true)}
-                      disabled={createPaymentMutation.isPending}
-                    >
-                      {createPaymentMutation.isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : null}
-                      Pay
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Pay</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="flex justify-between items-center py-2 border-b">
-                          <Label className="text-sm font-medium">
-                            Receipt #
-                          </Label>
-                          <p className="text-lg font-semibold">{sale.id}</p>
+            <div className="flex gap-2">
+              {/* Payment Action - only for unpaid sales */}
+              {sale.status === "unpaid" &&
+                sale.outstandingBalance &&
+                sale.outstandingBalance > 0 && (
+                  <Dialog
+                    open={isPaymentDialogOpen}
+                    onOpenChange={setIsPaymentDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        onClick={() => setIsPaymentDialogOpen(true)}
+                        disabled={createPaymentMutation.isPending}
+                      >
+                        {createPaymentMutation.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : null}
+                        Pay
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Pay</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="flex justify-between items-center py-2 border-b">
+                            <Label className="text-sm font-medium">
+                              Receipt #
+                            </Label>
+                            <p className="text-lg font-semibold">{sale.id}</p>
+                          </div>
+                          <div className="flex justify-between items-center py-2 border-b">
+                            <Label className="text-sm font-medium">
+                              Outstanding Balance
+                            </Label>
+                            <p className="text-lg font-semibold text-destructive">
+                              {formatCurrency(sale.outstandingBalance || 0)}
+                            </p>
+                          </div>
+                          <div className="flex justify-between items-center py-2">
+                            <Label
+                              htmlFor="amount"
+                              className="text-sm font-medium"
+                            >
+                              Amount
+                            </Label>
+                            <Input
+                              id="amount"
+                              type="text"
+                              inputMode="numeric"
+                              value={
+                                paymentAmount
+                                  ? Number(paymentAmount).toLocaleString("en-TZ")
+                                  : ""
+                              }
+                              onChange={(e) => {
+                                const raw = e.target.value.replace(/,/g, "");
+                                setPaymentAmount(raw === "" ? "" : raw);
+                              }}
+                              placeholder="Enter amount"
+                              className="w-40 text-right"
+                            />
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center py-2 border-b">
-                          <Label className="text-sm font-medium">
-                            Outstanding Balance
-                          </Label>
-                          <p className="text-lg font-semibold text-destructive">
-                            {formatCurrency(sale.outstandingBalance || 0)}
-                          </p>
-                        </div>
-                        <div className="flex justify-between items-center py-2">
-                          <Label
-                            htmlFor="amount"
-                            className="text-sm font-medium"
-                          >
-                            Amount
-                          </Label>
-                          <Input
-                            id="amount"
-                            type="text"
-                            inputMode="numeric"
-                            value={
-                              paymentAmount
-                                ? Number(paymentAmount).toLocaleString("en-TZ")
-                                : ""
-                            }
-                            onChange={(e) => {
-                              const raw = e.target.value.replace(/,/g, "");
-                              setPaymentAmount(raw === "" ? "" : raw);
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setIsPaymentDialogOpen(false);
+                              setPaymentAmount("");
                             }}
-                            placeholder="Enter amount"
-                            className="w-40 text-right"
-                          />
+                          >
+                            Cancel
+                          </Button>
+                          <Button onClick={handleMakePayment}>Pay</Button>
                         </div>
                       </div>
-                      <div className="flex justify-end space-x-2">
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setIsPaymentDialogOpen(false);
-                            setPaymentAmount("");
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                        <Button onClick={handleMakePayment}>Pay</Button>
-                      </div>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
+                    </DialogContent>
+                  </Dialog>
+                )}
+              
+              {/* Return Action - available for all sales */}
+              <ReturnDialog sale={sale} />
+            </div>
           </div>
         </div>
 

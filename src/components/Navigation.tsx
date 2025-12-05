@@ -243,9 +243,10 @@ const Navigation = ({
 								const hasViewSales = hasPermission(user, 'view:sales');
 								const hasCreateSales = hasPermission(user, 'create:sales');
 								const hasViewCustomers = hasPermission(user, 'view:customers');
+								const hasViewSalesAdjustments = hasPermission(user, 'view:sales-adjustments');
 
 								// Only show sales section if user has at least one sales permission
-								if (!hasViewSales && !hasCreateSales && !hasViewCustomers) {
+								if (!hasViewSales && !hasCreateSales && !hasViewCustomers && !hasViewSalesAdjustments) {
 									return null;
 								}
 
