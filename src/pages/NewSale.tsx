@@ -226,18 +226,28 @@ const NewSale = () => {
 	const updateQuantity = (id: number, quantity: number) => {
 		if (quantity <= 0) {
 			setCart((prev) => prev.filter((i) => i.id !== id));
-		} else {
-			const product = products.find((p) => p.id === id);
-			if (product && quantity > product.quantity) {
-				toast({
-					title: 'Insufficient Stock',
-					description: `Only ${product.quantity} available for ${product.name}`,
-					variant: 'destructive',
-				});
-				return;
-			}
+			return;
+		}
+
+		const product = products.find((p) => p.id === id);
+		if (!product) return; // Product not found in the main list, should not happen
+
+		if (quantity > product.quantity) {
+			toast({
+				title: 'Insufficient Stock',
+				description: `Only ${product.quantity} available for ${product.name}`,
+				variant: 'destructive',
+			});
 			setCart((prev) =>
-				prev.map((i) => (i.id === id ? { ...i, cartQuantity: quantity } : i))
+				prev.map((i) =>
+					i.id === id ? { ...i, cartQuantity: product.quantity } : i
+				)
+			);
+		} else {
+			setCart((prev) =>
+				prev.map((i) =>
+					i.id === id ? { ...i, cartQuantity: quantity } : i
+				)
 			);
 		}
 	};
@@ -260,6 +270,27 @@ const NewSale = () => {
 		setSaleCompleted(false);
 		setNewSale(null);
 		setPreviewFormat(null);
+
+		// Final validation before checkout
+		for (const item of cart) {
+			const product = products.find((p) => p.id === item.id);
+			if (!product || item.cartQuantity > product.quantity) {
+				toast({
+					title: 'Insufficient Stock',
+					description: `Cannot proceed: Not enough stock for ${
+						item.name
+					}. Available: ${product?.quantity ?? 0}.`,
+					variant: 'destructive',
+				});
+
+				// Correct the cart quantity to the max available
+				if (product) {
+					updateQuantity(item.id, product.quantity);
+				}
+				return; // Stop the checkout process
+			}
+		}
+
 		if (cart.length === 0) {
 			toast({
 				title: 'Invalid Sale',
