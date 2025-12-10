@@ -48,26 +48,26 @@ const SalesReportsTab = () => {
 							<SelectValue placeholder='Select sales report type' />
 						</SelectTrigger>
 						<SelectContent>
-							<SelectItem value='sales'>Sales Report</SelectItem>
+							<SelectItem value='sales'>Sales Details Report</SelectItem>
 							<SelectItem value='sales-summary'>
 								Sales Summary Report
 							</SelectItem>
-							<SelectItem value='cash-sales'>Cash Sales Report</SelectItem>
+							<SelectItem value='cash-sales'>Cash Sales Details Report</SelectItem>
 							<SelectItem value='cash-sales-summary'>
 								Cash Sales Summary Report
 							</SelectItem>
-							<SelectItem value='credit-sales'>Credit Sales Report</SelectItem>
+							<SelectItem value='credit-sales'>Credit Sales Details Report</SelectItem>
 							<SelectItem value='credit-sales-summary'>
 								Credit Sales Summary Report
 							</SelectItem>
+								<SelectItem value='credit-payments'>
+								Credit Payments Report
+							</SelectItem>
+							<SelectItem value='products'>Price List Report</SelectItem>
 							<SelectItem value='sales-returns'>
 								Sales Returns Report
 							</SelectItem>
-							<SelectItem value='products'>Price List Report</SelectItem>
-							<SelectItem value='credit-payments'>
-								Credit Payments Report
-							</SelectItem>
-						</SelectContent>
+							</SelectContent>
 					</Select>
 				</div>
 				<div className='flex-1'>

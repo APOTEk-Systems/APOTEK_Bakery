@@ -26,10 +26,10 @@ const ProductionReportsTab = () => {
               <SelectValue placeholder="Select production report type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="production">Daily Production Report</SelectItem>
+              <SelectItem value="production">Production Detailed Report</SelectItem>
               <SelectItem value="production-summary">Production Summary Report</SelectItem>
               {/* <SelectItem value="finished-goods">Finished Goods Report</SelectItem> */}
-              <SelectItem value="ingredient-usage">Ingredients Usage Report</SelectItem>
+              <SelectItem value="ingredient-usage">Ingredients Usage Detailed Report</SelectItem>
               <SelectItem value="ingredient-summary">Ingredients Summary Report</SelectItem>
             </SelectContent>
           </Select>
