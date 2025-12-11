@@ -179,7 +179,7 @@ const ReturnsTab: React.FC = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-TZ');
+    return format(new Date(dateString), "dd-MM-yyyy");
   };
 
   const getStatusBadge = (status: string) => {

@@ -48,7 +48,11 @@ export const generateCashSalesSummaryPDF = (
     startY: yPos,
     margin: { left: 20, right: 20 },
     ...getDefaultTableStyles(),
-    columnStyles: { 0: { cellWidth: 12 }, 1: {halign:"center"}, 2: { halign: "right" } },
+    columnStyles: {
+      0: { cellWidth: 12 },
+      1: { halign: "center", cellWidth:"auto" },
+      2: { halign: "right", cellWidth:30 }
+    },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
       halign: "left",
@@ -66,9 +70,10 @@ export const generateCashSalesSummaryPDF = (
         dataItem.column.index === 2 // Check if it's the 3rd column (index 2)
       ) {
         dataItem.cell.styles.halign = "right";
-      } if(dataItem.section === "head" && dataItem.column.index === 1){
-		dataItem.cell.styles.halign = "center";
-	  }
+      }
+      if (dataItem.section === "head" && dataItem.column.index === 1) {
+        dataItem.cell.styles.halign = "center";
+      }
     },
   });
 

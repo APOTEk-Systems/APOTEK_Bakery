@@ -179,7 +179,7 @@ export const useReportMutations = (
 		mutationFn: (
 			startDate?: string,
 			endDate?: string,
-			supplierId?: number
+			supplier?: string
 		) => Promise<Blob>,
 		reportType: string,
 		successMessage: string,
@@ -194,11 +194,11 @@ export const useReportMutations = (
 				const to = dateRange?.to
 					? format(dateRange.to, 'yyyy-MM-dd')
 					: undefined;
-				const supplierId =
+				const supplier =
 					selectedSupplier && selectedSupplier !== 'all'
-						? parseInt(selectedSupplier)
+						? selectedSupplier
 						: undefined;
-				return mutationFn(from, to, supplierId);
+				return mutationFn(from, to, supplier);
 			},
 			onSuccess: (blob) => {
 				if (blob && blob.size > 0) {
@@ -288,8 +288,8 @@ export const useReportMutations = (
 
 	// Purchases
 	const exportGoodsReceivedMutation = createReportMutation(
-		(from, to, supplierId) =>
-			reportsService.exportGoodsReceivedReport(from, to, supplierId),
+		(from, to, supplier) =>
+			reportsService.exportGoodsReceivedReport(from, to, supplier),
 		'goods-received',
 		'Materials received report generated successfully',
 		'Failed to export materials received report'
@@ -442,16 +442,16 @@ export const useReportMutations = (
 	);
 
 	const exportPurchaseOrderDetailedMutation = createReportMutation(
-		(from, to, supplierId) =>
-			reportsService.exportPurchaseOrderDetailedReport(from, to, supplierId),
+		(from, to, supplier) =>
+			reportsService.exportPurchaseOrderDetailedReport(from, to, supplier),
 		'purchase-orders-detailed',
 		'Purchase order detailed report generated successfully',
 		'Failed to export purchase order detailed report'
 	);
 
-	const exportPurchaseSummaryMutation = useCreateReportMutation(
-		() =>
-			(reportsService as ReportsServiceType).exportPurchaseOrderSummaryReport(),
+	const exportPurchaseSummaryMutation = createReportMutation(
+		(from, to, supplier) =>
+			(reportsService as ReportsServiceType).exportPurchaseOrderSummaryReport(from, to, supplier),
 		'purchase-summary',
 		'Purchase order summary report generated successfully',
 		'Failed to export purchase order summary report'

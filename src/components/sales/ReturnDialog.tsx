@@ -57,11 +57,6 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch adjustment reasons (which we'll use for return reasons too)
-  const { data: reasons } = useQuery({
-    queryKey: ["adjustmentReasons"],
-    queryFn: () => settingsService.getAdjustmentReasons(),
-  });
 
   // Create return mutation - this would integrate with the sales adjustments API
   const createReturnMutation = useMutation({
@@ -140,6 +135,7 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
       items: itemsWithReturns.map(item => ({
         productId: item.productId,
         quantity: item.returnQuantity, // Negative quantity indicates return
+        price: item.unitPrice,
         notes: `Return of ${item.returnQuantity} units`,
       })),
     };

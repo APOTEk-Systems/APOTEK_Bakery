@@ -26,6 +26,7 @@ const PurchasesReportsTab = () => {
   const needsDateRange = [
     'goods-received',
     'purchase-orders-detailed',
+    'purchase-summary',
   ].includes(selectedPurchasesReport);
 
   return (
@@ -63,7 +64,7 @@ const PurchasesReportsTab = () => {
             <SelectContent>
               <SelectItem value="all">All Suppliers</SelectItem>
               {suppliers.map((supplier) => (
-                <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                <SelectItem key={supplier.id} value={supplier.name}>
                   {supplier.name}
                 </SelectItem>
               ))}

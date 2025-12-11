@@ -137,9 +137,9 @@ export const generateCashSalesPDF = (
 		);
 		tableData.push(['', '', '', '', 'Total:', formatCurrencyPDF(totalSales)]);
 
-		console.log('Summary row added:', tableData.slice(-1));
+		//console.log('Summary row added:', tableData.slice(-1));
 
-		console.log('📋 Cash sales table data prepared:', tableData.length, 'rows');
+		//console.log('📋 Cash sales table data prepared:', tableData.length, 'rows');
 
 		autoTable(doc, {
 			head: [['#', 'Receipt #', 'Date', 'Customer', 'Sold By', 'Total']],

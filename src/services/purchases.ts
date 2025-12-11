@@ -11,6 +11,7 @@ export interface PurchaseOrderItem {
 export interface PurchaseOrder {
   id: number;
   supplierId: number;
+  supplierName?: string; // Add supplier name for display
   totalCost: number;
   status: 'pending' | 'approved' | 'completed' | 'cancelled';
   notes?: string;
@@ -67,7 +68,7 @@ export const purchasesService = {
     return response.data;
   },
   // Purchase Orders
-  getAllPOs: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string; search?: string }): Promise<{ purchaseOrders: PurchaseOrder[], total: number }> => {
+  getAllPOs: async (params?: { page?: number; limit?: number; status?: string; startDate?: string; endDate?: string; search?: string; supplierId?: number }): Promise<{ purchaseOrders: PurchaseOrder[], total: number }> => {
     const response = await api.get('/purchases/orders', { params });
     return response.data;
   },

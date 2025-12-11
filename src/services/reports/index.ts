@@ -48,6 +48,7 @@ import {
 	getProductsReport,
 	getProductDetailsReport,
 	getPurchaseOrderSummaryReport,
+	getPurchaseOrderDetailedForSummary,
 	getSuppliersReport,
 	getGoodsReceivedReport,
 	getProductionSummary,
@@ -447,10 +448,18 @@ export const reportsService = {
 		}
 	},
 
-	exportPurchaseOrderSummaryReport: async (): Promise<Blob> => {
-		console.log('📊 Starting purchase order summary report export...');
+	exportPurchaseOrderSummaryReport: async (
+		startDate?: string,
+		endDate?: string,
+		supplier?: string
+	): Promise<Blob> => {
+		console.log('📊 Starting purchase order summary report export...', {
+			startDate,
+			endDate,
+			supplier,
+		});
 		try {
-			const data = await getPurchaseOrderSummaryReport();
+			const data = await getPurchaseOrderDetailedForSummary(startDate, endDate, supplier);
 			console.log('✅ Purchase summary fetched successfully:', data);
 
 			let settings;
@@ -462,7 +471,7 @@ export const reportsService = {
 				console.warn('Could not fetch settings for PDF header:', error);
 			}
 
-			const pdfBlob = generatePurchaseSummaryPDF(data, settings);
+			const pdfBlob = generatePurchaseSummaryPDF(data, settings, supplier);
 			console.log('📄 Purchase order summary PDF generated successfully');
 			return pdfBlob;
 		} catch (error) {
@@ -988,15 +997,15 @@ export const reportsService = {
 	exportGoodsReceivedReport: async (
 		startDate?: string,
 		endDate?: string,
-		supplierId?: number
+		supplier?: string
 	): Promise<Blob> => {
 		console.log('📊 Starting goods received report export...', {
 			startDate,
 			endDate,
-			supplierId,
+			supplier,
 		});
 		try {
-			const data = await getGoodsReceivedReport(startDate, endDate, supplierId);
+			const data = await getGoodsReceivedReport(startDate, endDate, supplier);
 			console.log('✅ Goods received data fetched successfully:', data);
 
 			// Fetch settings for company header
@@ -1428,18 +1437,18 @@ export const reportsService = {
 	exportPurchaseOrderDetailedReport: async (
 		startDate?: string,
 		endDate?: string,
-		supplierId?: number
+		supplier?: string
 	): Promise<Blob> => {
 		console.log('📊 Starting purchase order detailed report export...', {
 			startDate,
 			endDate,
-			supplierId,
+			supplier,
 		});
 		try {
 			const data = await getPurchaseOrderDetailedReport(
 				startDate,
 				endDate,
-				supplierId
+				supplier
 			);
 			console.log(
 				'✅ Purchase order detailed data fetched successfully:',

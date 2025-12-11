@@ -39,12 +39,13 @@ export const generateProductsPDF = (
 		startY: yPos,
 		...getDefaultTableStyles(),
 		columnStyles: {
-			0: { cellWidth: 12 }, // Narrow # column
+			0: { cellWidth: 60 }, // Narrow # column
+			//1: { cellWidth: "auto", halign:"center" }, // Wider Product Name column
 			2: { halign: 'right' }, // Right-align Sell Price column
 		},
 		didParseCell: function (data: any) {
 			// Right-align Sell Price header (column 2)
-			if (data.section === 'head' && data.column.index === 2) {
+			if (data.section === 'head' && data.column.index === 2 ) {
 				data.cell.styles.halign = 'right';
 			}
 		},

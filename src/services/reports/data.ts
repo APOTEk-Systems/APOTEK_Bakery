@@ -449,12 +449,12 @@ export const getProductDetailsReport =
 export const getGoodsReceivedReport = async (
 	startDate?: string,
 	endDate?: string,
-	supplierId?: number
+	supplier?: string
 ): Promise<any> => {
 	const params = new URLSearchParams();
 	if (startDate) params.append('startDate', startDate);
 	if (endDate) params.append('endDate', endDate);
-	if (supplierId) params.append('supplierId', supplierId.toString());
+	if (supplier) params.append('supplier', supplier);
 	params.append('limit', '1000');
 	const response = await api.get(
 		`/purchases/detailed-receipts?${params.toString()}`
@@ -595,15 +595,57 @@ export const getCreditPaymentReport = async (
 export const getPurchaseOrderDetailedReport = async (
 	startDate?: string,
 	endDate?: string,
-	supplierId?: number
+	supplier?: string
 ): Promise<any> => {
 	const params = new URLSearchParams();
 	if (startDate) params.append('startDate', startDate);
 	if (endDate) params.append('endDate', endDate);
-	if (supplierId) params.append('supplierId', supplierId.toString());
+	if (supplier) params.append('supplier', supplier);
 
 	const response = await api.get(`/purchases/detailed?${params.toString()}`);
 	return response.data;
+};
+
+// Helper function to enrich purchase orders with supplier names
+const enrichPurchaseOrdersWithSuppliers = async (purchaseOrders: any[]) => {
+	const suppliers = await suppliersService.getAll();
+	const supplierMap = suppliers.reduce((acc, s) => {
+		acc[s.id] = s.name;
+		return acc;
+	}, {} as Record<number, string>);
+
+	return purchaseOrders.map(po => ({
+		...po,
+		supplierName: supplierMap[po.supplierId] || 'Unknown'
+	}));
+};
+
+// Purchase Order Summary Report - returns detailed purchase orders for table format
+export const getPurchaseOrderDetailedForSummary = async (
+	startDate?: string,
+	endDate?: string,
+	supplierName?: string
+): Promise<{ purchaseOrders: any[], total: number }> => {
+	// Use the same approach as PurchaseOrdersTab.tsx
+	const now = new Date();
+	const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+
+
+	const response = await purchasesService.getAllPOs({
+		page: 1, // Get all records for summary
+		limit: 1000, // Get a large number for summary
+		status: undefined, // No status filter for summary
+		search: supplierName, // No search filter for summary
+	});
+
+	// Enrich with supplier names
+	const enrichedPurchaseOrders = await enrichPurchaseOrdersWithSuppliers(response.purchaseOrders);
+
+	return {
+		purchaseOrders: enrichedPurchaseOrders,
+		total: response.total
+	};
 };
 
 // Purchase Order Summary Report - wraps purchasesService.getPurchaseSummary

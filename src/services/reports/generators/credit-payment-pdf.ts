@@ -45,13 +45,10 @@ export const generateCreditPaymentPDF = (
 		{ total: 0, paid: 0, balance: 0 }
 	);
 
-	rows.push([
-		'',
-		'Total:',
-		formatCurrencyPDF(totals.total),
-		formatCurrencyPDF(totals.paid),
-		formatCurrencyPDF(totals.balance),
-	]);
+	// Add totals rows - each total in its own row with label and value in the Balance column
+	rows.push(['', '', '', 'Total:', formatCurrencyPDF(totals.total)]);
+	rows.push(['', '', '', 'Paid:', formatCurrencyPDF(totals.paid)]);
+	rows.push(['', '', '', 'Balance:', formatCurrencyPDF(totals.balance)]);
 
 	autoTable(doc, {
 		head: [['#', 'Customer', 'Total', 'Paid', 'Balance']],
@@ -72,13 +69,18 @@ export const generateCreditPaymentPDF = (
 		},
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		didParseCell: function (dataItem: any) {
-			// Bold the last row
-			if (
-				dataItem.section === 'body' &&
-				dataItem.row.index === rows.length - 1
-			) {
+			// Style totals section (last 3 rows)
+			if (dataItem.section === 'body' && dataItem.row.index >= rows.length - 3) {
+				// Bold all totals rows
 				dataItem.cell.styles.fontStyle = 'bold';
+			
+				// Right-align currency values in the Balance column (index 4)
+				if (dataItem.column.index === 4) {
+					dataItem.cell.styles.halign = 'right';
+				}
 			}
+			
+			// Right-align header columns for Total, Paid, Balance
 			if (
 				dataItem.section === 'head' &&
 				(dataItem.column.index === 2 ||
