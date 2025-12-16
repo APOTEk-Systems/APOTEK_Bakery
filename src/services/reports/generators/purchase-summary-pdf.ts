@@ -62,9 +62,9 @@ export const generatePurchaseSummaryPDF = (
 			0: { cellWidth: 15 }, // #
 			1: { cellWidth: 20 }, // Order #
 			2: { cellWidth: 25 }, // Date
-			3: { cellWidth: 40 }, // Supplier
-			5: {  }, // Total (right-aligned)
-			6: { halign: 'right', cellWidth: 25 }, // Status
+			3: { cellWidth: 50 }, // Supplier
+			5: { cellWidth:25 }, // Status
+			6: { halign: 'right', }, // Total (right-align)
 		},
 		headStyles: {
 			...getDefaultTableStyles().headStyles,

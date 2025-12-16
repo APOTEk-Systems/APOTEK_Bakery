@@ -75,7 +75,7 @@ export const generateSalesReturnsPDF = (
 				'Sold Qty',
 				'Return Qty',
 				'Return Amount',
-				'Sale ID',
+				'Receipt #',
 				'Reason',
 				'Approved By',
 				'Requested By',

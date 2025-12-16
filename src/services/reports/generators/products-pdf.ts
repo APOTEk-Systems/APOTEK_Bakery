@@ -145,7 +145,7 @@ export const generateProductCurrentStockPDF = (
 		startY: yPos,
 		...getDefaultTableStyles(),
 		columnStyles: {
-			0: { cellWidth: 15 }, // Narrow # column
+			0: { cellWidth: 45 }, // Narrow # column
 			2: { halign: 'right' }, // Right-align Quantity column
 			3: { cellWidth:40 , halign: 'right' }, // Right-align Price column
 		},
