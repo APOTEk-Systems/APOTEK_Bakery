@@ -389,8 +389,13 @@ export const getDefaultTableStyles = () => ({
 });
 
 // Format currency for PDF
-export const formatCurrencyPDF = (amount: number): string => {
-  return `${amount.toLocaleString()}`;
+export const formatCurrencyPDF = (amount: number | undefined | null): string => {
+  // Handle undefined, null, or non-numeric values
+  const num = Number(amount);
+  if (isNaN(num)) {
+    return "0.00";
+  }
+  return `${num.toLocaleString()}`;
 };
 
 // Format date for PDF

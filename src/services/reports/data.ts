@@ -6,28 +6,29 @@ import { suppliersService } from '../suppliers';
 import { purchasesService } from '../purchases';
 import { getProductAdjustments, type ProductAdjustmentsResponse } from '../products'; // Import for product adjustments
 import type {
-SalesReport,
-SalesReturnsReport,
-PurchasesReport,
-ProductionReport,
-InventoryReport,
-InventoryAdjustmentsReport,
-LowStockReport,
-OutOfStockReport,
-FinancialReport,
-CustomerSalesReport,
-SupplierWisePurchasesReport,
-IngredientPurchaseTrendReport,
-FinishedGoodsSummaryReport,
-IngredientUsageReport,
-SalesSummaryReport,
-ProfitAndLossReport,
-ExpenseBreakdownReport,
-ProductsReport,
-ProductDetailsReport,
-ProductionSummaryReport,
-IngredientSummaryReport,
-CreditPaymentReport,
+	SalesReport,
+	SalesReturnsReport,
+	PurchasesReport,
+	ProductionReport,
+	InventoryReport,
+	InventoryAdjustmentsReport,
+	LowStockReport,
+	OutOfStockReport,
+	FinancialReport,
+	CustomerSalesReport,
+	SupplierWisePurchasesReport,
+	IngredientPurchaseTrendReport,
+	FinishedGoodsSummaryReport,
+	IngredientUsageReport,
+	SalesSummaryReport,
+	ProfitAndLossReport,
+	ExpenseBreakdownReport,
+	ProductsReport,
+	ProductDetailsReport,
+	ProductionSummaryReport,
+	IngredientSummaryReport,
+	CreditPaymentReport,
+	NetProfitReport,
 } from '@/types/reports';
 
 // Sales Report - now pulls from sales service with proper filtering
@@ -699,4 +700,17 @@ export const getSalesReturnsReport = async (
 		}
 		throw err;
 	}
+};
+
+// Net Profit Report
+export const getNetProfitReport = async (
+	startDate?: string,
+	endDate?: string
+): Promise<NetProfitReport> => {
+	const params = new URLSearchParams();
+	if (startDate) params.append('startDate', startDate);
+	if (endDate) params.append('endDate', endDate);
+
+	const response = await api.get(`/reports/net-profit?${params.toString()}`);
+	return response.data;
 };

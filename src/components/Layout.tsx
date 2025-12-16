@@ -53,12 +53,7 @@ const Layout = ({ children }: LayoutProps) => {
         // Run check only for raw materials
         if (item.type?.toLowerCase() !== "raw_material") return false;
 
-        const displayQuantity =
-          item.unit?.toLowerCase() === "kg" || item.unit?.toLowerCase() === "l"
-            ? item.currentQuantity / 1000
-            : item.currentQuantity;
-
-        const status = getStatus(displayQuantity, item.minLevel);
+        const status = getStatus(item.currentQuantity, item.minLevel);
         return status === "low" || status === "critical";
       });
 
@@ -66,12 +61,7 @@ const Layout = ({ children }: LayoutProps) => {
         // Run check only for raw materials
         if (item.type?.toLowerCase() !== "raw_material") return false;
 
-        const displayQuantity =
-          item.unit?.toLowerCase() === "kg" || item.unit?.toLowerCase() === "l"
-            ? item.currentQuantity / 1000
-            : item.currentQuantity;
-
-        return displayQuantity <= 0;
+        return item.currentQuantity <= 0;
       });
 
       // Simple approach: show notifications on every page load/refresh if issues exist

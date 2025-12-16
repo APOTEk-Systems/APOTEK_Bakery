@@ -333,3 +333,10 @@ export interface SalesReturnsReport {
 		requestedBy: string;
 	}>;
 }
+
+export interface NetProfitReport {
+	totalSales: number;
+	totalPurchases: number;
+	totalExpenses: number;
+	netProfit: number;
+}

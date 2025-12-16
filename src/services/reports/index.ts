@@ -1,3 +1,5 @@
+import { api } from '@/lib/api';
+
 // Main reports service - re-exports from sub-modules for backward compatibility
 
 // Import types
@@ -59,6 +61,7 @@ import {
 	getCashSalesSummaryReport,
 	getCreditSummaryReport,
 	getCreditPaymentReport,
+	getNetProfitReport,
 } from './data';
 
 // Import PDF utilities
@@ -1278,26 +1281,36 @@ export const reportsService = {
 			endDate,
 		});
 		try {
-			const data = await getProfitAndLossReport(startDate, endDate);
-			console.log('✅ Gross profit data fetched successfully:', data);
-
+			console.log('🔍 Making API call to /reports/gross-profit...');
+			const response = await api.get(`/reports/gross-profit?startDate=${startDate || ''}&endDate=${endDate || ''}`);
+			console.log('✅ API response received:', response.data);
+			
+			const reportData = response.data;
+			console.log('📊 Report data prepared:', reportData);
+			
+			// Pass the report data directly - it contains dailyData which the PDF generator expects
+			// Backend returns: { data: { dailyData: [...], summary: {...} } }
+			
 			// Fetch settings for company header
 			let settings;
 			try {
+				console.log('🏢 Fetching company settings...');
 				const settingsService = (await import('@/services/settings'))
 					.settingsService;
 				settings = await settingsService.getAll();
+				console.log('✅ Settings fetched successfully');
 			} catch (error) {
-				console.warn('Could not fetch settings for PDF header:', error);
+				console.warn('⚠️ Could not fetch settings for PDF header:', error);
 			}
 
+			console.log('📄 Calling generateGrossProfitPDF...');
 			const pdfBlob = generateGrossProfitPDF(
-				data,
+				reportData, // Pass the report data directly
 				startDate,
 				endDate,
 				settings
 			);
-			console.log('📄 Gross profit PDF generated successfully');
+			console.log('✅ Gross profit PDF generated successfully');
 			return pdfBlob;
 		} catch (error) {
 			console.error('❌ Error exporting gross profit report:', error);
@@ -1314,8 +1327,12 @@ export const reportsService = {
 			endDate,
 		});
 		try {
-			const data = await getProfitAndLossReport(startDate, endDate);
-			console.log('✅ Net profit data fetched successfully:', data);
+			const response = await api.get(`/reports/net-profit?startDate=${startDate || ''}&endDate=${endDate || ''}`);
+			const backendData = response.data;
+			console.log('✅ Net profit data fetched successfully:', backendData);
+
+			// Pass the backend data directly - the PDF generator now handles the new structure
+			const data = backendData;
 
 			// Fetch settings for company header
 			let settings;
@@ -1501,3 +1518,4 @@ export const reportsService = {
 		}
 	},
 };
+

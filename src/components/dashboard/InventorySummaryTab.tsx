@@ -225,29 +225,15 @@ const InventorySummaryTab = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {inventoryData.materialsUsed.items.map((item, index) => {
-                    let displayQuantity = item.amountDeducted;
-                    let displayUnit = item.unit;
-
-                    if (item.unit === "kg" || item.unit === "l") {
-                      if (item.amountDeducted >= 1000) {
-                        displayQuantity = item.amountDeducted / 1000;
-                        displayUnit = item.unit;
-                      } else {
-                        displayUnit = item.unit === "kg" ? "g" : "ml";
-                      }
-                    }
-
-                    return (
-                      <tr key={index} className="border-b">
-                        <td className="p-2">{item.materialName}</td>
-                        <td className="p-2">{displayQuantity.toFixed(2)}</td>
-                        <td className="p-2">{displayUnit}</td>
-                        <td className="p-2">{item.productName}</td>
-                        <td className="p-2">{item.quantityProduced.toLocaleString()}</td>
-                      </tr>
-                    );
-                  })}
+                  {inventoryData.materialsUsed.items.map((item, index) => (
+                    <tr key={index} className="border-b">
+                      <td className="p-2">{item.materialName}</td>
+                      <td className="p-2">{item.amountDeducted.toFixed(2)}</td>
+                      <td className="p-2">{item.unit}</td>
+                      <td className="p-2">{item.productName}</td>
+                      <td className="p-2">{item.quantityProduced.toLocaleString()}</td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

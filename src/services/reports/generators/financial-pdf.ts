@@ -116,7 +116,7 @@ export const generateProfitAndLossPDF = (
 
 // Gross Profit Report PDF
 export const generateGrossProfitPDF = (
-  data: ProfitAndLossReport,
+  data: any,
   startDate?: string,
   endDate?: string,
   settings?: any
@@ -132,36 +132,100 @@ export const generateGrossProfitPDF = (
     settings
   );
 
-  // Gross Profit Analysis table
-  const tableData = [
-    ["Revenue:", formatCurrencyPDF(data.data.revenue)],
-    ["Cost of Production:", formatCurrencyPDF(data.data.cogs)],
-    ["Gross Profit:", formatCurrencyPDF(data.data.grossProfit.result)],
-  ];
+  console.log("Generating Gross Profit PDF with data:", data);
+  // Check if we have daily data - handle both data.dailyData and data.data.dailyData
+  const dailyData = data?.data?.dailyData || data?.dailyData;
+  if (dailyData && Array.isArray(dailyData)) {
+    // Daily Gross Profit table
+    console.log("Generating Gross Profit PDF with daily data:", dailyData);
+    const tableData = dailyData.map((day: any, index: number) => [
+      (index + 1).toString(), // S/N
+      format(new Date(day.date), "dd-MM-yyyy"), // Date
+      formatCurrencyPDF(Number(day.totalSales) || 0), // Total Sales with null check
+      formatCurrencyPDF(Number(day.totalPurchases) || 0), // Total Purchases with null check
+      formatCurrencyPDF(Number(day.grossProfit) || 0), // Gross Profit with null check
+    ]);
 
-  // Calculate margin
-  const margin = data.data.revenue > 0 ? ((data.data.grossProfit.result / data.data.revenue) * 100) : 0;
-  tableData.push(["Gross Profit Margin:", `${margin.toFixed(2)}%`]);
+    // Calculate totals with null checks
+    const totalSales = dailyData.reduce((sum: number, day: any) => sum + (Number(day.totalSales) || 0), 0);
+    const totalPurchases = dailyData.reduce((sum: number, day: any) => sum + (Number(day.totalPurchases) || 0), 0);
+    const totalGrossProfit = dailyData.reduce((sum: number, day: any) => sum + (Number(day.grossProfit) || 0), 0);
 
-  autoTable(doc, {
-    head: [["Gross Profit Analysis", "Amount"]],
-    body: tableData,
-    startY: yPos,
-    ...getDefaultTableStyles(),
-    columnStyles: {
-      1: { halign: 'right' }, // Right-align Amount column
-    },
-    headStyles: {
-      ...getDefaultTableStyles().headStyles,
-      halign: 'left' // Keep headers left-aligned
-    },
-    didParseCell: function(data: any) {
-      // Style key figures
-      if (data.section === 'body' && data.row.index === 2) {
-        data.cell.styles.fontStyle = 'bold';
-      }
-    },
-  });
+    // Add totals rows following the sales report pattern
+    tableData.push(['', '', '', 'Total Sales:', formatCurrencyPDF(totalSales)]);
+    tableData.push(['', '', '', 'Total Purchases:', formatCurrencyPDF(totalPurchases)]);
+    tableData.push(['', '', '', 'Gross Profit:', formatCurrencyPDF(totalGrossProfit)]);
+
+    autoTable(doc, {
+      head: [["S/N", "Date", "Total Sales", "Total Purchases", "Gross Profit"]],
+      body: tableData,
+      startY: yPos,
+      ...getDefaultTableStyles(),
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 15 }, // S/N column
+        1: { halign: 'left', cellWidth: 30 },   // Date column
+        2: { halign: 'left',  },   // Total Sales column (left-aligned for labels)
+        3: { halign: 'left',  },   // Total Purchases column (empty for spacing)
+        4: { halign: 'right',  },  // Gross Profit column (right-aligned for values)
+      },
+      headStyles: {
+        ...getDefaultTableStyles().headStyles,
+        halign: 'center' // Center align headers
+      },
+      didParseCell: function(data: any) {
+        // Style totals rows (last 3 rows)
+        if (data.section === 'body' && data.row.index >= tableData.length - 3) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [255, 255, 255 ]; // Light gray background
+        }
+        // Right-align Amount columns for data rows (excluding totals rows)
+        if (data.section === 'body' && data.row.index < tableData.length - 3 && (data.column.index === 2 || data.column.index === 3 || data.column.index === 4)) {
+          data.cell.styles.halign = 'right';
+        }
+        // Right-align Amount headers
+        if (data.section === 'head' && (data.column.index === 2 || data.column.index === 3 || data.column.index === 4)) {
+          data.cell.styles.halign = 'right';
+        }
+        // Right-align totals values (last column for totals rows)
+        if (data.section === 'body' && data.row.index >= tableData.length - 3 && data.column.index === 4) {
+          data.cell.styles.halign = 'right';
+        }
+      },
+    });
+  } else {
+    // Fallback to summary format if daily data is not available
+    const tableData = [
+      ["Revenue:", formatCurrencyPDF(data.data?.revenue || 0)],
+      ["Cost of Production:", formatCurrencyPDF(data.data?.cogs || 0)],
+      ["Gross Profit:", formatCurrencyPDF(data.data?.grossProfit?.result || 0)],
+    ];
+
+    // Calculate margin
+    const revenue = data.data?.revenue || 0;
+    const grossProfit = data.data?.grossProfit?.result || 0;
+    const margin = revenue > 0 ? ((grossProfit / revenue) * 100) : 0;
+    tableData.push(["Gross Profit Margin:", `${margin.toFixed(2)}%`]);
+
+    autoTable(doc, {
+      head: [["Gross Profit Analysis", "Amount"]],
+      body: tableData,
+      startY: yPos,
+      ...getDefaultTableStyles(),
+      columnStyles: {
+        1: { halign: 'right' }, // Right-align Amount column
+      },
+      headStyles: {
+        ...getDefaultTableStyles().headStyles,
+        halign: 'left' // Keep headers left-aligned
+      },
+      didParseCell: function(data: any) {
+        // Style key figures
+        if (data.section === 'body' && data.row.index === 2) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+    });
+  }
 
   // Add page numbers at bottom
   addPageNumbers(doc);
@@ -171,7 +235,7 @@ export const generateGrossProfitPDF = (
 
 // Net Profit Report PDF
 export const generateNetProfitPDF = (
-  data: ProfitAndLossReport,
+  data: any,
   startDate?: string,
   endDate?: string,
   settings?: any
@@ -187,15 +251,23 @@ export const generateNetProfitPDF = (
     settings
   );
 
-  // Net Profit Analysis table
+  console.log("Generating Net Profit PDF with data:", data);
+  
+  // Handle both new net-profit endpoint format and legacy format
+  const netProfitData = data?.data || data;
+  
+  // Net Profit Analysis table using new endpoint structure
   const tableData = [
-    ["Gross Profit:", formatCurrencyPDF(data.data.grossProfit.result)],
-    ["Operating Expenses:", formatCurrencyPDF(data.data.operatingExpenses)],
-    ["Net Profit:", formatCurrencyPDF(data.data.netProfit.result)],
+    ["Total Sales:", formatCurrencyPDF(Number(netProfitData.totalSales) || 0)],
+    ["Total Purchases:", formatCurrencyPDF(Number(netProfitData.totalPurchases) || 0)],
+    ["Total Expenses:", formatCurrencyPDF(Number(netProfitData.totalExpenses) || 0)],
+    ["Net Profit:", formatCurrencyPDF(Number(netProfitData.netProfit) || 0)],
   ];
 
-  // Calculate margin
-  const margin = data.data.revenue > 0 ? ((data.data.netProfit.result / data.data.revenue) * 100) : 0;
+  // Calculate net profit margin
+  const totalSales = Number(netProfitData.totalSales) || 0;
+  const netProfit = Number(netProfitData.netProfit) || 0;
+  const margin = totalSales > 0 ? ((netProfit / totalSales) * 100) : 0;
   tableData.push(["Net Profit Margin:", `${margin.toFixed(2)}%`]);
 
   autoTable(doc, {
@@ -216,7 +288,7 @@ export const generateNetProfitPDF = (
         data.cell.styles.halign = 'right';
       }
       // Style key figures
-      if (data.section === 'body' && data.row.index === 2) {
+      if (data.section === 'body' && data.row.index === 3) {
         data.cell.styles.fontStyle = 'bold';
       }
     },

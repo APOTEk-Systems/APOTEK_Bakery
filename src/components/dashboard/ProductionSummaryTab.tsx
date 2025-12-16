@@ -130,44 +130,17 @@ const ProductionSummaryTab = () => {
                   </thead>
                   <tbody>
                     {productionData.weeklyIngredientUsage.items.map(
-                      (item, index) => {
-                        let displayQuantity = item.quantity;
-                        let displayUnit = item.unit;
-                        let displayAvailable = item.available;
-                        let displayAvailableUnit = item.unit;
-
-                        if (item.unit === "kg" || item.unit === "l") {
-                          if (item.quantity >= 1000) {
-                            displayQuantity = item.quantity / 1000;
-                            displayUnit = item.unit;
-                          } else {
-                            displayUnit = item.unit === "kg" ? "g" : "ml";
-                          }
-
-                          // Apply the same unit logic to available
-                          if (item.available >= 1000) {
-                            displayAvailable = item.available / 1000;
-                            displayAvailableUnit =
-                              item.unit === "kg" ? "kg" : "l";
-                          } else {
-                            displayAvailable = item.available;
-                            displayAvailableUnit = item.unit;
-                          }
-                        }
-
-                        return (
-                          <tr key={index} className="border-b">
-                            <td className="p-2">{item.name}</td>
-                            <td className="p-2">
-                              {displayQuantity.toLocaleString()} {displayUnit}
-                            </td>
-                            <td className="p-2">
-                              {displayAvailable.toLocaleString()}{" "}
-                              {displayAvailableUnit}
-                            </td>
-                          </tr>
-                        );
-                      }
+                      (item, index) => (
+                        <tr key={index} className="border-b">
+                          <td className="p-2">{item.name}</td>
+                          <td className="p-2">
+                            {item.quantity.toLocaleString()} {item.unit}
+                          </td>
+                          <td className="p-2">
+                            {item.available.toLocaleString()} {item.unit}
+                          </td>
+                        </tr>
+                      )
                     )}
                   </tbody>
                 </table>
