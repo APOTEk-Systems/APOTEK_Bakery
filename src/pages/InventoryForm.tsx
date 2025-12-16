@@ -37,7 +37,6 @@ import {
   getInventory,
   InventoryItem,
 } from "../services/inventory";
-import {fromBaseUnits, denormalizeCost, normalizeCost, toBaseUnits} from "@/lib/funcs";
 
 const InventoryForm = () => {
   const {id} = useParams<{id: string}>();
@@ -130,15 +129,14 @@ const InventoryForm = () => {
   useEffect(() => {
     if (isEdit && itemQuery.data) {
       const item = itemQuery.data;
-      const unit = item.unit || "";
 
       setFormData({
         name: item.name,
-        unit,
-        currentQuantity: fromBaseUnits(item.currentQuantity, unit) === 0 ? "" : fromBaseUnits(item.currentQuantity, unit).toString(),
+        unit: item.unit || "",
+        currentQuantity: item.currentQuantity === 0 ? "" : item.currentQuantity.toString(),
         minLevel: item.minLevel === 0 ? "" : item.minLevel.toString(),
         maxLevel: item.maxLevel === 0 ? "" : item.maxLevel.toString(),
-        cost: denormalizeCost(item.cost, unit).toString(),
+        cost: item.cost.toString(),
       });
     }
   }, [itemQuery.data]);
@@ -166,20 +164,10 @@ const InventoryForm = () => {
     const totalCost = parseFloat(calcTotalCost);
     if (!amount || !totalCost || !calcUnit) return;
 
-    let costPerBaseUnit = 0;
-    if (calcUnit === "g") {
-      costPerBaseUnit = totalCost / amount;
-    } else if (calcUnit === "kg") {
-      costPerBaseUnit = totalCost / amount;
-    } else if (calcUnit === "ml") {
-      costPerBaseUnit = totalCost / amount;
-    } else if (calcUnit === "l") {
-      costPerBaseUnit = totalCost / amount;
-    } else if (calcUnit === "pcs" || calcUnit === "pair") {
-      costPerBaseUnit = totalCost / amount;
-    }
+    // Calculate cost per unit in display units (backend handles base unit conversion)
+    const costPerUnit = totalCost / amount;
 
-    handleInputChange("cost", costPerBaseUnit.toFixed(0));
+    handleInputChange("cost", costPerUnit.toFixed(0));
     setCostCalcOpen(false);
     setCalcAmount("");
     setCalcUnit("");
@@ -253,9 +241,7 @@ const InventoryForm = () => {
     let maxLevel = parseFloat(formData.maxLevel) || 0;
     let cost = parseFloat(formData.cost) || 0;
 
-    // Convert to base units for DB
-    currentQuantity = toBaseUnits(currentQuantity, unit);
-    cost = normalizeCost(cost, unit);
+    // Backend handles conversion to base units
 
     const submitData = {
       name: formData.name,

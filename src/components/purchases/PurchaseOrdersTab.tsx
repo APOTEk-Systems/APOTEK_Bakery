@@ -281,11 +281,7 @@ export default function PurchaseOrdersTab() {
 
   const calculateTotal = () => {
     return createPOForm.items.reduce((sum, item) => {
-      let price = item.price;
-      if (item.unit.toLowerCase() === "l" || item.unit.toLowerCase() === "kg") {
-        price *= 1000;
-      }
-      return sum + item.quantity * price;
+      return sum + item.quantity * item.price;
     }, 0);
   };
 
@@ -306,17 +302,10 @@ export default function PurchaseOrdersTab() {
       return;
     }
     const items = createPOForm.items.map((item) => {
-      const quantity = item.quantity;
-      let price = item.price;
-
-      if (item.unit.toLowerCase() === "l" || item.unit.toLowerCase() === "kg") {
-        price *= 1000;
-      }
-
       return {
         inventoryItemId: parseInt(item.inventoryItemId, 10),
-        quantity,
-        price: price,
+        quantity: item.quantity,
+        price: item.price,
       };
     });
     const totalCost = calculateTotal();
@@ -586,12 +575,6 @@ export default function PurchaseOrdersTab() {
                   <div className="w-20">Price</div>
                 </div>
                 {createPOForm.items.map((item, index) => {
-                  let displayPrice = item.price;
-                  if (item.unit === "kg") {
-                    displayPrice = item.price * 1000;
-                  } else if (item.unit === "l") {
-                    displayPrice = item.price * 1000;
-                  }
                   return (
                     <div key={index} className="flex gap-2 items-end">
                       <div className="flex-1">
@@ -650,31 +633,22 @@ export default function PurchaseOrdersTab() {
                       <div className="w-20">
                         <Label className="sr-only">Price</Label>
                         <Input
-          type="text"
-          value={
-            displayPrice
-              ? displayPrice.toLocaleString("en-US")
-              : ""
-          }
-          onChange={(e) => {
-            const raw = e.target.value.replace(/,/g, "");
-            const userPrice = parseFloat(raw) || 0;
-
-            // --- Convert back to base unit before saving ---
-            let basePrice = userPrice;
-            if (item.unit === "kg") {
-              basePrice = userPrice / 1000; // convert kg → g
-            } else if (item.unit === "l") {
-              basePrice = userPrice / 1000; // convert l → ml
-            }
-
-            updateItemPrice(index, basePrice);
-          }}
-          placeholder="1,000"
-          className="w-full text-right"
-          inputMode="numeric"
-          pattern="[0-9,]*"
-        />
+                          type="text"
+                          value={
+                            item.price
+                              ? item.price.toLocaleString("en-US")
+                              : ""
+                          }
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/,/g, "");
+                            const userPrice = parseFloat(raw) || 0;
+                            updateItemPrice(index, userPrice);
+                          }}
+                          placeholder="1,000"
+                          className="w-full text-right"
+                          inputMode="numeric"
+                          pattern="[0-9,]*"
+                        />
                       </div>
                       <Button
                         type="button"

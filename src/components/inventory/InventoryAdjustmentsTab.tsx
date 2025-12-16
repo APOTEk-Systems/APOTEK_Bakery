@@ -47,7 +47,6 @@ import {
 } from "../../services/inventory";
 import { settingsService } from "../../services/settings";
 import {format} from "date-fns";
-import {fromBaseUnits, toBaseUnits} from "@/lib/funcs";
 
 type AdjustmentAction = "add" | "minus";
 
@@ -74,6 +73,30 @@ const InventoryAdjustmentsTab = ({
   const queryClient = useQueryClient();
 
   const pageSize = 10;
+
+  const getUnitOptions = (baseUnit: string) => {
+    if (!baseUnit) return [];
+    if (baseUnit === "kg") {
+      return [
+        { value: "kg", label: "kilograms (kg)" },
+        { value: "g", label: "grams (g)" },
+      ];
+    } else if (baseUnit === "l") {
+      return [
+        { value: "l", label: "liters (l)" },
+        { value: "ml", label: "milliliters (ml)" },
+      ];
+    } else {
+      return [{ value: baseUnit, label: `${baseUnit} (${baseUnit})` }];
+    }
+  };
+
+  const getAvailableUnits = (inventoryItemId: string) => {
+    const inventoryItem = inventoryQuery.data?.find(
+      (item) => item.id.toString() === inventoryItemId
+    );
+    return inventoryItem ? getUnitOptions(inventoryItem.unit) : [];
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -144,9 +167,9 @@ const InventoryAdjustmentsTab = ({
     e.preventDefault();
     if (!selectedItemId || !amount || !reason) return;
 
-    // Convert amount into base unit
+    // Backend handles conversion, send amount as-is
     const rawAmount = parseFloat(amount);
-    const convertedAmount = toBaseUnits(rawAmount, unit);
+    const convertedAmount = rawAmount;
 
     // Find the selected item to get current quantity
     const selectedItem = inventoryQuery.data?.find(item => item.id.toString() === selectedItemId);
@@ -169,15 +192,27 @@ const InventoryAdjustmentsTab = ({
       return;
     }
 
-    // Apply add/minus action
+    // Apply add/minus action - backend handles the conversion
     const adjustmentAmount =
       action === "add" ? convertedAmount : -convertedAmount;
 
     createAdjustmentMutation.mutate({
       inventoryItemId: parseInt(selectedItemId),
       amount: adjustmentAmount, // stored in base unit
+      unit: unit, // Send the unit used for this adjustment
       reason: reason,
     });
+  };
+
+  const handleItemChange = (itemId: string) => {
+    setSelectedItemId(itemId);
+    // Reset unit to the base unit of the selected item
+    if (itemId) {
+      const inventoryItem = inventoryQuery.data?.find(item => item.id.toString() === itemId);
+      if (inventoryItem) {
+        setUnit(inventoryItem.unit);
+      }
+    }
   };
 
   if (adjustmentsQuery.isLoading) {
@@ -234,10 +269,7 @@ const InventoryAdjustmentsTab = ({
               {adjustmentsQuery.data?.adjustments?.map((adjustment) => {
                 const item = adjustment.inventoryItem;
                 const unit = item?.unit || "g"; // fallback
-                const displayAmount = fromBaseUnits(
-                  Math.abs(adjustment.amount),
-                  unit
-                );
+                const displayAmount = Math.abs(adjustment.amount); // Backend already returns in display units
 
                 return (
                   <TableRow key={adjustment.id}>
@@ -313,7 +345,7 @@ const InventoryAdjustmentsTab = ({
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="item">Item</Label>
-              <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+              <Select value={selectedItemId} onValueChange={handleItemChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select item" />
                 </SelectTrigger>
@@ -346,14 +378,14 @@ const InventoryAdjustmentsTab = ({
                 <Label htmlFor="unit">Unit</Label>
                 <Select value={unit} onValueChange={setUnit}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue placeholder="Select unit" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="kg">kg</SelectItem>
-                    <SelectItem value="g">g</SelectItem>
-                    <SelectItem value="l">l</SelectItem>
-                    <SelectItem value="ml">ml</SelectItem>
-                    <SelectItem value="pieces">pieces</SelectItem>
+                    {getAvailableUnits(selectedItemId).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -365,7 +397,7 @@ const InventoryAdjustmentsTab = ({
                 type="text"
                 value={amount ? parseFloat(amount).toLocaleString() : ''}
                 onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
-                placeholder={`Enter quantity in ${unit}`}
+                placeholder="Enter quantity"
               />
             </div>
             <div className="space-y-2">

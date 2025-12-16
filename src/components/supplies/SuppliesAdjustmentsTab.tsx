@@ -57,6 +57,7 @@ const SuppliesAdjustmentsTab = () => {
   const [amount, setAmount] = useState("");
   const [reason, setReason] = useState("");
   const [action, setAction] = useState<AdjustmentAction>("add");
+  const [unit, setUnit] = useState("pieces");
   const [currentPage, setCurrentPage] = useState(1);
   const {toast} = useToast();
   const queryClient = useQueryClient();
@@ -114,6 +115,7 @@ const SuppliesAdjustmentsTab = () => {
       setSelectedItemId("");
       setAmount("");
       setReason("");
+      setUnit("pieces");
       setAction("add");
     },
     onError: () => {
@@ -129,13 +131,36 @@ const SuppliesAdjustmentsTab = () => {
     e.preventDefault();
     if (!selectedItemId || !amount || !reason) return;
 
+    // Get the selected inventory item to ensure unit is set
+    const selectedItem = inventoryQuery.data?.find(item => item.id.toString() === selectedItemId);
+    if (!selectedItem) {
+      toast({
+        title: "Error",
+        description: "Selected item not found",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const adjustmentAmount =
       action === "add" ? parseFloat(amount) : -parseFloat(amount);
     createAdjustmentMutation.mutate({
       inventoryItemId: parseInt(selectedItemId),
+      unit: unit || selectedItem.unit, // Ensure unit is set to the item's unit
       amount: adjustmentAmount,
       reason: reason,
     });
+  };
+
+  const handleItemChange = (itemId: string) => {
+    setSelectedItemId(itemId);
+    // Automatically set unit to the selected item's unit
+    if (itemId) {
+      const inventoryItem = inventoryQuery.data?.find(item => item.id.toString() === itemId);
+      if (inventoryItem) {
+        setUnit(inventoryItem.unit);
+      }
+    }
   };
 
   if (adjustmentsQuery.isLoading) {
@@ -264,7 +289,7 @@ const SuppliesAdjustmentsTab = () => {
           <form onSubmit={handleSubmitAdjustment} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="item">Item</Label>
-              <Select value={selectedItemId} onValueChange={setSelectedItemId}>
+              <Select value={selectedItemId} onValueChange={handleItemChange}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select item" />
                 </SelectTrigger>
@@ -293,13 +318,13 @@ const SuppliesAdjustmentsTab = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="amount">Quantity</Label>
+              <Label htmlFor="amount">Quantity ({unit})</Label>
               <Input
                 id="amount"
                 type="text"
                 value={amount ? parseFloat(amount).toLocaleString() : ''}
                 onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
-                placeholder={`Enter quantity to ${action}`}
+                placeholder="Enter quantity"
               />
             </div>
             <div className="space-y-2">

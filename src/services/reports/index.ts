@@ -675,15 +675,7 @@ export const reportsService = {
 				m.inventoryService.getInventory(params)
 			);
 			const lowStockItems = allItems.filter((item: any) => {
-				// Apply unit conversions only for raw_material items
-				let displayQuantity = item.currentQuantity;
-				if (
-					item.type === 'raw_material' &&
-					(item.unit.toLowerCase() === 'kg' || item.unit.toLowerCase() === 'l')
-				) {
-					displayQuantity = item.currentQuantity / 1000;
-				}
-				return displayQuantity <= item.minLevel;
+				return item.currentQuantity <= item.minLevel;
 			});
 
 			if (lowStockItems.length === 0) {
@@ -739,15 +731,7 @@ export const reportsService = {
 				m.inventoryService.getInventory(params)
 			);
 			const outOfStockItems = allItems.filter((item: any) => {
-				// Apply unit conversions only for raw_material items
-				let displayQuantity = item.currentQuantity;
-				if (
-					item.type === 'raw_material' &&
-					(item.unit.toLowerCase() === 'kg' || item.unit.toLowerCase() === 'l')
-				) {
-					displayQuantity = item.currentQuantity / 1000;
-				}
-				return displayQuantity <= 0;
+				return item.currentQuantity <= 0;
 			});
 
 			if (outOfStockItems.length === 0) {

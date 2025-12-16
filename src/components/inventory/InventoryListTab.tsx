@@ -63,7 +63,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
   });
 
   const adjustMutation = useMutation({
-    mutationFn: (data: { inventoryItemId: number; amount: number; reason?: string }) => createAdjustment(data),
+    mutationFn: (data: { inventoryItemId: number; amount: number; unit: string; reason?: string }) => createAdjustment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventory', type] });
       toast({
@@ -152,6 +152,7 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
     adjustMutation.mutate({
       inventoryItemId: selectedItem.id,
       amount: parseFloat(amount),
+      unit: selectedItem.unit, // Add the unit parameter
       reason: reason.trim() || undefined
     });
   };
@@ -224,25 +225,13 @@ const InventoryListTab = ({ type, title }: InventoryListTabProps) => {
                 </TableHeader>
                 <TableBody>
                   {paginatedInventory.map((item) => {
-                    // Convert display values for kg/l units
-                    let displayUnit = item.unit || 'N/A';
-                    let displayQuantity = item.currentQuantity;
-                    let displayMinLevel = item.minLevel;
-                    let displayCost = item.cost;
+                    // Backend already converts to display units, use values directly
+                    const displayUnit = item.unit || 'N/A';
+                    const displayQuantity = item.currentQuantity;
+                    const displayMinLevel = item.minLevel;
+                    const displayCost = item.cost;
 
-                    if (item.unit.toLowerCase() === 'kg') {
-                      displayUnit = 'kg';
-                      displayQuantity = item.currentQuantity / 1000;
-                      displayCost = item.cost * 1000
-                    } else if (item.unit.toLowerCase() === 'l') {
-                      displayUnit = 'l';
-                      displayQuantity = item.currentQuantity / 1000;
-                      displayCost = item.cost * 1000
-                    } else {
-                      // Leave as is for other units
-                    }
-
-                    const status = getStatus(displayQuantity, item.minLevel);
+                    const status = getStatus(displayQuantity, displayMinLevel);
 
                     return (
                       <TableRow key={item.id}>

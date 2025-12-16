@@ -77,6 +77,13 @@ const ProductForm = () => {
     }
   };
 
+  const getAvailableUnits = (inventoryItemId: string) => {
+    const inventoryItem = (inventoryQuery.data as InventoryItem[])?.find(
+      (item) => item.id.toString() === inventoryItemId
+    );
+    return inventoryItem ? getUnitOptions(inventoryItem.unit) : [];
+  };
+
   const productQuery = useQuery({
     queryKey: ["product", id],
     queryFn: () => getProduct(Number(id)),
@@ -153,13 +160,9 @@ const ProductForm = () => {
           (product as any).productRecipes.map((r: any) => {
             const inventoryItem = inventory.find(item => item.id === r.inventoryItemId);
             const unit = r.unit || inventoryItem?.unit || "";
-            let amount = r.amountRequired;
-            if (unit.toLowerCase() === "kg" || unit.toLowerCase() === "l") {
-              amount /= 1000;
-            }
             return {
               inventoryItemId: r.inventoryItemId.toString(),
-              amount: amount.toString(),
+              amount: r.amountRequired.toString(),
               unit,
             };
           })
@@ -236,20 +239,11 @@ const ProductForm = () => {
     }
 
     try {
-      const convertedRecipes = productRecipes.map((recipe) => {
-        let amountRequired = parseFloat(recipe.amount) || 0;
-        if (
-          recipe.unit.toLowerCase() === "kg" ||
-          recipe.unit.toLowerCase() === "l"
-        ) {
-          amountRequired *= 1000;
-        }
-        return {
-          inventoryItemId: parseInt(recipe.inventoryItemId),
-          amountRequired,
-          unit: recipe.unit,
-        };
-      });
+      const recipeData = productRecipes.map((recipe) => ({
+        inventoryItemId: parseInt(recipe.inventoryItemId),
+        amountRequired: parseFloat(recipe.amount) || 0,
+        unit: recipe.unit,
+      }));
 
       const productData = {
         name: formData.name,
@@ -259,7 +253,7 @@ const ProductForm = () => {
         instructions: formData.instructions.filter((inst) => inst.trim()),
         status: formData.status,
         batchSize: parseInt(formData.batchSize) || 1,
-        productRecipes: convertedRecipes,
+        productRecipes: recipeData,
       };
 
       setPendingProductData(productData);
@@ -547,7 +541,7 @@ const ProductForm = () => {
                             <SelectValue placeholder="Select unit" />
                           </SelectTrigger>
                           <SelectContent>
-                            {getUnitOptions(recipe.unit).map((option) => (
+                            {getAvailableUnits(recipe.inventoryItemId).map((option) => (
                               <SelectItem
                                 key={option.value}
                                 value={option.value}

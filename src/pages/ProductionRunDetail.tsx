@@ -143,16 +143,10 @@ const ProductionRunDetail = () => {
                 </TableHeader>
                 <TableBody>
                   {(run as any).ingredientsDeducted?.map((ingredient: any) => {
-                    let unit = ingredient.unit;
-
-                    if (unit.toLowerCase() === "kg" || unit.toLowerCase() === "l") {
-                      ingredient.amountDeducted = ingredient.amountDeducted / 1000;
-                    } 
-
                     return (
                       <TableRow key={ingredient.id}>
                         <TableCell className="font-medium">{ingredient.name}</TableCell>
-                        <TableCell>{ingredient.amountDeducted.toLocaleString()} {unit}</TableCell>
+                        <TableCell>{ingredient.amountDeducted.toLocaleString()} {ingredient.unit}</TableCell>
                         <TableCell>{formatCurrency(Number(ingredient.cost))}</TableCell>
                       </TableRow>
                     );

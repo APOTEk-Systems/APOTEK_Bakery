@@ -57,7 +57,7 @@ const SuppliesListTab = () => {
   });
 
   const adjustMutation = useMutation({
-    mutationFn: (data: { inventoryItemId: number; amount: number; reason?: string }) => createAdjustment(data),
+    mutationFn: (data: { inventoryItemId: number; amount: number; unit: string; reason?: string }) => createAdjustment(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['supplies'] });
       toast({
@@ -146,6 +146,7 @@ const SuppliesListTab = () => {
     adjustMutation.mutate({
       inventoryItemId: selectedItem.id,
       amount: parseFloat(amount),
+      unit: selectedItem.unit, // Add the unit parameter
       reason: reason.trim() || undefined
     });
   };

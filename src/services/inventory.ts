@@ -21,6 +21,7 @@ export interface Adjustment {
   id: number;
   inventoryItemId: number;
   amount: number;
+  unit: string;
   reason: string;
   createdAt: string;
   createdById: number;
@@ -64,6 +65,7 @@ export const getAdjustments = async (params?: {
 export const createAdjustment = async (data: {
   inventoryItemId: number;
   amount: number;
+  unit: string;
   reason?: string;
 }): Promise<{ adjustment: Adjustment; inventoryItem: InventoryItem }> => {
   const response = await api.post<{ adjustment: Adjustment; inventoryItem: InventoryItem }>('/adjustments', data);
