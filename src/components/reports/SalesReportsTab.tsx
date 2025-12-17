@@ -39,7 +39,7 @@ const SalesReportsTab = () => {
 			onExport={() => handleExport(selectedSalesReport)}
 			isExportDisabled={!selectedSalesReport}>
 			<div className='flex gap-4 mt-4'>
-				<div className='flex-1'>
+				<div className={selectedSalesReport === 'credit-payments' ? 'flex-1' : 'flex-1'}>
 					<Label className='text-sm font-medium'>Report Type</Label>
 					<Select
 						value={selectedSalesReport}
@@ -67,46 +67,42 @@ const SalesReportsTab = () => {
 							<SelectItem value='sales-returns'>
 								Sales Returns Report
 							</SelectItem>
-							</SelectContent>
+						</SelectContent>
 					</Select>
 				</div>
-				<div className='flex-1'>
-					{selectedSalesReport !== 'products' && (
-						<>
-							{selectedSalesReport === 'credit-payments' && (
-								<>
-									<Label className='text-sm font-medium mt-4'>Customer</Label>
-									<Select
-										value={selectedCustomer}
-										onValueChange={(v: string) => setSelectedCustomer(v)}
-										>
-										<SelectTrigger className='my-1'>
-											<SelectValue placeholder='Select customer or all' />
-										</SelectTrigger>
-										<SelectContent>
-											<SelectItem value={'all'}>All Customers</SelectItem>
-											{customers.map((c: Customer) => (
-												<SelectItem
-													key={c.id}
-													value={c.id.toString()}>
-													{c.name}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								</>
-							)}
-							<>
-								<Label className='text-sm font-medium'>Date Range</Label>
-								<DateRangePicker
-									dateRange={dateRange}
-									onDateRangeChange={setDateRange}
-									className='mt-1'
-								/>
-							</>
-						</>
-					)}
-				</div>
+				{selectedSalesReport === 'credit-payments' && (
+					<div className='flex-1'>
+						<Label className='text-sm font-medium'>Customer</Label>
+						<Select
+							value={selectedCustomer}
+							onValueChange={(v: string) => setSelectedCustomer(v)}
+							>
+							<SelectTrigger className='my-1'>
+								<SelectValue placeholder='Select customer or all' />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value={'all'}>All Customers</SelectItem>
+								{customers.map((c: Customer) => (
+									<SelectItem
+										key={c.id}
+										value={c.id.toString()}>
+										{c.name}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
+				)}
+				{selectedSalesReport !== 'products' && (
+					<div className={selectedSalesReport === 'credit-payments' ? 'flex-1' : 'flex-1'}>
+						<Label className='text-sm font-medium'>Date Range</Label>
+						<DateRangePicker
+							dateRange={dateRange}
+							onDateRangeChange={setDateRange}
+							className='mt-1'
+						/>
+					</div>
+				)}
 			</div>
 		</ReportLayout>
 	);

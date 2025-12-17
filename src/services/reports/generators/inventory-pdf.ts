@@ -221,9 +221,8 @@ export const generateProductAdjustmentsPDF = (
       (index + 1).toString(),
       adjustment.product?.name || "Unknown Product",
       format(new Date(adjustment.createdAt), "dd-MM-yyyy"),
-      adjustmentType,
-      `${adjustment.amount > 0 ? "+" : "-"}${displayAmount.toLocaleString()}`,
-    //  adjustment.reason || "No reason provided",
+      `${displayAmount.toLocaleString()}`,
+      adjustment.reason || "No reason provided",
       adjustment.createdBy?.name || "Unknown",
     ];
   });

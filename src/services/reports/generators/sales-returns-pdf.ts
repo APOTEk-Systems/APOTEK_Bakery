@@ -56,26 +56,27 @@ export const generateSalesReturnsPDF = (
 		'',
 		'',
 		'',
+		'',
 		'Total:',
 		formatCurrencyPDF(totalReturned),
 		'',
 		'',
 		'',
 		'',
-		'',
+		
 	]);
 
 	autoTable(doc, {
 		head: [
 			[
 				'#',
+				'Receipt #',
 				'Product',
 				'Sale Date',
 				'Return Date',
 				'Sold Qty',
 				'Return Qty',
 				'Return Amount',
-				'Receipt #',
 				'Reason',
 				'Approved By',
 				'Requested By',

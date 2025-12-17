@@ -20,6 +20,8 @@ interface PurchaseOrder {
 
 export const generatePurchaseSummaryPDF = (
 	data: { purchaseOrders: PurchaseOrder[]; total: number },
+	startDate?: string,
+	endDate?: string,
 	settings?: any,
 	supplierName?: string
 ): Blob => {
@@ -32,10 +34,12 @@ export const generatePurchaseSummaryPDF = (
 	const yPos = addCompanyHeader(
 		doc,
 		title,
-		undefined,
-		undefined,
+		startDate,
+		endDate,
 		settings
 	);
+
+	console.log("Date Range:", startDate, "to", endDate);
 
 	// Create table with purchase orders data - match sales report format
 	const tableData = data.purchaseOrders.map((po, index) => [

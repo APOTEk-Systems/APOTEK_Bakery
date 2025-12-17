@@ -39,7 +39,7 @@ export const generateProductionSummaryPDF = (
 		0
 	);
 
-	rows.push(['', '', 'Total:', totalAll.toString()]);
+	rows.push(['', '', 'Total:', totalAll.toString() + " units"]);
 
 	autoTable(doc, {
 		head: [['#', 'Date', 'Product', 'Quantity']],
@@ -48,8 +48,8 @@ export const generateProductionSummaryPDF = (
 		margin: { left: 20, right: 20 },
 		...getDefaultTableStyles(),
 		columnStyles: {
-			0: { cellWidth: 12 },
-			1: {},
+			0: { cellWidth: 15 },
+			1: {cellWidth: 50 },
 			2: {},
 			3: { halign: 'right' },
 		},
@@ -59,7 +59,12 @@ export const generateProductionSummaryPDF = (
 				dataItem.column.index === 3){
 				dataItem.cell.styles.halign = 'right';
 				}
+
+			if(dataItem.section === 'body' && dataItem.row.index === rows.length -1){
+				dataItem.cell.styles.fontStyle = 'bold';
 			}
+    },
+			
 	});
 
 	addPageNumbers(doc);

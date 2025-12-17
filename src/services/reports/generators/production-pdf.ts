@@ -25,7 +25,7 @@ export const generateProductionPDF = (
   // Add company header
   let yPos = addCompanyHeader(
     doc,
-    "Daily Production Report",
+    "Production Detailed Report",
     startDate,
     endDate,
     settings
@@ -41,7 +41,7 @@ export const generateProductionPDF = (
     (prod as any).producedBy?.name || (prod as any).producedBy || "Unknown", // Produced By
   ]);
 
-  // Add summary rows similar to sales reports
+  // Calculate totals
   const totalProduced = data.data.production.reduce(
     (sum, prod) => sum + (prod.quantityProduced || 0),
     0
@@ -51,16 +51,7 @@ export const generateProductionPDF = (
     0
   );
 
-  tableData.push([
-    "",
-    "",
-    "",
-    "Total Produced:",
-    `${totalProduced.toLocaleString()} units`,
-    "",
-  ]);
-  tableData.push(["", "", "", "Total Cost:", formatCurrencyPDF(totalCost), ""]);
-
+  // Generate main table without totals
   autoTable(doc, {
     head: [["#", "Date", "Product", "Quantity", "Cost", "Produced By"]],
     body: tableData,
@@ -83,20 +74,38 @@ export const generateProductionPDF = (
       if (data.section === "head" && data.column.index === 5) {
         data.cell.styles.halign = "right";
       }
-      // Style summary rows (last two rows) - remove bg styles, keep white bg
-      if (
-        data.section === "body" &&
-        (data.row.index === tableData.length - 2 ||
-          data.row.index === tableData.length - 1)
-      ) {
-        data.cell.styles.fontStyle = "bold";
+    },
+  });
+
+  // Get the final Y position after the main table
+  const finalY = (doc as any).lastAutoTable.finalY;
+
+  // Add totals in a separate table to prevent page breaks within totals
+  const totalsTableData = [
+    ["", "", "", "", "Total Produced:", `${totalProduced.toLocaleString()} units`],
+    ["", "", "", "", "Total Cost:", formatCurrencyPDF(totalCost)]
+  ];
+
+  autoTable(doc, {
+    head: [],
+    body: totalsTableData,
+    startY: finalY + 10, // Add some space after the main table
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      4: { halign: 'left', cellWidth:30  }, // Right-align values
+      5: { halign: 'right', cellWidth:30 }, // Right-align values
+    },
+    didParseCell: function(data: any) {
+      // Style totals rows
+      if (data.section === 'body') {
+        data.cell.styles.fontStyle = 'bold';
         data.cell.styles.fillColor = [255, 255, 255]; // White background
       }
     },
   });
 
   // Add generated date at bottom
-  const finalY = (doc as any).lastAutoTable.finalY || yPos + 50;
+  const finalYAfterTotals = (doc as any).lastAutoTable.finalY || yPos + 50;
   addPageNumbers(doc);
 
   return doc.output("blob");
@@ -155,7 +164,7 @@ export const generateIngredientUsagePDF = (
   // Add company header
   let yPos = addCompanyHeader(
     doc,
-    "Ingredients Usage Report",
+    "Ingredients Usage Detailed Report",
     startDate,
     endDate,
     settings

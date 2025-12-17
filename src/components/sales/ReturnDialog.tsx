@@ -27,6 +27,7 @@ import { Sale } from "@/services/sales";
 import { settingsService } from "@/services/settings";
 import { salesAdjustmentsService, CreateSalesAdjustmentData } from "@/services/salesAdjustments";
 import { formatCurrency } from "@/lib/funcs";
+import { Separator } from "@radix-ui/react-select";
 
 interface ReturnItem {
   productId: number;
@@ -187,7 +188,7 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
-                  <TableHead className="text-center">Original Qty</TableHead>
+                  <TableHead className="text-center">Sold Qty</TableHead>
                   <TableHead className="text-center">Return Qty</TableHead>
                   <TableHead className="text-right">Unit Price</TableHead>
                   <TableHead className="text-right">Return Value</TableHead>
@@ -196,13 +197,13 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
               <TableBody>
                 {returnItems.map((item) => (
                   <TableRow key={item.productId}>
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium p-2">
                       {item.productName}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center p-2">
                       {item.originalQuantity}
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center p-2">
                       <Input
                         type="number"
                         min="0"
@@ -252,7 +253,7 @@ const ReturnDialog = ({ sale, onReturnCreated }: ReturnDialogProps) => {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Enter reason for return..."
-              rows={3}
+              rows={2}
             />
           </div>
 

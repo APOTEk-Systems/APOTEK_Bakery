@@ -151,44 +151,55 @@ export const generateGrossProfitPDF = (
     const totalPurchases = dailyData.reduce((sum: number, day: any) => sum + (Number(day.totalPurchases) || 0), 0);
     const totalGrossProfit = dailyData.reduce((sum: number, day: any) => sum + (Number(day.grossProfit) || 0), 0);
 
-    // Add totals rows following the sales report pattern
-    tableData.push(['', '', '', 'Total Sales:', formatCurrencyPDF(totalSales)]);
-    tableData.push(['', '', '', 'Total Purchases:', formatCurrencyPDF(totalPurchases)]);
-    tableData.push(['', '', '', 'Gross Profit:', formatCurrencyPDF(totalGrossProfit)]);
-
+    // Generate main table without totals
     autoTable(doc, {
-      head: [["S/N", "Date", "Total Sales", "Total Purchases", "Gross Profit"]],
+      head: [["#", "Date", "Total Sales", "Total Purchases", "Gross Profit"]],
       body: tableData,
       startY: yPos,
       ...getDefaultTableStyles(),
       columnStyles: {
         0: { halign: 'center', cellWidth: 15 }, // S/N column
         1: { halign: 'left', cellWidth: 30 },   // Date column
-        2: { halign: 'left',  },   // Total Sales column (left-aligned for labels)
-        3: { halign: 'left',  },   // Total Purchases column (empty for spacing)
-        4: { halign: 'right',  },  // Gross Profit column (right-aligned for values)
+        2: { halign: 'right' },   // Total Sales column
+        3: { halign: 'right' },   // Total Purchases column
+        4: { halign: 'right' },  // Gross Profit column
       },
       headStyles: {
         ...getDefaultTableStyles().headStyles,
         halign: 'center' // Center align headers
       },
       didParseCell: function(data: any) {
-        // Style totals rows (last 3 rows)
-        if (data.section === 'body' && data.row.index >= tableData.length - 3) {
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fillColor = [255, 255, 255 ]; // Light gray background
-        }
-        // Right-align Amount columns for data rows (excluding totals rows)
-        if (data.section === 'body' && data.row.index < tableData.length - 3 && (data.column.index === 2 || data.column.index === 3 || data.column.index === 4)) {
-          data.cell.styles.halign = 'right';
-        }
         // Right-align Amount headers
         if (data.section === 'head' && (data.column.index === 2 || data.column.index === 3 || data.column.index === 4)) {
           data.cell.styles.halign = 'right';
         }
-        // Right-align totals values (last column for totals rows)
-        if (data.section === 'body' && data.row.index >= tableData.length - 3 && data.column.index === 4) {
-          data.cell.styles.halign = 'right';
+      },
+    });
+
+    // Get the final Y position after the main table
+    const finalY = (doc as any).lastAutoTable.finalY;
+
+    // Add totals in a separate table to prevent page breaks within totals
+    const totalsTableData = [
+      ['', '', 'Total Sales:', formatCurrencyPDF(totalSales)],
+      ['', '', 'Total Purchases:', formatCurrencyPDF(totalPurchases)],
+      ['', '', 'Gross Profit:', formatCurrencyPDF(totalGrossProfit)]
+    ];
+
+    autoTable(doc, {
+      head: [],
+      body: totalsTableData,
+      startY: finalY + 10, // Add some space after the main table
+      ...getDefaultTableStyles(),
+      columnStyles: {
+        2: { halign: 'left' }, // Left-align labels
+        3: { halign: 'right' }, // Right-align values
+      },
+      didParseCell: function(data: any) {
+        // Style totals rows
+        if (data.section === 'body') {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fillColor = [255, 255, 255]; // White background
         }
       },
     });
@@ -324,12 +335,7 @@ export const generateExpenseBreakdownPDF = (
     formatCurrencyPDF(amount),
   ]);
 
-  // Add total as table row
-  tableData.push([
-    "Total Expenses:",
-    formatCurrencyPDF(data.data.totalExpenses)
-  ]);
-
+  // Generate main table without totals
   autoTable(doc, {
     head: [["Category", "Amount"]],
     body: tableData,
@@ -347,8 +353,29 @@ export const generateExpenseBreakdownPDF = (
       if (data.section === 'head' && data.column.index === 1) {
         data.cell.styles.halign = 'right';
       }
-      // Style total row
-      if (data.section === 'body' && data.row.index === tableData.length - 1) {
+    },
+  });
+
+  // Get the final Y position after the main table
+  const finalY = (doc as any).lastAutoTable.finalY;
+
+  // Add totals in a separate table to prevent page breaks within totals
+  const totalsTableData = [
+    ["Total Expenses:", formatCurrencyPDF(data.data.totalExpenses)]
+  ];
+
+  autoTable(doc, {
+    head: [],
+    body: totalsTableData,
+    startY: finalY + 10, // Add some space after the main table
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      0: { halign: 'left' }, // Left-align label
+      1: { halign: 'right' }, // Right-align value
+    },
+    didParseCell: function(data: any) {
+      // Style totals row
+      if (data.section === 'body') {
         data.cell.styles.fontStyle = 'bold';
       }
     },
@@ -418,7 +445,7 @@ export const generateExpensesPDF = (data: any, startDate?: string, endDate?: str
         data.cell.styles.halign = 'right';
       }
       // Style summary row
-      if (data.section === 'body' && data.cell.raw && typeof data.cell.raw === 'string' && data.cell.raw.includes('Total Expenses:')) {
+      if (data.section === 'body' && data.row.index === tableData.length - 1) {
         data.cell.styles.fontStyle = 'bold';
       }
     },
@@ -479,35 +506,7 @@ export const generateOutstandingPaymentsPDF = (
   const totalPaid = data.data.reduce((sum: number, sale: any) => sum + ((sale as any).paid || 0), 0);
   const totalTotal = data.data.reduce((sum: number, sale: any) => sum + sale.total, 0);
 
-  // Add summary rows
-  tableData.push([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "Total:",
-    formatCurrencyPDF(totalTotal),
-  ]);
-  tableData.push([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "Paid:",
-    formatCurrencyPDF(totalPaid),
-  ]);
-  tableData.push([
-    "",
-    "",
-    "",
-    "",
-    "",
-    "Balance:",
-    formatCurrencyPDF(totalOutstanding)
-  ]);
-
+  // Generate main table without totals
   autoTable(doc, {
     head: [["#", "Receipt #", "Date", "Customer", "Total", "Paid", "Balance"]],
     body: tableData,
@@ -527,8 +526,31 @@ export const generateOutstandingPaymentsPDF = (
       if (data.section === 'head' && (data.column.index === 4 || data.column.index === 5 || data.column.index === 6)) {
         data.cell.styles.halign = 'right';
       }
-      // Style summary rows
-      if (data.section === 'body' && data.row.index >= tableData.length -3) {
+    },
+  });
+
+  // Get the final Y position after the main table
+  const finalY = (doc as any).lastAutoTable.finalY;
+
+  // Add totals in a separate table to prevent page breaks within totals
+  const totalsTableData = [
+    ["", "", "", "", "", "Total:", formatCurrencyPDF(totalTotal)],
+    ["", "", "", "", "", "Paid:", formatCurrencyPDF(totalPaid)],
+    ["", "", "", "", "", "Balance:", formatCurrencyPDF(totalOutstanding)]
+  ];
+
+  autoTable(doc, {
+    head: [],
+    body: totalsTableData,
+    startY: finalY + 10, // Add some space after the main table
+    ...getDefaultTableStyles(),
+    columnStyles: {
+      5: { halign: 'left', cellWidth:20 }, // Left-align labels
+      6: { halign: 'right', cellWidth:20 }, // Right-align values
+    },
+    didParseCell: function(data: any) {
+      // Style totals rows
+      if (data.section === 'body') {
         data.cell.styles.fontStyle = 'bold';
         data.cell.styles.fillColor = [255, 255, 255]; // White background
       }

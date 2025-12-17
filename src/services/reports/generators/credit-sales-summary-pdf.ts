@@ -70,6 +70,9 @@ export const generateCreditSalesSummaryPDF = (
       ) {
         dataItem.cell.styles.halign = "right";
       }
+      if(dataItem.section === "head" && dataItem.column.index === 1){
+        dataItem.cell.styles.halign = "center";
+      }
     },
   });
 

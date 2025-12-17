@@ -474,7 +474,7 @@ export const reportsService = {
 				console.warn('Could not fetch settings for PDF header:', error);
 			}
 
-			const pdfBlob = generatePurchaseSummaryPDF(data, settings, supplier);
+			const pdfBlob = generatePurchaseSummaryPDF(data, startDate, endDate, settings, supplier);
 			console.log('📄 Purchase order summary PDF generated successfully');
 			return pdfBlob;
 		} catch (error) {
