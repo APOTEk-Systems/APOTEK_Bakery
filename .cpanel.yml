@@ -1,0 +1,7 @@
+pre_deployment:
+  - npm install
+  - npm run build
+
+deployment:
+  - export DEPLOYPATH=/home/apotek/public_html/bakery/
+  - /bin/cp -r dist/* $DEPLOYPATH
