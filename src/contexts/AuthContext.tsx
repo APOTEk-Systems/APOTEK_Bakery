@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, login as apiLogin, register as apiRegister, refreshToken as apiRefresh, logout as apiLogout, getMe } from '../services/auth';
+import { User, login as apiLogin, register as apiRegister, refreshToken as apiRefresh, logout as apiLogout, getMe, initializeAuth, getCurrentUser } from '../services/auth';
 
 interface AuthContextType {
   user: User | null;
@@ -55,27 +55,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    apiLogout(() => {
-      navigate('/login');
-    });
+    apiLogout();
     setUser(null);
     setIsAuthenticated(false);
+    navigate('/login');
   };
 
   useEffect(() => {
     const initAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          // Attempt to refresh to validate token and get user
-          const refreshed = await apiRefresh();
-          setUser(refreshed.user);
+      try {
+        // Always attempt to initialize auth on app start
+        await initializeAuth();
+        // If successful, user and token are set in memory
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          setUser(currentUser);
           setIsAuthenticated(true);
-        } catch (error) {
-          // Invalid token, clear it
-          localStorage.removeItem('token');
+        } else {
           setIsAuthenticated(false);
         }
+      } catch (error) {
+        // No valid session; stay unauthenticated
+        setIsAuthenticated(false);
       }
       setIsLoading(false);
     };

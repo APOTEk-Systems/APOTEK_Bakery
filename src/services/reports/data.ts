@@ -638,7 +638,7 @@ export const getPurchaseOrderDetailedForSummary = async (
 		limit: 1000, // Get a large number for summary
 		status: undefined, // No status filter for summary
 		search: supplierName, // No search filter for summary
-		startDate: startDate || startOfMonth.toISOString().split('T')[0],
+		startDate: startDate,
 		endDate: endDate || now.toISOString().split('T')[0],
 	});
 

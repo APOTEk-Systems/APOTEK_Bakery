@@ -29,6 +29,9 @@ const PurchasesReportsTab = () => {
     'purchase-summary',
   ].includes(selectedPurchasesReport);
 
+  // Logic to determine if Supplier Select is needed
+  const needsSupplierSelect = selectedPurchasesReport !== 'suppliers-list';
+
   return (
     <ReportLayout
       title="Purchases Reports"
@@ -45,17 +48,16 @@ const PurchasesReportsTab = () => {
               <SelectValue placeholder="Select purchases report type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="purchase-orders-detailed">Purchase Orders Detailed Report</SelectItem>
-              <SelectItem value="purchase-summary">Purchase Orders Summary Report</SelectItem>
               <SelectItem value="goods-received">Material Received Report</SelectItem>
               <SelectItem value="suppliers-list">List of Supplier</SelectItem>
-             
+              <SelectItem value="purchase-orders-detailed">Purchase Orders Detailed Report</SelectItem>
+              <SelectItem value="purchase-summary">Purchase Orders Summary Report</SelectItem>          
             </SelectContent>
           </Select>
         </div>
 
         {/* Supplier Select */}
-        <div className="flex-1">
+      {needsSupplierSelect && (  <div className="flex-1">
           <Label className="text-sm font-medium">Supplier</Label>
           <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
             <SelectTrigger className="my-1 max-w-md">
@@ -70,16 +72,16 @@ const PurchasesReportsTab = () => {
               ))}
             </SelectContent>
           </Select>
-        </div>
+        </div>)}
 
         {/* Date Range Picker (Conditionally Rendered) */}
-        {needsDateRange && (
+        {needsDateRange && selectedPurchasesReport !== 'suppliers-list' && (
           <div className="flex-1">
             <Label className="text-sm font-medium">Date Range</Label>
-            <DateRangePicker 
-              dateRange={dateRange} 
-              onDateRangeChange={setDateRange} 
-              className="mt-1" 
+            <DateRangePicker
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              className="mt-1"
             />
           </div>
         )}

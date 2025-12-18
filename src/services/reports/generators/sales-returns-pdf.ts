@@ -33,13 +33,13 @@ export const generateSalesReturnsPDF = (
 	// Build table rows from server data
 	const rows = (data.data || []).map((r, idx) => [
 		(idx + 1).toString(),
+		r.saleId.toString(),
 		r.productName,
 		formatDatePDF(r.saleDate),
 		formatDatePDF(r.returnedDate),
 		r.soldQty.toString(),
 		r.returnedQty.toString(),
 		formatCurrencyPDF(r.returnedAmount),
-		r.saleId.toString(),
 		r.reason,
 		r.approvedBy,
 		r.requestedBy,
@@ -116,7 +116,7 @@ export const generateSalesReturnsPDF = (
 				dataItem.row.index === rows.length - 1
 			) {
 				dataItem.cell.styles.fontStyle = 'bold';
-				dataItem.cell.styles.fillColor = [240, 240, 240];
+				dataItem.cell.styles.fillColor = [255, 255, 255];
 			}
 			// Right align numeric columns
 			if (

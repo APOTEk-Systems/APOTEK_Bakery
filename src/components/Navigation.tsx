@@ -108,7 +108,7 @@ const Navigation = ({
 	const NavContent = () => (
 		<div
 			className={`flex flex-col h-screen ${
-				collapsed && !isMobile ? 'p-2' : 'py-4 pl-3 pr-1'
+				collapsed && !isMobile ? 'p-2' : 'py-4 pl-2 pr-1'
 			}`}>
 			{isMobile && (
 				<div className='flex items-center gap-3 mb-8'>
@@ -732,7 +732,7 @@ const Navigation = ({
 	return (
 		<nav
 			className={`fixed left-0 top-0 h-full ${
-				collapsed ? 'w-12' : 'w-64'
+				collapsed ? 'w-16' : 'w-64'
 			} bg-card border-r border-border shadow-warm z-50 transition-all duration-300`}>
 			<div className='flex items-center justify-between py-4 px-2 border-b'>
 				{!collapsed && (
