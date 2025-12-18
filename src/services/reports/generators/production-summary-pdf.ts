@@ -39,7 +39,7 @@ export const generateProductionSummaryPDF = (
 		0
 	);
 
-	rows.push(['', '', 'Total:', totalAll.toString() + " units"]);
+	// rows.push(['', '', 'Total:', totalAll.toString() + " units"]);
 
 	autoTable(doc, {
 		head: [['#', 'Date', 'Product', 'Quantity']],

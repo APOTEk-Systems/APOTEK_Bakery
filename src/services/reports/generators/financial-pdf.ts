@@ -158,7 +158,7 @@ export const generateGrossProfitPDF = (
       startY: yPos,
       ...getDefaultTableStyles(),
       columnStyles: {
-        0: { halign: 'center', cellWidth: 15 }, // S/N column
+        0: { halign: 'center', cellWidth: 15 }, // # column
         1: { halign: 'left', cellWidth: 30 },   // Date column
         2: { halign: 'right' },   // Total Sales column
         3: { halign: 'right' },   // Total Purchases column
@@ -191,9 +191,14 @@ export const generateGrossProfitPDF = (
       body: totalsTableData,
       startY: finalY + 10, // Add some space after the main table
       ...getDefaultTableStyles(),
+      pageBreak: 'avoid', // Prevent totals from breaking across pages
       columnStyles: {
-        2: { halign: 'left' }, // Left-align labels
-        3: { halign: 'right' }, // Right-align values
+        2: { halign: 'left', cellWidth:30 }, // Left-align labels
+        3: { halign: 'right', cellWidth:30 }, // Right-align values
+      },
+      headStyles: {
+        ...getDefaultTableStyles().headStyles,
+        halign: 'center' // Center align header
       },
       didParseCell: function(data: any) {
         // Style totals rows

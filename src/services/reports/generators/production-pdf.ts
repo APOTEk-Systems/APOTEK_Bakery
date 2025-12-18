@@ -82,7 +82,7 @@ export const generateProductionPDF = (
 
   // Add totals in a separate table to prevent page breaks within totals
   const totalsTableData = [
-    ["", "", "", "", "Total Produced:", `${totalProduced.toLocaleString()} units`],
+   // ["", "", "", "", "Total Produced:", `${totalProduced.toLocaleString()} units`],
     ["", "", "", "", "Total Cost:", formatCurrencyPDF(totalCost)]
   ];
 
