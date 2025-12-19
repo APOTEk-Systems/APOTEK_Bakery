@@ -736,11 +736,11 @@ const Navigation = ({
 			} bg-card border-r border-border shadow-warm z-50 transition-all duration-300`}>
 			<div className='flex items-center justify-between py-4 px-2 border-b'>
 				{!collapsed && (
-					<div className='flex items-center gap-3'>
+					<div className='flex items-center gap-3 pl-1'>
 						<div className='w-8 h-8  rounded-lg flex items-center justify-center'>
 							<img
 								src='/logo.png'
-								className='w-full'
+								className='w-3/4'
 								alt='APOTEk Logo'
 							/>
 						</div>
@@ -753,7 +753,7 @@ const Navigation = ({
 					variant='ghost'
 					size='icon'
 					onClick={() => setCollapsed(!collapsed)}
-					className='ml-auto'>
+					className='ml-2'>
 					{collapsed ? (
 						<ChevronRight className='h-4 w-4' />
 					) : (
