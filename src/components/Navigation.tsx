@@ -114,7 +114,7 @@ const Navigation = ({
 				<div className='flex items-center gap-3 mb-8'>
 					<div className='w-10 h-10 rounded-lg flex items-center justify-center'>
 						<img
-							src='/icon.png'
+							src='/logo.png'
 							className='w-full'
 							alt='Apotek Icon'
 						/>
@@ -716,7 +716,7 @@ const Navigation = ({
 					<div className='ml-4 flex items-center gap-3'>
 						<div className='w-8 h-8 rounded-lg flex items-center justify-center'>
 							<img
-								src='/icon.png'
+								src='/logo.png'
 								className='w-full'
 								alt='APOTEk Image'
 							/>
@@ -739,7 +739,7 @@ const Navigation = ({
 					<div className='flex items-center gap-3'>
 						<div className='w-8 h-8  rounded-lg flex items-center justify-center'>
 							<img
-								src='/icon.png'
+								src='/logo.png'
 								className='w-full'
 								alt='APOTEk Logo'
 							/>
