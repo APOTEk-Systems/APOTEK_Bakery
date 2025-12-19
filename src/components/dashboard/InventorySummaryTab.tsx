@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Package, AlertTriangle, TrendingUp } from "lucide-react";
 
 const InventorySummaryTab = () => {
-  const [expandedCard, setExpandedCard] = useState<string>("lowStock");
+  const [expandedCard, setExpandedCard] = useState<string>("outOfStock");
   const { data: inventoryData, isPending: loading } = useQuery({
     queryKey: ["inventoryDashboard"],
     queryFn: () => dashboardService.getInventoryDashboard(),
@@ -127,7 +127,7 @@ const InventorySummaryTab = () => {
                 {inventoryData.topSellingProducts.count}
               </div>
               <p className="text-xs text-muted-foreground">
-                Best selling items
+                Best Selling Products
               </p>
             </CardContent>
           </Card>
