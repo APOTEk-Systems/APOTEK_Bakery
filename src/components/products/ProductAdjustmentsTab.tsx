@@ -44,10 +44,21 @@ import {
 } from "../../services/products";
 import { settingsService } from "../../services/settings";
 import {format} from "date-fns";
+import { useAuth } from '@/contexts/AuthContext';
 
 type AdjustmentAction = "minus";
 
+// Helper function to check permissions
+const hasPermission = (user: any, permission: string): boolean => {
+  if (!user) return false;
+  if (user.permissions?.includes("all") || user.permissions?.includes("*")) {
+    return true;
+  }
+  return user.permissions?.includes(permission) || false;
+};
+
 const ProductAdjustmentsTab = () => {
+  const { user } = useAuth();
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -60,6 +71,9 @@ const ProductAdjustmentsTab = () => {
   const queryClient = useQueryClient();
 
   const pageSize = 10;
+
+  const hasViewProductAdjustments = hasPermission(user, "view:product adjustments");
+  const hasCreateProductAdjustments = hasPermission(user, "create:product adjustments");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -95,6 +109,7 @@ const ProductAdjustmentsTab = () => {
       }
       return getProductAdjustments(params);
     },
+    enabled: hasViewProductAdjustments,
   });
 
   const totalPages = adjustmentsQuery.data ? Math.ceil(adjustmentsQuery.data.total / pageSize) : 0;
@@ -161,6 +176,17 @@ const ProductAdjustmentsTab = () => {
     });
   };
 
+  if (!hasViewProductAdjustments) {
+    return (
+      <div className="p-6">
+        <div className="flex flex-col items-center justify-center min-h-[400px]">
+          <h1 className="text-2xl font-bold text-muted-foreground mb-2">Access Denied</h1>
+          <p className="text-muted-foreground">You don't have permission to view product adjustments.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (adjustmentsQuery.isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -186,10 +212,12 @@ const ProductAdjustmentsTab = () => {
             dateRange={dateRange}
             onDateRangeChange={setDateRange}
           />
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            New Adjustment
-          </Button>
+          {hasCreateProductAdjustments && (
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              New Adjustment
+            </Button>
+          )}
         </div>
       </div>
 
@@ -259,7 +287,7 @@ const ProductAdjustmentsTab = () => {
               <PaginationItem key={page}>
                 <PaginationLink
                   onClick={() => setCurrentPage(page)}
-                  isActive={currentPage === page}
+                  isActive={page === currentPage}
                   className="cursor-pointer"
                 >
                   {page}
@@ -277,98 +305,100 @@ const ProductAdjustmentsTab = () => {
       )}
 
       {/* Add Adjustment Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Product Adjustments</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmitAdjustment} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="product">Product</Label>
-              <Select
-                value={selectedProductId}
-                onValueChange={(value) => {
-                  setSelectedProductId(value);
-                  setAmount(""); // Clear amount when product changes
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select product" />
-                </SelectTrigger>
-                <SelectContent>
-                  {productsQuery.data?.map((product) => (
-                    <SelectItem key={product.id} value={product.id.toString()}>
-                      {product.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            {selectedProductId && (
+      {hasCreateProductAdjustments && (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Product Adjustments</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmitAdjustment} className="space-y-4">
               <div className="space-y-2">
-                <Label>Current Stock</Label>
-                <div className="p-3 bg-muted rounded-md">
-                  <div className="text-lg font-semibold">
-                    {(() => {
-                      const selectedProduct = productsQuery.data?.find(p => p.id.toString() === selectedProductId);
-                      return selectedProduct?.quantity?.toLocaleString() || '0';
-                    })()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Available for reduction
+                <Label htmlFor="product">Product</Label>
+                <Select
+                  value={selectedProductId}
+                  onValueChange={(value) => {
+                    setSelectedProductId(value);
+                    setAmount(""); // Clear amount when product changes
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {productsQuery.data?.map((product) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedProductId && (
+                <div className="space-y-2">
+                  <Label>Current Stock</Label>
+                  <div className="p-3 bg-muted rounded-md">
+                    <div className="text-lg font-semibold">
+                      {(() => {
+                        const selectedProduct = productsQuery.data?.find(p => p.id.toString() === selectedProductId);
+                        return selectedProduct?.quantity?.toLocaleString() || '0';
+                      })()}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Available for reduction
+                    </div>
                   </div>
                 </div>
+              )}
+              <div className="space-y-2">
+                <Label htmlFor="amount">Quantity to Reduce</Label>
+                <Input
+                  id="amount"
+                  type="text"
+                  value={amount ? parseFloat(amount).toLocaleString() : ''}
+                  onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
+                  placeholder="Enter quantity to reduce"
+                  max={selectedProductId ? productsQuery.data?.find(p => p.id.toString() === selectedProductId)?.quantity : undefined}
+                />
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="amount">Quantity to Reduce</Label>
-              <Input
-                id="amount"
-                type="text"
-                value={amount ? parseFloat(amount).toLocaleString() : ''}
-                onChange={(e) => setAmount(e.target.value.replace(/,/g, ''))}
-                placeholder="Enter quantity to reduce"
-                max={selectedProductId ? productsQuery.data?.find(p => p.id.toString() === selectedProductId)?.quantity : undefined}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reason">Reason</Label>
-              <Select value={reason} onValueChange={setReason}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select reason" />
-                </SelectTrigger>
-                <SelectContent>
-                  {reasonsQuery.data?.map((reason) => (
-                    <SelectItem key={reason.id} value={reason.name}>
-                      {reason.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={createAdjustmentMutation.isPending || !selectedProductId || !amount || !reason}
-              >
-                {createAdjustmentMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Plus className="h-4 w-4 mr-2" />
-                )}
-                Add Adjustment
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+              <div className="space-y-2">
+                <Label htmlFor="reason">Reason</Label>
+                <Select value={reason} onValueChange={setReason}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select reason" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reasonsQuery.data?.map((reason) => (
+                      <SelectItem key={reason.id} value={reason.name}>
+                        {reason.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createAdjustmentMutation.isPending || !selectedProductId || !amount || !reason}
+                >
+                  {createAdjustmentMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  Add Adjustment
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 };

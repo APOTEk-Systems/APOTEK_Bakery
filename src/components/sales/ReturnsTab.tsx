@@ -77,8 +77,8 @@ const ReturnsTab: React.FC = () => {
     return rangeWithDots;
   };
 
-  const hasViewSales = hasPermission(user, "view:sales-adjustments");
-  const hasApproveAdjustments = hasPermission(user, "approve:sales-adjustments");
+  const hasViewReturns = hasPermission(user, "view:returns");
+  const hasApproveReturns = hasPermission(user, "approve:returns");
 
   // Fetch returns (sales adjustments) using React Query
   const { data: returnsData, isLoading: loading, error } = useQuery({
@@ -103,7 +103,7 @@ const ReturnsTab: React.FC = () => {
         currentPage: response.currentPage || page,
       };
     },
-    enabled: hasViewSales,
+    enabled: hasViewReturns,
   });
 
   const returns = returnsData?.adjustments || [];
@@ -203,7 +203,7 @@ const ReturnsTab: React.FC = () => {
     }, 0);
   };
 
-  if (!hasViewSales) {
+  if (!hasViewReturns) {
     return (
       <div className="p-6">
         <div className="flex flex-col items-center justify-center min-h-[400px]">
@@ -287,7 +287,7 @@ const ReturnsTab: React.FC = () => {
                       {getStatusBadge(returnItem.status)}
                     </TableCell>
                     <TableCell>
-                      {returnItem.status === 'PENDING' && hasApproveAdjustments ? (
+                      {returnItem.status === 'PENDING' && hasApproveReturns ? (
                         <div className="flex gap-2">
                           <Button
                             size="sm"

@@ -128,7 +128,7 @@ const ProductListTab = ({ onEditProduct, onDeleteProduct }: ProductListTabProps)
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="search"
-              placeholder="Search products..."
+              placeholder="Search Products"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -166,6 +166,7 @@ const ProductListTab = ({ onEditProduct, onDeleteProduct }: ProductListTabProps)
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product Name</TableHead>
+                    <TableHead>Quantity</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead>Status</TableHead>
@@ -178,6 +179,7 @@ const ProductListTab = ({ onEditProduct, onDeleteProduct }: ProductListTabProps)
                       <TableCell className="font-medium">
                         {product.name}
                       </TableCell>
+                      <TableCell className="">{product.quantity}</TableCell>
                       <TableCell>{formatCurrency(product.price)}</TableCell>
                       <TableCell>
                         <Badge

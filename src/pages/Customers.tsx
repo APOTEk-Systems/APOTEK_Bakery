@@ -262,7 +262,7 @@ const Customers = () => {
 
                     <TableCell className="align-middle">
                       <span className="text-sm text-muted-foreground text-center align-middle">
-                        {customer.currentCredit || "—"}
+                        {formatCurrency(customer.currentCredit || 0) || "—"}
                       </span>
                     </TableCell>
 

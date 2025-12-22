@@ -18,8 +18,9 @@ const permissionModules = {
 		'view:salesDashboard',
 		'view:purchasesDashboard',
 		'view:inventoryDashboard',
-		'view:accountingDashboard',
 		'view:productionDashboard',
+		'view:accountingDashboard',
+		
 	],
 
 	Sales: [
@@ -27,7 +28,10 @@ const permissionModules = {
 		'view:sales',
 		//  "update:sales",
 		//  "delete:sales",
-		'update:payment',
+		'update:payment',	
+		'view:returns',
+		'approve:returns',
+		'return:sales',	
 		'view:customers',
 		'create:customers',
 		'update:customers',
@@ -63,12 +67,14 @@ const permissionModules = {
 		'create:products',
 		'update:products',
 		'delete:products',
+		'view:product adjustments',
+		'create:product adjustments',
 	],
 	Production: [
 		'view:production',
 		'create:production',
-		// "update:production",
-		'delete:production',
+		// 'update:production',
+		// 'delete:production',
 	],
 	Accounting: [
 		'view:expenses',
@@ -81,11 +87,48 @@ const permissionModules = {
 		//  "view:reports",
 	],
 	Reports: [
-		'view:sales reports',
-		'view:purchases reports',
-		'view:inventory reports',
-		'view:production reports',
-		'view:accounting reports',
+		// Sales Reports
+		'view:sales details',
+		'view:sales summary',
+		'view:cash sales details',
+		'view:cash sales summary',
+		'view:credit sales details',
+		'view:credit sales summary',
+		'view:credit payments',
+		'view:price list',
+		'view:sales returns',
+		
+		// Purchases Reports
+		'view:material received',
+		'view:suppliers list',
+		'view:purchase orders detailed',
+		'view:purchase orders summary',
+		
+		// Inventory Reports
+		'view:materials current stock',
+		'view:supplies current stock',
+		'view:products current stock',
+		'view:materials low stock',
+		'view:supplies low stock',
+		'view:materials adjustments',
+		'view:supplies adjustments',
+		'view:materials out of stock',
+		'view:supplies out of stock',
+		'view:product details',
+		'view:product adjustments',
+		'view:inventory suppliers list',
+		
+		// Production Reports
+		'view:production detailed',
+		'view:production summary',
+		'view:ingredient usage',
+		'view:ingredient summary',
+		
+		// Accounting Reports
+		'view:gross profit',
+		'view:net profit',
+		'view:expenses',
+		'view:outstanding payments',
 
 		//"view:audit",
 	],
@@ -95,7 +138,9 @@ const permissionModules = {
 		'view:configurations',
 		'update:configurations',
 		'view:adjustment-reasons',
+		'create:adjustment-reasons',
 		'update:adjustment-reasons',
+		'delete:adjustment-reasons',
 		'view:expense-categories',
 		'update:expense-categories',
 		'view:users',
@@ -218,7 +263,9 @@ const RoleForm = () => {
 				'view:configurations',
 				'update:configurations',
 				'view:adjustment-reasons',
+				'create:adjustment-reasons',
 				'update:adjustment-reasons',
+				'delete:adjustment-reasons',
 				'view:expense-categories',
 				'update:expense-categories',
 				'view:users',
@@ -245,16 +292,53 @@ const RoleForm = () => {
 				];
 			}
 
-			// Reports defaults
-			const reportsSpecificPermissions = [
-				'view:sales reports',
-				'view:purchases reports',
-				'view:inventory reports',
-				'view:production reports',
-				'view:accounting reports',
-				'view:audit',
+			// Reports defaults - check for any granular report permissions
+			const reportPermissions = [
+				// Sales Reports
+				'view:sales details',
+				'view:sales summary',
+				'view:cash sales details',
+				'view:cash sales summary',
+				'view:credit sales details',
+				'view:credit sales summary',
+				'view:credit payments',
+				'view:price list',
+				'view:sales returns',
+				
+				// Purchases Reports
+				'view:material received',
+				'view:suppliers list',
+				'view:purchase orders detailed',
+				'view:purchase orders summary',
+				
+				// Production Reports
+				'view:production detailed',
+				'view:production summary',
+				'view:ingredient usage',
+				'view:ingredient summary',
+				
+				// Accounting Reports
+				'view:gross profit',
+				'view:net profit',
+				'view:expenses',
+				'view:outstanding payments',
+				
+				// Inventory Reports
+				'view:materials current stock',
+				'view:supplies current stock',
+				'view:products current stock',
+				'view:materials low stock',
+				'view:supplies low stock',
+				'view:materials adjustments',
+				'view:supplies adjustments',
+				'view:materials out of stock',
+				'view:supplies out of stock',
+				'view:product details',
+				'view:product adjustments',
+				'view:inventory suppliers list',
 			];
-			const hasReportsSpecific = reportsSpecificPermissions.some((perm) =>
+			
+			const hasReportsSpecific = reportPermissions.some((perm) =>
 				permissionsToSave.includes(perm)
 			);
 			if (hasReportsSpecific) {
@@ -578,6 +662,86 @@ const RoleForm = () => {
 																			permission === 'view:cash-flow'
 																		) {
 																			label = 'View Cash Flow';
+																		} else if (permission.startsWith('view:sales')) {
+																			if (permission.includes('sales details')) {
+																				label = 'Sales Details Report';
+																			} else if (permission.includes('sales summary')) {
+																				label = 'Sales Summary Report';
+																			} else if (permission.includes('cash sales details')) {
+																				label = 'Cash Sales Details Report';
+																			} else if (permission.includes('cash sales summary')) {
+																				label = 'Cash Sales Summary Report';
+																			} else if (permission.includes('credit sales details')) {
+																				label = 'Credit Sales Details Report';
+																			} else if (permission.includes('credit sales summary')) {
+																				label = 'Credit Sales Summary Report';
+																			} else if (permission.includes('credit payments')) {
+																				label = 'Credit Payments Report';
+																			} else if (permission.includes('price list')) {
+																				label = 'Price List Report';
+																			} else if (permission.includes('sales returns')) {
+																				label = 'Sales Returns Report';
+																			}
+																		} else if (permission.startsWith('view:material received')) {
+																			label = 'Material Received Report';
+																		} else if (permission.startsWith('view:suppliers list')) {
+																			label = 'Suppliers List Report';
+																		} else if (permission.startsWith('view:purchase orders')) {
+																			if (permission.includes('detailed')) {
+																				label = 'Purchase Orders Detailed Report';
+																			} else if (permission.includes('summary')) {
+																				label = 'Purchase Orders Summary Report';
+																			}
+																		} else if (permission.startsWith('view:production')) {
+																			if (permission.includes('detailed')) {
+																				label = 'Production Detailed Report';
+																			} else if (permission.includes('summary')) {
+																				label = 'Production Summary Report';
+																			}
+																		} else if (permission.startsWith('view:ingredient')) {
+																			if (permission.includes('usage')) {
+																				label = 'Ingredient Usage Report';
+																			} else if (permission.includes('summary')) {
+																				label = 'Ingredient Summary Report';
+																			}
+																		} else if (permission.startsWith('view:gross profit')) {
+																			label = 'Gross Profit Report';
+																		} else if (permission.startsWith('view:net profit')) {
+																			label = 'Net Profit Report';
+																		} else if (permission.startsWith('view:expenses')) {
+																			label = 'Expenses Report';
+																		} else if (permission.startsWith('view:outstanding payments')) {
+																			label = 'Outstanding Payments Report';
+																		} else if (permission.startsWith('view:materials')) {
+																			if (permission.includes('current stock')) {
+																				label = 'Materials Current Stock Report';
+																			} else if (permission.includes('low stock')) {
+																				label = 'Materials Low Stock Report';
+																			} else if (permission.includes('adjustments')) {
+																				label = 'Materials Adjustments Report';
+																			} else if (permission.includes('out of stock')) {
+																				label = 'Materials Out of Stock Report';
+																			}
+																		} else if (permission.startsWith('view:supplies')) {
+																			if (permission.includes('current stock')) {
+																				label = 'Supplies Current Stock Report';
+																			} else if (permission.includes('low stock')) {
+																				label = 'Supplies Low Stock Report';
+																			} else if (permission.includes('adjustments')) {
+																				label = 'Supplies Adjustments Report';
+																			} else if (permission.includes('out of stock')) {
+																				label = 'Supplies Out of Stock Report';
+																			}
+																		} else if (permission.startsWith('view:products')) {
+																			if (permission.includes('current stock')) {
+																				label = 'Products Current Stock Report';
+																			} else if (permission.includes('details')) {
+																				label = 'Product Details Report';
+																			} else if (permission.includes('adjustments')) {
+																				label = 'Product Adjustments Report';
+																			}
+																		} else if (permission.startsWith('view:inventory suppliers')) {
+																			label = 'Inventory Suppliers List Report';
 																		}
 																	} else if (
 																		permissionModules['Accounting'].includes(
@@ -656,10 +820,12 @@ const RoleForm = () => {
 																		) {
 																			if (permission.startsWith('view:')) {
 																				label = 'View Adjustment Reasons';
-																			} else if (
-																				permission.startsWith('update:')
-																			) {
-																				label = 'Edit Adjustment Reasons';
+																			} else if (permission.startsWith('create:')) {
+																				label = 'Create Adjustment Reasons';
+																			} else if (permission.startsWith('update:')) {
+																				label = 'Update Adjustment Reasons';
+																			} else if (permission.startsWith('delete:')) {
+																				label = 'Delete Adjustment Reasons';
 																			}
 																		} else if (
 																			permission.includes('expense-categories')

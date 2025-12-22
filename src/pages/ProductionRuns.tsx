@@ -521,7 +521,7 @@ const ProductionRuns = () => {
                                       View
                                     </Link>
                                   </Button>
-                                  <Button
+                                  {/* <Button
                                     variant="destructive"
                                     size="sm"
                                     onClick={() => handleDelete(run.id)}
@@ -529,7 +529,7 @@ const ProductionRuns = () => {
                                   >
                                     <Trash2 className="h-3 w-3" />
                                     Delete
-                                  </Button>
+                                  </Button> */}
                                 </div>
                               </TableCell>
                             </TableRow>
