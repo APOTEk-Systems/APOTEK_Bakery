@@ -7,6 +7,7 @@ import { purchasesService } from '../purchases';
 import { getProductAdjustments, type ProductAdjustmentsResponse } from '../products'; // Import for product adjustments
 import type {
 	SalesReport,
+	DailySalesReport,
 	SalesReturnsReport,
 	PurchasesReport,
 	ProductionReport,
@@ -715,4 +716,17 @@ export const getNetProfitReport = async (
 
 	const response = await api.get(`/reports/net-profit?${params.toString()}`);
 	return response.data;
+};
+
+
+// Daily Sales Report
+export const getDailySalesReport = async (
+  startDate?: string,
+  endDate?: string
+): Promise<DailySalesReport> => {
+  const params = new URLSearchParams();
+  if (startDate) params.append('startDate', startDate);
+  if (endDate) params.append('endDate', endDate);
+  const response = await api.get(`/reports/daily-sales?${params.toString()}`);
+  return response.data as DailySalesReport;
 };

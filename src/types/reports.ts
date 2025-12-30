@@ -340,3 +340,13 @@ export interface NetProfitReport {
 	totalExpenses: number;
 	netProfit: number;
 }
+
+
+export interface DailySalesReport {
+  data: Array<{
+    date: string;
+    totalSales: number;
+    productionCost: number;
+    profit: number;
+  }>;
+}

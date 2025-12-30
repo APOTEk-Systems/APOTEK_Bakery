@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 // Import types
 export type {
 	SalesReport,
+	DailySalesReport,
 	SalesReturnsReport,
 	SalesSummaryReport,
 	PurchasesReport,
@@ -58,6 +59,7 @@ import {
 	getOutstandingPaymentsReport,
 	getPurchaseOrderDetailedReport,
 	getSalesSummaryReport,
+	getDailySalesReport,
 	getCashSalesSummaryReport,
 	getCreditSummaryReport,
 	getCreditPaymentReport,
@@ -130,6 +132,7 @@ import {
 } from './generators/financial-pdf';
 
 import { generateCreditPaymentPDF } from './generators/credit-payment-pdf';
+import { generateDailySalesPDF } from './generators/daily-sales-pdf';
 import { generateReceiptPDF } from './generators/receipt-pdf';
 import { generateSalesReturnsPDF } from './generators/sales-returns-pdf';
 
@@ -165,6 +168,7 @@ export {
 	getProductionSummaryReport,
 	getIngredientSummaryReport,
 	getExpensesReport,
+	getDailySalesReport,
 	getOutstandingPaymentsReport,
 	getPurchaseOrderDetailedReport,
 
@@ -198,6 +202,7 @@ export {
 	generateProfitAndLossPDF,
 	generateGrossProfitPDF,
 	generateNetProfitPDF,
+	generateDailySalesPDF,
 	generateExpenseBreakdownPDF,
 	generateProductsPDF,
 	generateProductDetailsPDF,
@@ -421,35 +426,70 @@ export const reportsService = {
 	},
 
 	exportPurchasesReport: async (
-		startDate?: string,
-		endDate?: string
-	): Promise<Blob> => {
-		console.log('📊 Starting purchases report export...', {
-			startDate,
-			endDate,
-		});
+	startDate?: string,
+	endDate?: string
+): Promise<Blob> => {
+	console.log('📊 Starting purchases report export...', {
+		startDate,
+		endDate,
+	});
+	try {
+		const data = await getPurchasesReport(startDate, endDate);
+		console.log('✅ Purchases data fetched successfully:', data);
+
+		// Fetch settings for company header
+		let settings;
 		try {
-			const data = await getPurchasesReport(startDate, endDate);
-			console.log('✅ Purchases data fetched successfully:', data);
-
-			// Fetch settings for company header
-			let settings;
-			try {
-				const settingsService = (await import('@/services/settings'))
-					.settingsService;
-				settings = await settingsService.getAll();
-			} catch (error) {
-				console.warn('Could not fetch settings for PDF header:', error);
-			}
-
-			const pdfBlob = generatePurchasesPDF(data, startDate, endDate, settings);
-			console.log('📄 Purchases PDF generated successfully');
-			return pdfBlob;
+			const settingsService = (await import('@/services/settings'))
+				.settingsService;
+			settings = await settingsService.getAll();
 		} catch (error) {
-			console.error('❌ Error exporting purchases report:', error);
-			throw error;
+			console.warn('Could not fetch settings for PDF header:', error);
 		}
-	},
+
+		const pdfBlob = generatePurchasesPDF(data, startDate, endDate, settings);
+		console.log('📄 Purchases PDF generated successfully');
+		return pdfBlob;
+	} catch (error) {
+		console.error('❌ Error exporting purchases report:', error);
+		throw error;
+	}
+},
+
+exportDailySalesReport: async (
+	startDate?: string,
+	endDate?: string
+): Promise<Blob> => {
+	console.log('📊 Starting daily sales report export...', {
+		startDate,
+		endDate,
+	});
+	try {
+		const response = await api.get(`/reports/daily-sales?startDate=${startDate || ''}&endDate=${endDate || ''}`);
+		const backendData = response.data;
+		console.log('✅ Daily sales data fetched successfully:', backendData);
+
+		// Pass the backend data directly
+		const data = backendData;
+
+		// Fetch settings for company header
+		let settings;
+		try {
+			const settingsService = (await import('@/services/settings'))
+				.settingsService;
+			settings = await settingsService.getAll();
+		} catch (error) {
+			console.warn('Could not fetch settings for PDF header:', error);
+		}
+
+		const pdfBlob = generateDailySalesPDF(data, startDate, endDate, settings);
+		console.log('📄 Daily sales PDF generated successfully');
+		return pdfBlob;
+	} catch (error) {
+		console.error('❌ Error exporting daily sales report:', error);
+		throw error;
+	}
+},
 
 	exportPurchaseOrderSummaryReport: async (
 		startDate?: string,

@@ -44,7 +44,8 @@ const generateFilename = (reportType: string, dateRange?: DateRange): string => 
 		'outstanding-payments': 'Outstanding Payments Report',
 		'suppliers-list': 'Suppliers List Report',
 		'purchase-summary': 'Purchase Orders Summary Report',
-	};
+		'daily-sales': 'Daily Sales Report',
+};
 
 	const baseName =
 		reportNames[reportType] ||
@@ -435,10 +436,17 @@ export const useReportMutations = (
 	);
 
 	const exportOutstandingPaymentsMutation = createReportMutation(
-		(from, to) => reportsService.exportOutstandingPaymentsReport(from, to),
-		'outstanding-payments',
-		'Outstanding payments report generated successfully',
-		'Failed to export outstanding payments report'
+	  (from, to) => reportsService.exportOutstandingPaymentsReport(from, to),
+	  'outstanding-payments',
+	  'Outstanding payments report generated successfully',
+	  'Failed to export outstanding payments report'
+	);
+
+	const exportDailySalesMutation = createReportMutation(
+	  (from, to) => (reportsService as ReportsServiceType).exportDailySalesReport(from, to),
+	  'daily-sales',
+	  'Daily sales report generated successfully',
+	  'Failed to export daily sales report'
 	);
 
 	const exportPurchaseOrderDetailedMutation = createReportMutation(
@@ -483,39 +491,40 @@ export const useReportMutations = (
 	type ReportMutation = UseMutationResult<Blob, unknown, void, unknown>;
 
 	const mutations: Record<string, ReportMutation> = {
-		sales: exportSalesMutation,
-		'sales-returns': exportSalesReturnsMutation,
-		'cash-sales': exportCashSalesMutation,
-		'credit-sales': exportCreditSalesMutation,
-		'sales-summary': exportSalesSummaryMutation,
-		'cash-sales-summary': exportCashSalesSummaryMutation,
-		'credit-sales-summary': exportCreditSalesSummaryMutation,
-		'credit-payments': exportCreditPaymentsMutation,
-		'goods-received': exportGoodsReceivedMutation,
-		'purchase-orders-detailed': exportPurchaseOrderDetailedMutation,
-		'purchase-summary': exportPurchaseSummaryMutation,
-		'materials-current': exportMaterialsInventoryMutation,
-		'supplies-current': exportSuppliesInventoryMutation,
-		'materials-adjustment': exportMaterialsAdjustmentsMutation,
-		'supplies-adjustment': exportSuppliesAdjustmentsMutation,
-		'product-adjustment': exportProductAdjustmentsMutation,
-		'materials-low-stock': exportMaterialsLowStockMutation,
-		'supplies-low-stock': exportSuppliesLowStockMutation,
-		'materials-out-of-stock': exportMaterialsOutOfStockMutation,
-		'supplies-out-of-stock': exportSuppliesOutOfStockMutation,
-		'product-details': exportProductDetailsMutation,
-		production: exportProductionMutation,
-		'finished-goods': exportFinishedGoodsSummaryMutation,
-		'ingredient-usage': exportIngredientUsageMutation,
-		'production-summary': exportProductionSummaryMutation,
-		'ingredient-summary': exportIngredientSummaryMutation,
-		'gross-profit': exportGrossProfitMutation,
-		'net-profit': exportNetProfitMutation,
-		expenses: exportExpensesMutation,
-		'outstanding-payments': exportOutstandingPaymentsMutation,
-		products: exportProductsMutation,
-		'product-current-stock': exportProductsCurrentStockMutation,
-		'suppliers-list': exportSuppliersListMutation,
+	  sales: exportSalesMutation,
+	  'sales-returns': exportSalesReturnsMutation,
+	  'cash-sales': exportCashSalesMutation,
+	  'credit-sales': exportCreditSalesMutation,
+	  'sales-summary': exportSalesSummaryMutation,
+	  'cash-sales-summary': exportCashSalesSummaryMutation,
+	  'credit-sales-summary': exportCreditSalesSummaryMutation,
+	  'credit-payments': exportCreditPaymentsMutation,
+	  'goods-received': exportGoodsReceivedMutation,
+	  'purchase-orders-detailed': exportPurchaseOrderDetailedMutation,
+	  'purchase-summary': exportPurchaseSummaryMutation,
+	  'materials-current': exportMaterialsInventoryMutation,
+	  'supplies-current': exportSuppliesInventoryMutation,
+	  'materials-adjustment': exportMaterialsAdjustmentsMutation,
+	  'supplies-adjustment': exportSuppliesAdjustmentsMutation,
+	  'product-adjustment': exportProductAdjustmentsMutation,
+	  'materials-low-stock': exportMaterialsLowStockMutation,
+	  'supplies-low-stock': exportSuppliesLowStockMutation,
+	  'materials-out-of-stock': exportMaterialsOutOfStockMutation,
+	  'supplies-out-of-stock': exportSuppliesOutOfStockMutation,
+	  'product-details': exportProductDetailsMutation,
+	  production: exportProductionMutation,
+	  'finished-goods': exportFinishedGoodsSummaryMutation,
+	  'ingredient-usage': exportIngredientUsageMutation,
+	  'production-summary': exportProductionSummaryMutation,
+	  'ingredient-summary': exportIngredientSummaryMutation,
+	  'gross-profit': exportGrossProfitMutation,
+	  'net-profit': exportNetProfitMutation,
+	  expenses: exportExpensesMutation,
+	  'outstanding-payments': exportOutstandingPaymentsMutation,
+	  'daily-sales': exportDailySalesMutation,
+	  products: exportProductsMutation,
+	  'product-current-stock': exportProductsCurrentStockMutation,
+	  'suppliers-list': exportSuppliersListMutation,
 	};
 
 	const handleExport = (reportType: string) => {
