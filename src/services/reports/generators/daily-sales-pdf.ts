@@ -27,28 +27,32 @@ export const generateDailySalesPDF = (
     settings
   );
 
-  // Build table rows from daily sales data (excluding totals)
+  // Build table rows from daily sales data (product-level format)
   const dataRows = (data.data || []).map((item, idx) => [
     (idx + 1).toString(),
-    format(new Date(item.date), "dd-MM-yyyy"),
-    formatCurrencyPDF(item.totalSales ?? 0),
-    formatCurrencyPDF(item.productionCost ?? 0),
-    formatCurrencyPDF(item.profit ?? 0),
+    format(new Date(item.Date), "dd-MM-yyyy"),
+    item.Product,
+    item['Qty Sold'].toString(),
+    formatCurrencyPDF(item.Sales ?? 0),
+    formatCurrencyPDF(item.Cost ?? 0),
+    formatCurrencyPDF(item.Profit ?? 0),
   ]);
 
   // Add the data table first
   autoTable(doc, {
-    head: [["#", "Date", "Total Sales", "Production Cost", "Profit"]],
+    head: [["#", "Date", "Product", "Qty Sold", "Sales", "Cost", "Profit"]],
     body: dataRows,
     startY: yPos,
     margin: { left: 20, right: 20 },
     ...getDefaultTableStyles(),
     columnStyles: {
       0: { cellWidth: 15 },
-      1: { halign: "center", cellWidth: "auto" },
-      2: { halign: "right", cellWidth: 30 },
-      3: { halign: "right", cellWidth: 30 },
-      4: { halign: "right", cellWidth: 30 },
+      1: { halign: "center", cellWidth: 25 },
+      2: { halign: "left", cellWidth: 40 },
+      3: { halign: "center", cellWidth: 20 },
+      4: { halign: "right", cellWidth: 25 },
+      5: { halign: "right", cellWidth: 25 },
+      6: { halign: "right", cellWidth: 25 },
     },
     headStyles: {
       ...getDefaultTableStyles().headStyles,
@@ -58,13 +62,16 @@ export const generateDailySalesPDF = (
     didParseCell: function (dataItem: any) {
       if (
         dataItem.section === "head" &&
-        (dataItem.column.index === 2 ||
-         dataItem.column.index === 3 ||
-         dataItem.column.index === 4)
+        (dataItem.column.index === 4 ||
+         dataItem.column.index === 5 ||
+         dataItem.column.index === 6)
       ) {
         dataItem.cell.styles.halign = "right";
       }
       if (dataItem.section === "head" && dataItem.column.index === 1) {
+        dataItem.cell.styles.halign = "center";
+      }
+      if (dataItem.section === "head" && dataItem.column.index === 3) {
         dataItem.cell.styles.halign = "center";
       }
     },
@@ -73,12 +80,12 @@ export const generateDailySalesPDF = (
   // Calculate totals after the table
   const totals = (data.data || []).reduce(
     (acc, item) => {
-      acc.totalSales += item.totalSales ?? 0;
-      acc.productionCost += item.productionCost ?? 0;
-      acc.profit += item.profit ?? 0;
+      acc.totalSales += item.Sales ?? 0;
+      acc.totalCost += item.Cost ?? 0;
+      acc.profit += item.Profit ?? 0;
       return acc;
     },
-    { totalSales: 0, productionCost: 0, profit: 0 }
+    { totalSales: 0, totalCost: 0, profit: 0 }
   );
 
   // Add totals section outside the table (below the table)
@@ -88,9 +95,9 @@ export const generateDailySalesPDF = (
 
     // Add totals in a separate table to prevent page breaks within totals
     const totalsTableData = [
-      ["", "", "Total Sales:", formatCurrencyPDF(totals.totalSales)],
-      ["", "", "Production Cost:", formatCurrencyPDF(totals.productionCost)],
-      ["", "", "Profit:", formatCurrencyPDF(totals.profit)]
+      ["", "", "", "", "", "Total Sales:", formatCurrencyPDF(totals.totalSales)],
+      ["", "", "", "", "", "Total Cost:", formatCurrencyPDF(totals.totalCost)],
+      ["", "", "", "", "", "Profit:", formatCurrencyPDF(totals.profit)]
     ];
 
     autoTable(doc, {
@@ -99,8 +106,8 @@ export const generateDailySalesPDF = (
       startY: finalY + 10, // Add some space after the main table
       ...getDefaultTableStyles(),
       columnStyles: {
-        2: { halign: 'left', cellWidth: 30 }, // Left-align labels
-        3: { halign: 'right', cellWidth: 30 }, // Right-align values
+        5: { halign: 'left', cellWidth: 30 }, // Left-align labels
+        6: { halign: 'right', cellWidth: 50 }, // Right-align values
       },
       didParseCell: function(data: any) {
         // Style totals rows

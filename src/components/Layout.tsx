@@ -50,16 +50,16 @@ const Layout = ({ children }: LayoutProps) => {
       };
 
       const lowStockItems = allItems.filter((item) => {
-        // Run check only for raw materials
-        if (item.type?.toLowerCase() !== "raw_material") return false;
+        // Check for both raw materials and supplies
+        if (item.type?.toLowerCase() !== "raw_material" && item.type?.toLowerCase() !== "supplies") return false;
 
         const status = getStatus(item.currentQuantity, item.minLevel);
         return status === "low" || status === "critical";
       });
 
       const outOfStockItems = allItems.filter((item) => {
-        // Run check only for raw materials
-        if (item.type?.toLowerCase() !== "raw_material") return false;
+        // Check for both raw materials and supplies
+        if (item.type?.toLowerCase() !== "raw_material" && item.type?.toLowerCase() !== "supplies") return false;
 
         return item.currentQuantity <= 0;
       });
@@ -74,7 +74,7 @@ const Layout = ({ children }: LayoutProps) => {
 
         if (
           lowStockItems.length > 0 &&
-          notificationsEnabled.lowInventoryAlerts
+          notificationsEnabled?.lowInventoryAlerts
         ) {
           toast({
             title: "Low Inventory Alert",
@@ -88,7 +88,7 @@ const Layout = ({ children }: LayoutProps) => {
 
         if (
           outOfStockItems.length > 0 &&
-          (notificationsEnabled as any)?.outOfStockAlerts
+          notificationsEnabled?.outOfStockAlerts
         ) {
           toast({
             title: "Out of Stock Alert",

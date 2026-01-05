@@ -395,7 +395,7 @@ export const formatCurrencyPDF = (amount: number | undefined | null): string => 
   if (isNaN(num)) {
     return "0.00";
   }
-  return `${num.toLocaleString()}`;
+  return `${num.toLocaleString(undefined, { minimumFractionDigits: 0, })}`;
 };
 
 // Format date for PDF

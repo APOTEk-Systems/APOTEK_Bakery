@@ -344,9 +344,11 @@ export interface NetProfitReport {
 
 export interface DailySalesReport {
   data: Array<{
-    date: string;
-    totalSales: number;
-    productionCost: number;
-    profit: number;
+    Date: string;
+    Product: string;
+    'Qty Sold': number;
+    Sales: number;
+    Cost: number;
+    Profit: number;
   }>;
 }
