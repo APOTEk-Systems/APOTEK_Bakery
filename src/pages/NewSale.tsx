@@ -11,10 +11,13 @@ import { salesService, type SaleItem } from '@/services/sales';
 import { settingsService, type SettingsData } from '@/services/settings';
 import ProductsList from '../components/sales/ProductsList';
 import Cart from '../components/sales/Cart';
+import HoverCart from '../components/sales/HoverCart';
+import CartPreviewDialog from '../components/sales/CartPreviewDialog';
 import Checkout from '../components/sales/Checkout';
 import ConfirmSaleDialog from '../components/sales/ConfirmSaleDialog';
 import NewCustomerDialog from '../components/sales/NewCustomerDialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Helper function to check permissions
 const hasPermission = (user: any, permission: string): boolean => {
@@ -74,20 +77,22 @@ const NewSale = () => {
 	const [currentStep, setCurrentStep] = useState(1);
 	const [isNewCustomerOpen, setIsNewCustomerOpen] = useState(false);
 	const [newCustomerForm, setNewCustomerForm] = useState({
-		name: '',
-		email: '',
-		phone: '',
-		creditLimit: '',
+	  name: '',
+	  email: '',
+	  phone: '',
+	  creditLimit: '',
 	});
 	const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 	const [soldCart, setSoldCart] = useState<CartItem[]>([]);
 	const [saleCompleted, setSaleCompleted] = useState(false);
 	const [newSale, setNewSale] = useState<any>(null);
 	const [previewFormat, setPreviewFormat] = useState<'a4' | 'a5' | 'thermal' | null>(
-		null
+	  null
 	);
 	const [soldCustomer, setSoldCustomer] = useState<Customer | null>(null);
 	const [soldCustomerName, setSoldCustomerName] = useState('');
+	const [isHoverCartOpen, setIsHoverCartOpen] = useState(false);
+	const [isPreviewDialogOpen, setIsPreviewDialogOpen] = useState(false);
 
 	const resetSaleState = () => {
 		setShowConfirmDialog(false);
@@ -109,6 +114,7 @@ const NewSale = () => {
 	};
 
 	const { toast } = useToast();
+	const isMobile = useIsMobile();
 
 	const queryClient = useQueryClient();
 
@@ -446,45 +452,74 @@ const NewSale = () => {
 					</div>
 
 					{currentStep === 1 ? (
-						<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-							<ProductsList
-								searchTerm={searchTerm}
-								setSearchTerm={setSearchTerm}
-								filteredProducts={filteredProducts}
-								addToCart={addToCart}
-							/>
-							<Cart
-								cart={cart}
-								products={products}
-								updateQuantity={updateQuantity}
-								removeFromCart={removeFromCart}
-								setCurrentStep={setCurrentStep}
-							/>
-						</div>
+					  <>
+					    {isMobile ? (
+					      // Mobile layout - full width products list
+					      <div className='space-y-6'>
+					        <ProductsList
+					          searchTerm={searchTerm}
+					          setSearchTerm={setSearchTerm}
+					          filteredProducts={filteredProducts}
+					          addToCart={addToCart}
+					        />
+					      </div>
+					    ) : (
+					      // Desktop layout - side by side
+					      <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+					        <ProductsList
+					          searchTerm={searchTerm}
+					          setSearchTerm={setSearchTerm}
+					          filteredProducts={filteredProducts}
+					          addToCart={addToCart}
+					        />
+					        <Cart
+					          cart={cart}
+					          products={products}
+					          updateQuantity={updateQuantity}
+					          removeFromCart={removeFromCart}
+					          setCurrentStep={setCurrentStep}
+					        />
+					      </div>
+					    )}
+
+					    {/* Hover cart for mobile screens */}
+					    {isMobile && (
+					      <HoverCart
+					        cart={cart}
+					        products={products}
+					        updateQuantity={updateQuantity}
+					        removeFromCart={removeFromCart}
+					        setCurrentStep={setCurrentStep}
+					        onPreview={() => setIsPreviewDialogOpen(true)}
+					        isOpen={isHoverCartOpen}
+					        setIsOpen={setIsHoverCartOpen}
+					      />
+					    )}
+					  </>
 					) : (
-						<Checkout
-							setCurrentStep={setCurrentStep}
-							selectedCustomer={selectedCustomer}
-							setSelectedCustomer={setSelectedCustomer}
-							customers={customers}
-							paymentMethod={paymentMethod}
-							setPaymentMethod={setPaymentMethod}
-							creditDueDate={creditDueDate}
-							setCreditDueDate={setCreditDueDate}
-							isNewCustomerOpen={isNewCustomerOpen}
-							setIsNewCustomerOpen={setIsNewCustomerOpen}
-							newCustomerForm={newCustomerForm}
-							setNewCustomerForm={setNewCustomerForm}
-							handleConfirmSale={handleConfirmSale}
-							subtotal={subtotal}
-							tax={tax}
-							total={total}
-							cart={cart.map((item) => ({
-								...item,
-								quantity: item.cartQuantity,
-							}))}
-							createSaleMutation={createSaleMutation}
-						/>
+					  <Checkout
+					    setCurrentStep={setCurrentStep}
+					    selectedCustomer={selectedCustomer}
+					    setSelectedCustomer={setSelectedCustomer}
+					    customers={customers}
+					    paymentMethod={paymentMethod}
+					    setPaymentMethod={setPaymentMethod}
+					    creditDueDate={creditDueDate}
+					    setCreditDueDate={setCreditDueDate}
+					    isNewCustomerOpen={isNewCustomerOpen}
+					    setIsNewCustomerOpen={setIsNewCustomerOpen}
+					    newCustomerForm={newCustomerForm}
+					    setNewCustomerForm={setNewCustomerForm}
+					    handleConfirmSale={handleConfirmSale}
+					    subtotal={subtotal}
+					    tax={tax}
+					    total={total}
+					    cart={cart.map((item) => ({
+					      ...item,
+					      quantity: item.cartQuantity,
+					    }))}
+					    createSaleMutation={createSaleMutation}
+					  />
 					)}
 				</div>
 			</Layout>
@@ -512,14 +547,27 @@ const NewSale = () => {
 			/>
 
 			<NewCustomerDialog
-				isNewCustomerOpen={isNewCustomerOpen}
-				setIsNewCustomerOpen={setIsNewCustomerOpen}
-				newCustomerForm={newCustomerForm}
-				setNewCustomerForm={setNewCustomerForm}
-				handleAddNewCustomer={handleAddNewCustomer}
-				createCustomerMutation={createCustomerMutation}
+			  isNewCustomerOpen={isNewCustomerOpen}
+			  setIsNewCustomerOpen={setIsNewCustomerOpen}
+			  newCustomerForm={newCustomerForm}
+			  setNewCustomerForm={setNewCustomerForm}
+			  handleAddNewCustomer={handleAddNewCustomer}
+			  createCustomerMutation={createCustomerMutation}
 			/>
-		</>
+
+			{/* Cart Preview Dialog for mobile */}
+			{isMobile && (
+			  <CartPreviewDialog
+			    isOpen={isPreviewDialogOpen}
+			    setIsOpen={setIsPreviewDialogOpen}
+			    cart={cart}
+			    products={products}
+			    updateQuantity={updateQuantity}
+			    removeFromCart={removeFromCart}
+			    setCurrentStep={setCurrentStep}
+			  />
+			)}
+	</>
 	);
 };
 

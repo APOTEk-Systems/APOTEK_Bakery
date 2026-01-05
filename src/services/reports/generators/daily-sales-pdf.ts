@@ -21,7 +21,7 @@ export const generateDailySalesPDF = (
   // Add company header
   const yPos = addCompanyHeader(
     doc,
-    "Daily Sales Report",
+    "Daily Profit Report",
     startDate,
     endDate,
     settings

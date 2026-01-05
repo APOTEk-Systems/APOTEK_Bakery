@@ -26,7 +26,7 @@ const AccountingReportsTab = () => {
               <SelectValue placeholder="Select accounting report type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="daily-sales">Daily Sales Report</SelectItem>
+              <SelectItem value="daily-sales">Daily Profit Report</SelectItem>
               <SelectItem value="gross-profit">Gross Profit Report</SelectItem>
               <SelectItem value="net-profit">Net Profit Report</SelectItem>
               <SelectItem value="expenses">Expenses Report</SelectItem>
