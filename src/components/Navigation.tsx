@@ -91,7 +91,7 @@ const Navigation = ({
 			location.pathname.startsWith('/expense-categories') ||
 			location.pathname.startsWith('/users') ||
 			location.pathname.startsWith('/roles') ||
-			location.pathname.startsWith('/notifications')
+			location.pathname.startsWith('/alerts')
 	);
 
 	const navItems = [
@@ -341,7 +341,7 @@ const Navigation = ({
 									location.pathname.startsWith('/expense-categories') ||
 									location.pathname.startsWith('/users') ||
 									location.pathname.startsWith('/roles') ||
-									location.pathname.startsWith('/notifications');
+									location.pathname.startsWith('/alerts');
 								return (
 									<Collapsible
 										key={index}
@@ -508,14 +508,14 @@ const Navigation = ({
 													hasPermission(user, 'update:notifications')) && (
 													<Button
 														variant={
-															location.pathname === '/notifications'
+															location.pathname === '/alerts'
 																? 'secondary'
 																: 'ghost'
 														}
 														className='w-full justify-start hover:bg-muted'
 														asChild>
 														<Link
-															to='/notifications'
+															to='/alerts'
 															className='flex items-center gap-2'>
 															<Bell className='h-4 w-4' />
 															{(!collapsed || isMobile) && 'Alerts'}
