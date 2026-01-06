@@ -223,7 +223,7 @@ const App = () => (
                   <Configurations />
                 </ProtectedRoute>
               } />
-              <Route path="/notifications" element={
+              <Route path="/alerts" element={
                 <ProtectedRoute>
                   <Notifications />
                 </ProtectedRoute>

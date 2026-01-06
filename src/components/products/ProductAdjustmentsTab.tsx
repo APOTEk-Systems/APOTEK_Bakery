@@ -247,14 +247,14 @@ const ProductAdjustmentsTab = () => {
                        <TableCell>
                       {format(new Date(adjustment.createdAt), "dd-MM-yyyy")}
                     </TableCell>
-                    <TableCell>{product?.name || "Unknown"}</TableCell>
+                    <TableCell>{product || "Unknown"}</TableCell>
                     <TableCell>
                       
                       {adjustment.amount}
                     </TableCell>
                     <TableCell>{adjustment.reason}</TableCell>
                     <TableCell>
-                      {adjustment.createdBy ? `${adjustment.createdBy.name}` : 'Unknown'}
+                      {adjustment.createdBy ? `${adjustment.createdBy}` : 'Unknown'}
                     </TableCell>
                   </TableRow>
                 );

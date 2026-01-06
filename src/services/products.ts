@@ -99,11 +99,8 @@ export interface ProductAdjustment {
   reason: string;
   createdAt: string;
   createdById: number;
-  product?: Product;
-  createdBy?: {
-    id: number;
-    name: string;
-  };
+  product: string;
+  createdBy: string;
 }
 
 export interface GetProductAdjustmentsParams {
