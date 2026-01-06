@@ -343,14 +343,12 @@ export interface NetProfitReport {
 
 
 export interface DailySalesReport {
-  productData: Array<{
+  data: Array<{
     Date: string;
     Product: string;
     'Qty Sold': number;
     Sales: number;
     Cost: number;
-    Expense: number;
     Profit: number;
   }>;
-  dailyExpenses: Record<string, number>;
 }
